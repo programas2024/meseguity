@@ -2082,83 +2082,250 @@
 <script src="modulos/chat-tiempo-real.js"></script>
 <script src="modulos/archivos.js"></script>
 
-<!-- Script de inicialización -->
 <script>
-    // Configuración Supabase GLOBAL
-    const SUPABASE_URL = 'https://enmiomqkkdlmodrjmfak.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVubWlvbXFra2RsbW9kcmptZmFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MDA0OTEsImV4cCI6MjA4MDk3NjQ5MX0.HeiJGnnkUjutlZkMTopFK7AIRZzRLxBTXvWk96OcAxg';
-    window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    
-    // Variables globales
-    window.usuarioActual = null;
-    window.usuarioIdActual = null;
-    window.listaAmigos = [];
-    window.solicitudesPendientes = [];
-    window.listaUsuarios = [];
+// Configuración Supabase GLOBAL
+const SUPABASE_URL = 'https://enmiomqkkdlmodrjmfak.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVubWlvbXFra2RsbW9kcmptZmFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MDA0OTEsImV4cCI6MjA4MDk3NjQ5MX0.HeiJGnnkUjutlZkMTopFK7AIRZzRLxBTXvWk96OcAxg';
+window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: {
+        persistSession: true,
+        autoRefreshToken: true
+    }
+});
+
+// Variables globales
+window.usuarioActual = null;
+window.usuarioIdActual = null;
+window.listaAmigos = [];
+window.solicitudesPendientes = [];
+window.listaUsuarios = [];
+window.gruposActuales = [];
+
+// FUNCIÓN PARA ACTUALIZAR LA INTERFAZ DEL USUARIO
+function actualizarUIUsuario(usuario) {
+    try {
+        console.log("🎨 Actualizando UI del usuario:", usuario?.nombre);
+        
+        const avatar = document.getElementById('userAvatar');
+        const nombre = document.getElementById('userName');
+        const email = document.getElementById('userEmail');
+        const welcomeTitle = document.getElementById('welcomeTitle');
+        const welcomeText = document.getElementById('welcomeText');
+
+        if (avatar && usuario) {
+            // Si tiene avatar_url de GitHub, usarlo
+            if (usuario.avatar_url) {
+                avatar.innerHTML = `<img src="${usuario.avatar_url}" alt="${usuario.nombre}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+            } else {
+                // Si no, usar iniciales con gradiente
+                const inicial = usuario.nombre ? usuario.nombre.charAt(0).toUpperCase() : 'U';
+                avatar.innerHTML = `<span style="font-size: 20px; font-weight: bold;">${inicial}</span>`;
+                avatar.style.background = `linear-gradient(135deg, #1a73e8, #0d47a1)`;
+                avatar.style.color = 'white';
+                avatar.style.display = 'flex';
+                avatar.style.alignItems = 'center';
+                avatar.style.justifyContent = 'center';
+            }
+        }
+        
+        if (nombre && usuario) {
+            nombre.textContent = usuario.nombre + ' ' + usuario.apellidos;
+        }
+        
+        if (email && usuario) {
+            email.textContent = usuario.email;
+        }
+        
+        if (welcomeTitle && usuario) {
+            welcomeTitle.textContent = `¡Bienvenido, ${usuario.nombre}!`;
+        }
+        
+        if (welcomeText && usuario) {
+            welcomeText.textContent = `Nos encanta tenerte aquí, ${usuario.nombre}. Comienza a explorar todas las funciones de mensajería, encuentra nuevos amigos y empieza a chatear.`;
+        }
+        
+        console.log("✅ UI actualizada correctamente");
+    } catch (error) {
+        console.error("❌ Error al actualizar UI del usuario:", error);
+    }
+}
+
+// INICIALIZACIÓN DE LA APLICACIÓN
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        // Verificar sesión
+        console.log("🚀 Inicializando aplicación Messery...");
+        
+        // Verificar que los módulos necesarios estén cargados
+        if (!window.supabase) {
+            console.error("❌ Supabase no está disponible");
+            alert("Error: No se pudo conectar con el servidor. Recarga la página.");
+            return;
+        }
+
+        // Pequeña pausa para asegurar que los módulos estén cargados
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // 1. Verificar sesión usando el módulo Autenticacion
+        console.log("🔐 Verificando sesión...");
         const usuarioAuth = await Autenticacion.verificarSesion();
-        if (!usuarioAuth) return;
         
-        // Cargar información del usuario
-        await Usuario.cargarInformacion(usuarioAuth);
+        if (!usuarioAuth) {
+            console.log("⚠️ No hay sesión activa, redirigiendo a login...");
+            window.location.href = 'index.html';
+            return;
+        }
         
-        // Inicializar chat en tiempo real (verificar si ya es una instancia)
+        console.log("✅ Sesión activa encontrada:", usuarioAuth.email);
+
+        // 2. Verificar y registrar usuario si no existe (USANDO LA FUNCIÓN DEL MÓDULO)
+        console.log("📋 Verificando/registrando usuario en DB...");
+        const usuarioDB = await Autenticacion.verificarYRegistrarUsuario();
+        
+        if (!usuarioDB) {
+            console.error("❌ Error crítico: No se pudo registrar el usuario");
+            if (window.Utilidades && window.Utilidades.mostrarAlerta) {
+                window.Utilidades.mostrarAlerta(
+                    'Error de registro', 
+                    'No se pudo completar el registro. Intenta recargar la página o contacta al administrador.', 
+                    'error'
+                );
+            }
+            return;
+        }
+
+        // 3. Guardar usuario en variables globales
+        window.usuarioActual = usuarioDB;
+        window.usuarioIdActual = usuarioDB.id;
+        console.log("👤 Usuario cargado:", usuarioDB.nombre, "(ID:", usuarioDB.id, ")");
+
+        // 4. Actualizar interfaz del usuario
+        console.log("🎨 Configurando interfaz del usuario...");
+        actualizarUIUsuario(window.usuarioActual);
+
+        // 5. Cargar información adicional del usuario (si existe el módulo)
+        if (window.Usuario && window.Usuario.cargarInformacion) {
+            console.log("👤 Cargando información adicional del usuario...");
+            await window.Usuario.cargarInformacion(usuarioDB);
+        }
+
+        // 6. Inicializar chat en tiempo real
         if (window.ChatTiempoReal) {
+            console.log("💬 Inicializando chat en tiempo real...");
             if (typeof window.ChatTiempoReal === 'function') {
-                // Es un constructor, crear instancia
                 window.chatTiempoRealInstance = new window.ChatTiempoReal();
-                console.log('Chat en tiempo real inicializado (nueva instancia)');
+                console.log('✅ Chat en tiempo real inicializado');
             } else if (typeof window.ChatTiempoReal === 'object') {
-                // Ya es un objeto/instancia, solo usar
-                console.log('Chat en tiempo real ya está disponible como objeto');
                 window.chatTiempoRealInstance = window.ChatTiempoReal;
+                console.log('✅ Chat en tiempo real ya disponible');
             }
         } else {
-            console.log('ChatTiempoReal no disponible');
+            console.log("⚠️ ChatTiempoReal no disponible");
         }
-        
-        // Inicializar sistema de archivos
+
+        // 7. Inicializar sistema de archivos
         if (window.Archivos && window.Archivos.inicializarStorage) {
+            console.log("📁 Inicializando sistema de archivos...");
             await window.Archivos.inicializarStorage();
-            console.log('Sistema de archivos inicializado');
+            console.log('✅ Sistema de archivos inicializado');
+        }
+
+        // 8. Cargar datos iniciales
+        console.log("📥 Cargando datos iniciales...");
+        
+        if (window.Mensajes && window.Mensajes.cargarBandejaEntrada) {
+            await window.Mensajes.cargarBandejaEntrada();
         }
         
-        // Cargar datos iniciales
-        await Mensajes.cargarBandejaEntrada();
-        await Mensajes.actualizarContadorNoLeidos();
-        await Amigos.cargarAmigos();
-        await Amigos.cargarSolicitudesPendientes();
-        await UsuariosDisponibles.cargarUsuariosDisponibles();
+        if (window.Mensajes && window.Mensajes.actualizarContadorNoLeidos) {
+            await window.Mensajes.actualizarContadorNoLeidos();
+        }
         
-        // Cargar grupos del usuario
+        if (window.Amigos && window.Amigos.cargarAmigos) {
+            await window.Amigos.cargarAmigos();
+        }
+        
+        if (window.Amigos && window.Amigos.cargarSolicitudesPendientes) {
+            await window.Amigos.cargarSolicitudesPendientes();
+        }
+        
+        if (window.UsuariosDisponibles && window.UsuariosDisponibles.cargarUsuariosDisponibles) {
+            await window.UsuariosDisponibles.cargarUsuariosDisponibles();
+        }
+        
+        // 9. Cargar grupos del usuario
         if (window.Grupos && window.Grupos.cargarMisGrupos) {
-            await Grupos.cargarMisGrupos();
-            console.log('Grupos cargados');
+            console.log("👥 Cargando grupos...");
+            await window.Grupos.cargarMisGrupos();
+            console.log('✅ Grupos cargados');
         }
-        
-        // Configurar interfaz
-        Interfaz.configurarEventos();
-        
-        // Ocultar mensaje de bienvenida después de 5 segundos
+
+        // 10. Configurar interfaz y eventos
+        if (window.Interfaz && window.Interfaz.configurarEventos) {
+            console.log("⚙️ Configurando eventos de interfaz...");
+            window.Interfaz.configurarEventos();
+        }
+
+        // 11. Configurar logout
+        const btnLogout = document.getElementById('btnLogout');
+        if (btnLogout) {
+            btnLogout.addEventListener('click', async () => {
+                try {
+                    await Autenticacion.cerrarSesion();
+                } catch (error) {
+                    console.error('Error al cerrar sesión:', error);
+                }
+            });
+        }
+
+        // 12. Ocultar mensaje de bienvenida después de 5 segundos
         setTimeout(() => {
             const welcomeMsg = document.getElementById('welcomeMessage');
             if (welcomeMsg) {
-                welcomeMsg.style.display = 'none';
+                welcomeMsg.style.opacity = '0';
+                welcomeMsg.style.transition = 'opacity 1s ease';
+                setTimeout(() => {
+                    welcomeMsg.style.display = 'none';
+                }, 1000);
             }
         }, 5000);
-        
-        console.log('Aplicación Messery inicializada correctamente');
-        
+
+        // 13. Configurar suscripción a cambios de autenticación
+        supabase.auth.onAuthStateChange((event, session) => {
+            console.log('🔄 Cambio en estado de autenticación:', event);
+            
+            if (event === 'SIGNED_OUT') {
+                console.log('🚪 Usuario cerró sesión, redirigiendo...');
+                window.location.href = 'index.html';
+            } else if (event === 'TOKEN_REFRESHED') {
+                console.log('🔄 Token refrescado');
+            }
+        });
+
+        console.log("🎉 Aplicación Messery inicializada correctamente");
+
     } catch (error) {
-        console.error('Error al inicializar la aplicación:', error);
-        if (window.Utilidades) {
-            window.Utilidades.mostrarAlerta('Error', 'No se pudo inicializar la aplicación', 'error');
+        console.error('❌ Error al inicializar la aplicación:', error);
+        
+        // Mostrar error amigable
+        let errorMessage = 'No se pudo inicializar la aplicación. ';
+        if (error.message) {
+            errorMessage += 'Error: ' + error.message;
+        }
+        
+        if (window.Utilidades && window.Utilidades.mostrarAlerta) {
+            window.Utilidades.mostrarAlerta('Error de inicialización', errorMessage, 'error');
+        } else {
+            alert(errorMessage);
+        }
+        
+        // Si es error de autenticación, redirigir a login
+        if (error.message && (error.message.includes('auth') || error.message.includes('session'))) {
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 3000);
         }
     }
 });
 </script>
-
 </body>
 </html>
