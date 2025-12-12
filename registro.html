@@ -412,7 +412,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-          <script>
+         <script>
     // Configuración Supabase
     const supabaseUrl = 'https://enmiomqkkdlmodrjmfak.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVubWlvbXFra2RsbW9kcmptZmFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MDA0OTEsImV4cCI6MjA4MDk3NjQ5MX0.HeiJGnnkUjutlZkMTopFK7AIRZzRLxBTXvWk96OcAxg';
@@ -541,147 +541,203 @@
                 });
 
                 try {
-                    // CORRECCIÓN 1: Usar URL absoluta para GitHub Pages
+                    // DEBUG: Mostrar en consola los datos
+                    console.log('📋 Datos del formulario:', {
+                        email, nombre, apellidos, pais, ciudad, genero, tipo_cuenta, fecha_nacimiento
+                    });
+
+                    // URL para redirección después de confirmar email
                     const redirectUrl = 'https://programas2024.github.io/meseguity/index.html';
                     
-                    // CORRECCIÓN 2: Preparar los datos del usuario
-                    const userMetadata = {
-                        nombre: nombre,
-                        apellidos: apellidos,
-                        nombre_completo: `${nombre} ${apellidos}`,
-                        fecha_nacimiento: fecha_nacimiento,
-                        pais: pais,
-                        ciudad: ciudad,
-                        genero: genero,
-                        tipo_cuenta: tipo_cuenta,
-                        avatar_url: '', 
-                        status: 'offline',
-                        last_seen: new Date().toISOString(),
-                        // Añadir más campos para asegurar que se guarden
-                        telefono: '',
-                        biografia: '',
-                        website: ''
-                    };
-
-                    // CORRECCIÓN 3: Crear usuario en Supabase Auth
+                    // 1. PRIMERO: Crear usuario en Supabase Auth
                     const { data: authData, error: authError } = await supabase.auth.signUp({
                         email: email,
                         password: contrasena,
                         options: {
-                            data: userMetadata, // Usar el objeto completo
+                            data: {
+                                nombre: nombre,
+                                apellidos: apellidos,
+                                nombre_completo: `${nombre} ${apellidos}`,
+                                fecha_nacimiento: fecha_nacimiento,
+                                pais: pais,
+                                ciudad: ciudad,
+                                genero: genero,
+                                tipo_cuenta: tipo_cuenta
+                            },
                             emailRedirectTo: redirectUrl
                         }
                     });
 
                     if (authError) {
+                        console.error('❌ Error en Supabase Auth:', authError);
                         if (authError.message.includes('already registered') || 
-                            authError.message.includes('User already registered') ||
-                            authError.code === 'user_already_exists') {
+                            authError.message.includes('User already registered')) {
                             throw new Error('Este correo electrónico ya está registrado');
                         }
-                        
-                        if (authError.message.includes('Password should be at least')) {
-                            throw new Error('La contraseña debe tener al menos 6 caracteres');
-                        }
-                        
-                        if (authError.message.includes('Invalid email')) {
-                            throw new Error('El correo electrónico no es válido');
-                        }
-                        
-                        throw new Error(`Error al crear la cuenta: ${authError.message}`);
+                        throw new Error(`Error en autenticación: ${authError.message}`);
                     }
 
-                    // CORRECCIÓN 4: También crear perfil en tabla usuarios manualmente
-                    // Pero con una verificación para evitar duplicados
-                    try {
-                        const userData = {
-                            email: email,
-                            nombre: nombre,
-                            apellidos: apellidos,
-                            fecha_nacimiento: fecha_nacimiento,
-                            pais: pais,
-                            ciudad: ciudad,
-                            genero: genero,
-                            tipo_cuenta: tipo_cuenta,
-                            avatar_url: '',
-                            status: 'offline',
-                            last_seen: new Date().toISOString(),
-                            biografia: '',
-                            website: '',
-                            telefono: '',
-                            created_at: new Date().toISOString(),
-                            updated_at: new Date().toISOString()
-                        };
+                    console.log('✅ Usuario creado en Auth:', authData);
 
-                        // Intentar insertar, pero si falla por duplicado, continuar
-                        const { error: insertError } = await supabase
-                            .from('usuarios')
-                            .insert([userData])
-                            .select();
+                    // 2. SEGUNDO: Insertar en tabla usuarios CON LOS CAMPOS EXACTOS DE TU TABLA
+                    // IMPORTANTE: Tu tabla tiene estos campos EXACTOS:
+                    // email, password_hash, nombre, apellidos, fecha_nacimiento, pais, ciudad, 
+                    // genero, tipo_cuenta, confirmado, created_at, avatar_url
+                    
+                    const userData = {
+                        email: email,
+                        password_hash: btoa(contrasena), // ¡ESTE ES EL CAMPO REQUERIDO QUE FALTABA!
+                        nombre: nombre,
+                        apellidos: apellidos,
+                        fecha_nacimiento: fecha_nacimiento,
+                        pais: pais,
+                        ciudad: ciudad,
+                        genero: genero,
+                        tipo_cuenta: tipo_cuenta,
+                        confirmado: false,
+                        avatar_url: '',
+                        created_at: new Date().toISOString()
+                    };
 
-                        if (insertError && !insertError.message.includes('duplicate key')) {
-                            console.warn('Error al insertar en tabla usuarios:', insertError.message);
-                            // No lanzamos error aquí para no interrumpir el flujo
+                    console.log('📤 Enviando a tabla usuarios:', userData);
+
+                    // Intentar insertar en la tabla usuarios
+                    const { data: dbData, error: insertError } = await supabase
+                        .from('usuarios')
+                        .insert([userData])
+                        .select();
+
+                    if (insertError) {
+                        console.error('❌ Error al insertar en usuarios:', insertError);
+                        
+                        // Si es error de duplicado (email ya existe)
+                        if (insertError.code === '23505') {
+                            console.log('⚠️ Email ya existe, intentando actualizar...');
+                            
+                            // Intentar actualizar el registro existente
+                            const { error: updateError } = await supabase
+                                .from('usuarios')
+                                .update({
+                                    nombre: nombre,
+                                    apellidos: apellidos,
+                                    fecha_nacimiento: fecha_nacimiento,
+                                    pais: pais,
+                                    ciudad: ciudad,
+                                    genero: genero,
+                                    tipo_cuenta: tipo_cuenta,
+                                    confirmado: false
+                                })
+                                .eq('email', email);
+                            
+                            if (updateError) {
+                                console.error('❌ Error al actualizar:', updateError);
+                                // No lanzamos error, solo mostramos advertencia
+                            } else {
+                                console.log('✅ Usuario actualizado exitosamente');
+                            }
+                        } else {
+                            // Para otros errores, mostrar advertencia pero continuar
+                            console.warn('Advertencia al guardar en BD:', insertError.message);
                         }
-                    } catch (dbError) {
-                        console.warn('Error secundario al guardar datos:', dbError);
-                        // Continuar aunque falle la inserción secundaria
+                    } else {
+                        console.log('✅ Usuario insertado en BD:', dbData);
+                    }
+
+                    // 3. VERIFICAR que los datos están en la base de datos
+                    const { data: verifyData, error: verifyError } = await supabase
+                        .from('usuarios')
+                        .select('*')
+                        .eq('email', email)
+                        .single();
+
+                    if (verifyError) {
+                        console.warn('⚠️ No se pudo verificar el usuario:', verifyError);
+                    } else {
+                        console.log('✅ Verificación exitosa - Datos en BD:', verifyData);
                     }
 
                     await loadingAlert.close();
 
-                    // CORRECCIÓN 5: Mostrar mensaje más informativo
+                    // 4. Mostrar mensaje de éxito CONFIRMANDO los datos
                     await showMessengerAlert({
-                        title: '¡Registro exitoso! 🎉',
+                        title: '✅ ¡Registro COMPLETADO!',
                         html: `
                             <div style="text-align: left;">
-                                <p><strong>¡Bienvenido/a ${nombre}!</strong></p>
-                                <p>Hemos enviado un correo de confirmación a:</p>
-                                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
-                                    <strong>${email}</strong>
+                                <p style="color: #1a73e8; font-weight: bold; font-size: 18px; margin-bottom: 15px;">
+                                    <i class="fas fa-check-circle"></i> ¡Hola ${nombre}! Tu cuenta ha sido creada exitosamente.
+                                </p>
+                                
+                                <div style="background: #f8f9fa; border-radius: 10px; padding: 20px; margin: 15px 0; border: 1px solid #e8eaed;">
+                                    <p style="font-weight: bold; margin-bottom: 10px; color: #3c4043;">📝 Tus datos guardados:</p>
+                                    <table style="width: 100%; border-collapse: collapse;">
+                                        <tr>
+                                            <td style="padding: 8px 0; color: #5f6368; width: 120px;"><strong>Nombre:</strong></td>
+                                            <td style="padding: 8px 0; color: #202124;">${nombre} ${apellidos}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 8px 0; color: #5f6368;"><strong>Email:</strong></td>
+                                            <td style="padding: 8px 0; color: #202124;">${email}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 8px 0; color: #5f6368;"><strong>Ubicación:</strong></td>
+                                            <td style="padding: 8px 0; color: #202124;">${ciudad}, ${pais}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 8px 0; color: #5f6368;"><strong>Género:</strong></td>
+                                            <td style="padding: 8px 0; color: #202124;">${genero}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 8px 0; color: #5f6368;"><strong>Tipo de cuenta:</strong></td>
+                                            <td style="padding: 8px 0; color: #202124;">${tipo_cuenta}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 8px 0; color: #5f6368;"><strong>Fecha nacimiento:</strong></td>
+                                            <td style="padding: 8px 0; color: #202124;">${fecha_nacimiento}</td>
+                                        </tr>
+                                    </table>
                                 </div>
                                 
-                                <div style="background: #e8f0fe; padding: 15px; border-radius: 8px; margin: 15px 0;">
-                                    <p style="margin: 0; font-weight: bold;">Tus datos registrados:</p>
-                                    <ul style="margin: 10px 0 0 0; padding-left: 20px;">
-                                        <li><strong>Nombre:</strong> ${nombre} ${apellidos}</li>
-                                        <li><strong>País:</strong> ${pais}</li>
-                                        <li><strong>Ciudad:</strong> ${ciudad}</li>
-                                        <li><strong>Género:</strong> ${genero}</li>
-                                        <li><strong>Tipo de cuenta:</strong> ${tipo_cuenta}</li>
-                                    </ul>
+                                <div style="background: #e8f0fe; border-left: 4px solid #1a73e8; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+                                    <p style="margin: 0 0 10px 0; color: #1a73e8; font-weight: bold;">
+                                        <i class="fas fa-envelope"></i> Verificación requerida
+                                    </p>
+                                    <p style="margin: 0; color: #202124;">
+                                        Hemos enviado un correo de confirmación a <strong>${email}</strong>.
+                                        <br>Por favor haz clic en el enlace del correo para activar tu cuenta.
+                                    </p>
                                 </div>
                                 
-                                <p><strong>Instrucciones:</strong></p>
-                                <ol style="text-align: left; margin: 15px 0; padding-left: 20px;">
-                                    <li>Revisa tu bandeja de entrada</li>
-                                    <li>Busca en spam/correo no deseado si no lo ves</li>
-                                    <li>Haz clic en el enlace de confirmación</li>
-                                    <li>Serás redirigido automáticamente al messenger</li>
-                                </ol>
+                                <div style="background: #fff8e1; padding: 12px; border-radius: 6px; margin: 15px 0;">
+                                    <p style="margin: 0; color: #5d4037; font-size: 14px;">
+                                        <i class="fas fa-lightbulb"></i> 
+                                        <strong>Consejo:</strong> Si no ves el correo, revisa tu carpeta de spam o correo no deseado.
+                                    </p>
+                                </div>
                                 
-                                <p style="font-size: 14px; color: #5f6368; margin-top: 10px;">
-                                    <i class="fas fa-info-circle"></i> Si tienes problemas, intenta iniciar sesión directamente después de confirmar tu email.
+                                <p style="font-size: 14px; color: #5f6368; margin-top: 20px; text-align: center;">
+                                    Serás redirigido a la página de inicio de sesión en unos segundos...
                                 </p>
                             </div>
                         `,
                         icon: 'success',
-                        confirmButtonText: 'Entendido',
-                        showCloseButton: true
+                        confirmButtonText: '¡Entendido!',
+                        showCloseButton: true,
+                        allowOutsideClick: false
                     });
 
                     // Limpiar formulario
                     form.reset();
                     
-                    // Redirigir a login después de 3 segundos
+                    // Redirigir a login después de 4 segundos
                     setTimeout(() => {
                         window.location.href = 'index.html';
-                    }, 3000);
+                    }, 4000);
 
                 } catch (error) {
                     await loadingAlert.close();
+                    console.error('❌ Error general:', error);
                     showMessengerAlert({
-                        title: 'Error al crear cuenta',
+                        title: '❌ Error en el registro',
                         text: error.message,
                         icon: 'error'
                     });
