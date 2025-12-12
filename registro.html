@@ -412,7 +412,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <script>
+     <script>
     // Configuración Supabase
     const supabaseUrl = 'https://enmiomqkkdlmodrjmfak.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVubWlvbXFra2RsbW9kcmptZmFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MDA0OTEsImV4cCI6MjA4MDk3NjQ5MX0.HeiJGnnkUjutlZkMTopFK7AIRZzRLxBTXvWk96OcAxg';
@@ -463,7 +463,7 @@
                 // Obtener valores
                 const nombre = document.getElementById('nombre').value.trim();
                 const apellidos = document.getElementById('apellidos').value.trim();
-                const email = document.getElementById('email').value.trim();
+                const email = document.getElementById('email').value.trim().toLowerCase();
                 const fecha_nacimiento = document.getElementById('fecha_nacimiento').value;
                 const pais = document.getElementById('pais').value.trim();
                 const ciudad = document.getElementById('ciudad').value.trim();
@@ -478,6 +478,36 @@
                         title: 'Faltan campos',
                         text: 'Por favor completa todos los campos obligatorios',
                         icon: 'warning'
+                    });
+                    return;
+                }
+
+                // Validar formato de email
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    showMessengerAlert({
+                        title: 'Email inválido',
+                        text: 'Por favor ingresa un correo electrónico válido',
+                        icon: 'error'
+                    });
+                    return;
+                }
+
+                // Validar fecha de nacimiento (mínimo 13 años)
+                const birthDate = new Date(fecha_nacimiento);
+                const today = new Date();
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const monthDiff = today.getMonth() - birthDate.getMonth();
+                
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                    age--;
+                }
+                
+                if (age < 13) {
+                    showMessengerAlert({
+                        title: 'Edad no permitida',
+                        text: 'Debes tener al menos 13 años para registrarte',
+                        icon: 'error'
                     });
                     return;
                 }
@@ -511,21 +541,10 @@
                 });
 
                 try {
-                    // Verificar si el email ya existe
-                    const { data: usuariosExistentes, error: checkError } = await supabase
-                        .from('usuarios')
-                        .select('email')
-                        .eq('email', email);
-
-                    if (checkError) throw new Error('Error al verificar email');
-                    if (usuariosExistentes && usuariosExistentes.length > 0) {
-                        throw new Error('Este correo ya está registrado');
-                    }
-
                     // IMPORTANTE: Redirigir directamente a index.html después de confirmar
                     const redirectUrl = `${window.location.origin}/index.html`;
 
-                    // Crear usuario en Auth - AHORA REDIRIGE A INDEX.HTML
+                    // SOLUCIÓN: Usar solo Supabase Auth (sin tabla usuarios manual)
                     const { data: authData, error: authError } = await supabase.auth.signUp({
                         email: email,
                         password: contrasena,
@@ -533,70 +552,78 @@
                             data: {
                                 nombre: nombre,
                                 apellidos: apellidos,
+                                nombre_completo: `${nombre} ${apellidos}`,
                                 fecha_nacimiento: fecha_nacimiento,
                                 pais: pais,
                                 ciudad: ciudad,
                                 genero: genero,
-                                tipo_cuenta: tipo_cuenta
+                                tipo_cuenta: tipo_cuenta,
+                                avatar_url: '', // Puedes agregar un avatar por defecto
+                                status: 'offline',
+                                last_seen: new Date().toISOString()
                             },
-                            // ESTA ES LA PARTE IMPORTANTE:
+                            // Redirigir después de confirmar email
                             emailRedirectTo: redirectUrl
                         }
                     });
 
-                    if (authError) throw new Error(authError.message);
-
-                    // Insertar en tabla usuarios
-                    const userData = {
-                        email: email,
-                        password_hash: contrasena,
-                        nombre: nombre,
-                        apellidos: apellidos,
-                        fecha_nacimiento: fecha_nacimiento,
-                        pais: pais,
-                        ciudad: ciudad,
-                        genero: genero,
-                        tipo_cuenta: tipo_cuenta,
-                        confirmado: false,
-                        created_at: new Date().toISOString()
-                    };
-
-                    const { data: dbData, error: userError } = await supabase
-                        .from('usuarios')
-                        .insert([userData])
-                        .select();
-
-                    if (userError) throw new Error(userError.message);
+                    if (authError) {
+                        // Manejar errores específicos de Supabase Auth
+                        if (authError.message.includes('already registered') || 
+                            authError.message.includes('User already registered') ||
+                            authError.code === 'user_already_exists') {
+                            throw new Error('Este correo electrónico ya está registrado');
+                        }
+                        
+                        if (authError.message.includes('Password should be at least')) {
+                            throw new Error('La contraseña debe tener al menos 6 caracteres');
+                        }
+                        
+                        if (authError.message.includes('Invalid email')) {
+                            throw new Error('El correo electrónico no es válido');
+                        }
+                        
+                        throw new Error(`Error al crear la cuenta: ${authError.message}`);
+                    }
 
                     await loadingAlert.close();
 
                     // Mostrar mensaje de éxito
                     await showMessengerAlert({
-                        title: '¡Cuenta creada! 📧',
+                        title: '¡Cuenta creada exitosamente! 📧',
                         html: `
                             <div style="text-align: left;">
                                 <p>Hemos enviado un correo de confirmación a:</p>
                                 <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
                                     <strong>${email}</strong>
                                 </div>
-                                <p>Revisa tu bandeja de entrada y haz clic en el enlace para activar tu cuenta.</p>
-                                <p style="font-size: 14px; color: #5f6368; margin-top: 10px;">
-                                    <i class="fas fa-info-circle"></i> Después de confirmar, serás redirigido al messenger.
+                                <p><strong>Por favor revisa:</strong></p>
+                                <ul style="text-align: left; margin: 15px 0; padding-left: 20px;">
+                                    <li>Tu bandeja de entrada</li>
+                                    <li>La carpeta de spam o correo no deseado</li>
+                                </ul>
+                                <p>Haz clic en el enlace del correo para activar tu cuenta.</p>
+                                <p style="font-size: 14px; color: #5f6368; margin-top: 10px; background: #e8f0fe; padding: 10px; border-radius: 6px;">
+                                    <i class="fas fa-info-circle"></i> Después de confirmar tu email, serás redirigido automáticamente al messenger.
                                 </p>
                             </div>
                         `,
-                        icon: 'success'
+                        icon: 'success',
+                        confirmButtonText: 'Entendido'
                     });
 
-                    // Redirigir a login después de 5 segundos
+                    // Limpiar formulario
+                    form.reset();
+                    
+                    // Redirigir a login después de 3 segundos
                     setTimeout(() => {
                         window.location.href = 'index.html';
-                    }, 5000);
+                    }, 3000);
 
                 } catch (error) {
                     await loadingAlert.close();
                     showMessengerAlert({
-                        title: 'Error',
+                        title: 'Error al crear cuenta',
                         text: error.message,
                         icon: 'error'
                     });
