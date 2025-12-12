@@ -412,7 +412,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-     <script>
+        <script>
     // Configuración Supabase
     const supabaseUrl = 'https://enmiomqkkdlmodrjmfak.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVubWlvbXFra2RsbW9kcmptZmFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MDA0OTEsImV4cCI6MjA4MDk3NjQ5MX0.HeiJGnnkUjutlZkMTopFK7AIRZzRLxBTXvWk96OcAxg';
@@ -541,10 +541,13 @@
                 });
 
                 try {
-                    // IMPORTANTE: Redirigir directamente a index.html después de confirmar
-                    const redirectUrl = `${window.location.origin}/index.html`;
+                    // CORRECCIÓN: Usa la URL completa de tu sitio en GitHub Pages
+                    const redirectUrl = 'https://programas2024.github.io/meseguity/index.html';
+                    
+                    // También define la URL para redirección después del registro exitoso
+                    const successRedirectUrl = 'https://programas2024.github.io/meseguity/index.html';
 
-                    // SOLUCIÓN: Usar solo Supabase Auth (sin tabla usuarios manual)
+                    // Usar Supabase Auth para registro
                     const { data: authData, error: authError } = await supabase.auth.signUp({
                         email: email,
                         password: contrasena,
@@ -558,17 +561,16 @@
                                 ciudad: ciudad,
                                 genero: genero,
                                 tipo_cuenta: tipo_cuenta,
-                                avatar_url: '', // Puedes agregar un avatar por defecto
+                                avatar_url: '',
                                 status: 'offline',
                                 last_seen: new Date().toISOString()
                             },
-                            // Redirigir después de confirmar email
+                            // CORRECCIÓN: URL específica para confirmación de email
                             emailRedirectTo: redirectUrl
                         }
                     });
 
                     if (authError) {
-                        // Manejar errores específicos de Supabase Auth
                         if (authError.message.includes('already registered') || 
                             authError.message.includes('User already registered') ||
                             authError.code === 'user_already_exists') {
@@ -604,7 +606,8 @@
                                 </ul>
                                 <p>Haz clic en el enlace del correo para activar tu cuenta.</p>
                                 <p style="font-size: 14px; color: #5f6368; margin-top: 10px; background: #e8f0fe; padding: 10px; border-radius: 6px;">
-                                    <i class="fas fa-info-circle"></i> Después de confirmar tu email, serás redirigido automáticamente al messenger.
+                                    <i class="fas fa-info-circle"></i> Después de confirmar tu email, serás redirigido automáticamente a:<br>
+                                    <code style="font-size: 12px; display: block; margin-top: 5px;">${redirectUrl}</code>
                                 </p>
                             </div>
                         `,
@@ -617,7 +620,7 @@
                     
                     // Redirigir a login después de 3 segundos
                     setTimeout(() => {
-                        window.location.href = 'index.html';
+                        window.location.href = successRedirectUrl;
                     }, 3000);
 
                 } catch (error) {
