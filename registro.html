@@ -412,7 +412,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-        <script>
+          <script>
     // Configuración Supabase
     const supabaseUrl = 'https://enmiomqkkdlmodrjmfak.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVubWlvbXFra2RsbW9kcmptZmFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MDA0OTEsImV4cCI6MjA4MDk3NjQ5MX0.HeiJGnnkUjutlZkMTopFK7AIRZzRLxBTXvWk96OcAxg';
@@ -541,31 +541,34 @@
                 });
 
                 try {
-                    // CORRECCIÓN: Usa la URL completa de tu sitio en GitHub Pages
+                    // CORRECCIÓN 1: Usar URL absoluta para GitHub Pages
                     const redirectUrl = 'https://programas2024.github.io/meseguity/index.html';
                     
-                    // También define la URL para redirección después del registro exitoso
-                    const successRedirectUrl = 'https://programas2024.github.io/meseguity/index.html';
+                    // CORRECCIÓN 2: Preparar los datos del usuario
+                    const userMetadata = {
+                        nombre: nombre,
+                        apellidos: apellidos,
+                        nombre_completo: `${nombre} ${apellidos}`,
+                        fecha_nacimiento: fecha_nacimiento,
+                        pais: pais,
+                        ciudad: ciudad,
+                        genero: genero,
+                        tipo_cuenta: tipo_cuenta,
+                        avatar_url: '', 
+                        status: 'offline',
+                        last_seen: new Date().toISOString(),
+                        // Añadir más campos para asegurar que se guarden
+                        telefono: '',
+                        biografia: '',
+                        website: ''
+                    };
 
-                    // Usar Supabase Auth para registro
+                    // CORRECCIÓN 3: Crear usuario en Supabase Auth
                     const { data: authData, error: authError } = await supabase.auth.signUp({
                         email: email,
                         password: contrasena,
                         options: {
-                            data: {
-                                nombre: nombre,
-                                apellidos: apellidos,
-                                nombre_completo: `${nombre} ${apellidos}`,
-                                fecha_nacimiento: fecha_nacimiento,
-                                pais: pais,
-                                ciudad: ciudad,
-                                genero: genero,
-                                tipo_cuenta: tipo_cuenta,
-                                avatar_url: '',
-                                status: 'offline',
-                                last_seen: new Date().toISOString()
-                            },
-                            // CORRECCIÓN: URL específica para confirmación de email
+                            data: userMetadata, // Usar el objeto completo
                             emailRedirectTo: redirectUrl
                         }
                     });
@@ -588,31 +591,83 @@
                         throw new Error(`Error al crear la cuenta: ${authError.message}`);
                     }
 
+                    // CORRECCIÓN 4: También crear perfil en tabla usuarios manualmente
+                    // Pero con una verificación para evitar duplicados
+                    try {
+                        const userData = {
+                            email: email,
+                            nombre: nombre,
+                            apellidos: apellidos,
+                            fecha_nacimiento: fecha_nacimiento,
+                            pais: pais,
+                            ciudad: ciudad,
+                            genero: genero,
+                            tipo_cuenta: tipo_cuenta,
+                            avatar_url: '',
+                            status: 'offline',
+                            last_seen: new Date().toISOString(),
+                            biografia: '',
+                            website: '',
+                            telefono: '',
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                        };
+
+                        // Intentar insertar, pero si falla por duplicado, continuar
+                        const { error: insertError } = await supabase
+                            .from('usuarios')
+                            .insert([userData])
+                            .select();
+
+                        if (insertError && !insertError.message.includes('duplicate key')) {
+                            console.warn('Error al insertar en tabla usuarios:', insertError.message);
+                            // No lanzamos error aquí para no interrumpir el flujo
+                        }
+                    } catch (dbError) {
+                        console.warn('Error secundario al guardar datos:', dbError);
+                        // Continuar aunque falle la inserción secundaria
+                    }
+
                     await loadingAlert.close();
 
-                    // Mostrar mensaje de éxito
+                    // CORRECCIÓN 5: Mostrar mensaje más informativo
                     await showMessengerAlert({
-                        title: '¡Cuenta creada exitosamente! 📧',
+                        title: '¡Registro exitoso! 🎉',
                         html: `
                             <div style="text-align: left;">
+                                <p><strong>¡Bienvenido/a ${nombre}!</strong></p>
                                 <p>Hemos enviado un correo de confirmación a:</p>
                                 <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
                                     <strong>${email}</strong>
                                 </div>
-                                <p><strong>Por favor revisa:</strong></p>
-                                <ul style="text-align: left; margin: 15px 0; padding-left: 20px;">
-                                    <li>Tu bandeja de entrada</li>
-                                    <li>La carpeta de spam o correo no deseado</li>
-                                </ul>
-                                <p>Haz clic en el enlace del correo para activar tu cuenta.</p>
-                                <p style="font-size: 14px; color: #5f6368; margin-top: 10px; background: #e8f0fe; padding: 10px; border-radius: 6px;">
-                                    <i class="fas fa-info-circle"></i> Después de confirmar tu email, serás redirigido automáticamente a:<br>
-                                    <code style="font-size: 12px; display: block; margin-top: 5px;">${redirectUrl}</code>
+                                
+                                <div style="background: #e8f0fe; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                                    <p style="margin: 0; font-weight: bold;">Tus datos registrados:</p>
+                                    <ul style="margin: 10px 0 0 0; padding-left: 20px;">
+                                        <li><strong>Nombre:</strong> ${nombre} ${apellidos}</li>
+                                        <li><strong>País:</strong> ${pais}</li>
+                                        <li><strong>Ciudad:</strong> ${ciudad}</li>
+                                        <li><strong>Género:</strong> ${genero}</li>
+                                        <li><strong>Tipo de cuenta:</strong> ${tipo_cuenta}</li>
+                                    </ul>
+                                </div>
+                                
+                                <p><strong>Instrucciones:</strong></p>
+                                <ol style="text-align: left; margin: 15px 0; padding-left: 20px;">
+                                    <li>Revisa tu bandeja de entrada</li>
+                                    <li>Busca en spam/correo no deseado si no lo ves</li>
+                                    <li>Haz clic en el enlace de confirmación</li>
+                                    <li>Serás redirigido automáticamente al messenger</li>
+                                </ol>
+                                
+                                <p style="font-size: 14px; color: #5f6368; margin-top: 10px;">
+                                    <i class="fas fa-info-circle"></i> Si tienes problemas, intenta iniciar sesión directamente después de confirmar tu email.
                                 </p>
                             </div>
                         `,
                         icon: 'success',
-                        confirmButtonText: 'Entendido'
+                        confirmButtonText: 'Entendido',
+                        showCloseButton: true
                     });
 
                     // Limpiar formulario
@@ -620,7 +675,7 @@
                     
                     // Redirigir a login después de 3 segundos
                     setTimeout(() => {
-                        window.location.href = successRedirectUrl;
+                        window.location.href = 'index.html';
                     }, 3000);
 
                 } catch (error) {
