@@ -48,61 +48,85 @@
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
         const loginForm = document.getElementById("loginForm");
 
-        // LOGIN NORMAL (email + password)
-        loginForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
+      // ----------------- LOGIN NORMAL (email + contraseña) -----------------
+    loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
 
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email: email,
-                password: password
-            });
-
-            if (error) {
-                Swal.fire({
-                    title: "Error",
-                    text: error.message,
-                    icon: "error"
-                });
-                return;
-            }
-
-            Swal.fire({
-                title: "Bienvenido",
-                text: "Inicio de sesión exitoso",
-                icon: "success",
-                timer: 1500,
-                showConfirmButton: false
-            });
-
-            setTimeout(() => {
-                window.location.href = "./principal.html";
-            }, 1500);
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: password
         });
 
-        // LOGIN CON GITHUB (OAuth)
-        async function loginWithGithub() {
-            const { data, error } = await supabase.auth.signInWithOAuth({
-                provider: "github",
-                options: {
-                    redirectTo: "https://programas2024.github.io/meseguity/principal.html"
-                }
-            });
-
-            if (error) {
-                Swal.fire({
-                    title: "Error con GitHub",
-                    text: error.message,
-                    icon: "error"
-                });
-            }
+        if (error) {
+            Swal.fire({ title: "Error", text: error.message, icon: "error" });
+            return;
         }
 
-        // Activar botón GitHub
-        const githubBtn = document.getElementById("githubLogin");
-        githubBtn.addEventListener("click", loginWithGithub);
+        Swal.fire({
+            title: "Bienvenido",
+            text: "Inicio de sesión exitoso",
+            icon: "success",
+            timer: 1500,
+            showConfirmButton: false
+        });
+
+        setTimeout(() => {
+            window.location.href = "./principal.html";
+        }, 1500);
+    });
+
+    // ------------ FUNCIÓN PARA INSERTAR USUARIO EN TABLA ---------------
+    async function registrarUsuarioSiNoExiste() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: existe } = await supabase
+            .from("usuarios")
+            .select("id")
+            .eq("id_auth", user.id)
+            .maybeSingle();
+
+        if (!existe) {
+            await supabase
+                .from("usuarios")
+                .insert({
+                    id_auth: user.id,
+                    email: user.email,
+                    nombre: user.user_metadata.full_name ?? null,
+                    avatar: user.user_metadata.avatar_url ?? null,
+                    proveedor: user.app_metadata.provider,
+                    creado_en: new Date()
+                });
+        }
+    }
+
+    // ---------------- LOGIN CON GITHUB ----------------
+    async function loginWithGithub() {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: "github",
+            options: {
+                redirectTo: "https://programas2024.github.io/meseguity/principal.html"
+            }
+        });
+
+        if (error) {
+            Swal.fire({
+                title: "Error con GitHub",
+                text: error.message,
+                icon: "error"
+            });
+        }
+
+        // 👇 Importante: al volver desde GitHub, ejecutamos esto
+        setTimeout(registrarUsuarioSiNoExiste, 2000);
+    }
+
+    // Activar botón GitHub
+    const githubBtn = document.getElementById("githubLogin");
+    githubBtn.addEventListener("click", loginWithGithub);
     </script>
 </body>
 </html>
