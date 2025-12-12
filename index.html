@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Iniciar Sesión</title>
+
+    <!-- FontAwesome (icono de GitHub) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <link rel="stylesheet" href="assets/estilos.css" />
+</head>
+
+<body>
+    <div class="login-container">
+        <h2>Iniciar Sesión</h2>
+
+        <form id="loginForm">
+            <label>Email</label>
+            <input type="email" id="email" placeholder="Ingresa tu correo" required />
+
+            <label>Contraseña</label>
+            <input type="password" id="password" placeholder="Ingresa tu contraseña" required />
+
+            <button type="submit" class="btn-submit">Entrar</button>
+        </form>
+
+        <hr />
+
+        <!-- BOTÓN LOGIN CON GITHUB -->
+        <button id="githubLogin" class="btn-submit" style="background:#333;">
+            <i class="fab fa-github"></i>
+            Ingresar con GitHub
+        </button>
+
+        <p>¿No tienes cuenta? <a href="./registro.html">Registrarse</a></p>
+    </div>
+
+    <!-- SweetAlert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+    <script>
+        const supabaseUrl = 'https://enmiomqkkdlmodrjmfak.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVubWlvbXFra2RsbW9kcmptZmFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MDA0OTEsImV4cCI6MjA4MDk3NjQ5MX0.HeiJGnnkUjutlZkMTopFK7AIRZzRLxBTXvWk96OcAxg';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        const loginForm = document.getElementById("loginForm");
+
+        // LOGIN NORMAL (email + password)
+        loginForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+
+            if (error) {
+                Swal.fire({
+                    title: "Error",
+                    text: error.message,
+                    icon: "error"
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: "Bienvenido",
+                text: "Inicio de sesión exitoso",
+                icon: "success",
+                timer: 1500,
+                showConfirmButton: false
+            });
+
+            setTimeout(() => {
+                window.location.href = "./principal.html";
+            }, 1500);
+        });
+
+        // LOGIN CON GITHUB (OAuth)
+        async function loginWithGithub() {
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: "github",
+                options: {
+                    redirectTo: "https://programas2024.github.io/meseguity/principal.html"
+                }
+            });
+
+            if (error) {
+                Swal.fire({
+                    title: "Error con GitHub",
+                    text: error.message,
+                    icon: "error"
+                });
+            }
+        }
+
+        // Activar botón GitHub
+        const githubBtn = document.getElementById("githubLogin");
+        githubBtn.addEventListener("click", loginWithGithub);
+    </script>
+</body>
+</html>

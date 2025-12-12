@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Heliconia Messenger — Registrarse</title>
+
+    <!-- Estilos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #202124;
+        }
+
+        .messenger-logo {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .messenger-logo .logo-icon {
+            font-size: 60px;
+            color: white;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .messenger-logo h1 {
+            color: white;
+            font-size: 36px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .messenger-logo p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 18px;
+            margin-top: 10px;
+        }
+
+        .register-container {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            position: relative;
+        }
+
+        .register-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, #1a73e8, #34a853, #fbbc05, #ea4335);
+        }
+
+        .register-title {
+            text-align: center;
+            color: #202124;
+            font-size: 28px;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .register-subtitle {
+            text-align: center;
+            color: #5f6368;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+
+        #registerForm {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            color: #3c4043;
+            margin-bottom: 8px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .required::after {
+            content: ' *';
+            color: #d93025;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 15px 20px;
+            border: 2px solid #dadce0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.2s ease;
+            color: #202124;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+        }
+
+        .form-group input:hover {
+            border-color: #9aa0a6;
+        }
+
+        .password-container {
+            position: relative;
+        }
+
+        .password-container input {
+            width: 100%;
+            padding-right: 50px;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            color: #5f6368;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 8px;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .toggle-password:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%235f6368' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 20px center;
+            background-size: 20px;
+            padding-right: 50px;
+            cursor: pointer;
+        }
+
+        .btn-submit {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-submit:hover {
+            background: #0d62d9;
+            box-shadow: 0 2px 10px rgba(26, 115, 232, 0.3);
+        }
+
+        .btn-submit:active {
+            transform: translateY(1px);
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dadce0;
+            color: #5f6368;
+            font-size: 14px;
+        }
+
+        .login-link a {
+            color: #1a73e8;
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .login-link a:hover {
+            background: rgba(26, 115, 232, 0.08);
+        }
+
+        /* Mensajes SweetAlert personalizados */
+        .messenger-swal {
+            background: white !important;
+            color: #202124 !important;
+            border-radius: 16px !important;
+            border: 1px solid #dadce0 !important;
+        }
+
+        .messenger-swal-title {
+            color: #202124 !important;
+            font-weight: 500 !important;
+            font-size: 24px !important;
+        }
+
+        .messenger-swal-content {
+            color: #5f6368 !important;
+            font-size: 15px !important;
+        }
+
+        .messenger-swal-btn {
+            background: #1a73e8 !important;
+            color: white !important;
+            border: none !important;
+            padding: 12px 24px !important;
+            border-radius: 8px !important;
+            font-weight: 500 !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .messenger-swal-btn:hover {
+            background: #0d62d9 !important;
+            transform: translateY(-1px) !important;
+        }
+
+        @media (max-width: 600px) {
+            .register-container {
+                padding: 30px 20px;
+            }
+            
+            .messenger-logo h1 {
+                font-size: 28px;
+            }
+            
+            .register-title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="messenger-logo">
+        <i class="fas fa-comments logo-icon"></i>
+        <h1>Heliconia Messenger</h1>
+        <p>Conecta, comunica, colabora</p>
+    </div>
+
+    <div class="register-container animate__animated animate__fadeInUp">
+        <h2 class="register-title">Crear cuenta nueva</h2>
+        <p class="register-subtitle">Únete a Heliconia Messenger para empezar a chatear</p>
+        
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="nombre" class="required">
+                    <i class="fas fa-user"></i>
+                    Nombre
+                </label>
+                <input type="text" id="nombre" name="nombre" placeholder="Tu nombre" required>
+            </div>
+
+            <div class="form-group">
+                <label for="apellidos" class="required">
+                    <i class="fas fa-users"></i>
+                    Apellidos
+                </label>
+                <input type="text" id="apellidos" name="apellidos" placeholder="Tus apellidos" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email" class="required">
+                    <i class="fas fa-envelope"></i>
+                    Correo electrónico
+                </label>
+                <input type="email" id="email" name="email" placeholder="tu@correo.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="fecha_nacimiento" class="required">
+                    <i class="fas fa-birthday-cake"></i>
+                    Fecha de nacimiento
+                </label>
+                <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" required>
+            </div>
+
+            <div class="form-group">
+                <label for="pais" class="required">
+                    <i class="fas fa-globe-americas"></i>
+                    País
+                </label>
+                <input type="text" id="pais" name="pais" placeholder="Tu país" required>
+            </div>
+
+            <div class="form-group">
+                <label for="ciudad" class="required">
+                    <i class="fas fa-city"></i>
+                    Ciudad
+                </label>
+                <input type="text" id="ciudad" name="ciudad" placeholder="Tu ciudad" required>
+            </div>
+
+            <div class="form-group">
+                <label for="genero" class="required">
+                    <i class="fas fa-venus-mars"></i>
+                    Género
+                </label>
+                <select id="genero" name="genero" required>
+                    <option value="" disabled selected>Selecciona tu género</option>
+                    <option value="Masculino">Masculino</option>
+                    <option value="Femenino">Femenino</option>
+                    <option value="Otro">Otro</option>
+                    <option value="Prefiero no decir">Prefiero no decir</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="tipo_cuenta" class="required">
+                    <i class="fas fa-user-tag"></i>
+                    Tipo de cuenta
+                </label>
+                <select id="tipo_cuenta" name="tipo_cuenta" required>
+                    <option value="" disabled selected>Selecciona tipo de cuenta</option>
+                    <option value="personal">Personal</option>
+                    <option value="educativa">Educativa</option>
+                    <option value="empresa">Empresa</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="contrasena" class="required">
+                    <i class="fas fa-lock"></i>
+                    Contraseña
+                </label>
+                <div class="password-container">
+                    <input type="password" id="contrasena" name="contrasena" placeholder="Mínimo 6 caracteres" required>
+                    <button type="button" class="toggle-password" data-target="contrasena">
+                        <i class="fa-solid fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmar_contrasena" class="required">
+                    <i class="fas fa-lock"></i>
+                    Confirmar contraseña
+                </label>
+                <div class="password-container">
+                    <input type="password" id="confirmar_contrasena" name="confirmar_contrasena" placeholder="Repite tu contraseña" required>
+                    <button type="button" class="toggle-password" data-target="confirmar_contrasena">
+                        <i class="fa-solid fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-user-plus"></i>
+                Crear cuenta
+            </button>
+        </form>
+
+        <div class="login-link">
+            <a href="index.html">
+                <i class="fas fa-sign-in-alt"></i>
+                ¿Ya tienes cuenta? Inicia sesión
+            </a>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+    // Configuración Supabase
+    const supabaseUrl = 'https://enmiomqkkdlmodrjmfak.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVubWlvbXFra2RsbW9kcmptZmFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MDA0OTEsImV4cCI6MjA4MDk3NjQ5MX0.HeiJGnnkUjutlZkMTopFK7AIRZzRLxBTXvWk96OcAxg';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    // Función para mostrar SweetAlert de Messenger
+    function showMessengerAlert(options) {
+        return Swal.fire({
+            ...options,
+            background: 'white',
+            color: '#202124',
+            customClass: {
+                popup: 'messenger-swal',
+                title: 'messenger-swal-title',
+                htmlContainer: 'messenger-swal-content',
+                confirmButton: 'messenger-swal-btn'
+            }
+        });
+    }
+
+    // Inicializar aplicación
+    document.addEventListener('DOMContentLoaded', function() {
+        // Configurar botones para mostrar/ocultar contraseña
+        document.querySelectorAll('.toggle-password').forEach(button => {
+            button.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const passwordInput = document.getElementById(targetId);
+                const icon = this.querySelector('i');
+                
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    passwordInput.type = 'password';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            });
+        });
+
+        // Manejar envío del formulario
+        const form = document.getElementById('registerForm');
+        if (form) {
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                // Obtener valores
+                const nombre = document.getElementById('nombre').value.trim();
+                const apellidos = document.getElementById('apellidos').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const fecha_nacimiento = document.getElementById('fecha_nacimiento').value;
+                const pais = document.getElementById('pais').value.trim();
+                const ciudad = document.getElementById('ciudad').value.trim();
+                const genero = document.getElementById('genero').value;
+                const tipo_cuenta = document.getElementById('tipo_cuenta').value;
+                const contrasena = document.getElementById('contrasena').value;
+                const confirmarContrasena = document.getElementById('confirmar_contrasena').value;
+
+                // Validaciones
+                if (!nombre || !apellidos || !email || !fecha_nacimiento || !pais || !ciudad || !genero || !tipo_cuenta || !contrasena) {
+                    showMessengerAlert({
+                        title: 'Faltan campos',
+                        text: 'Por favor completa todos los campos obligatorios',
+                        icon: 'warning'
+                    });
+                    return;
+                }
+
+                if (contrasena !== confirmarContrasena) {
+                    showMessengerAlert({
+                        title: 'Contraseñas no coinciden',
+                        text: 'Las contraseñas deben ser iguales en ambos campos',
+                        icon: 'error'
+                    });
+                    return;
+                }
+
+                if (contrasena.length < 6) {
+                    showMessengerAlert({
+                        title: 'Contraseña muy corta',
+                        text: 'La contraseña debe tener al menos 6 caracteres',
+                        icon: 'error'
+                    });
+                    return;
+                }
+
+                // Mostrar carga
+                const loadingAlert = Swal.fire({
+                    title: 'Creando tu cuenta...',
+                    text: 'Estamos configurando tu espacio en Messenger',
+                    icon: 'info',
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                try {
+                    // Verificar si el email ya existe
+                    const { data: usuariosExistentes, error: checkError } = await supabase
+                        .from('usuarios')
+                        .select('email')
+                        .eq('email', email);
+
+                    if (checkError) throw new Error('Error al verificar email');
+                    if (usuariosExistentes && usuariosExistentes.length > 0) {
+                        throw new Error('Este correo ya está registrado');
+                    }
+
+                    // IMPORTANTE: Redirigir directamente a index.html después de confirmar
+                    const redirectUrl = `${window.location.origin}/index.html`;
+
+                    // Crear usuario en Auth - AHORA REDIRIGE A INDEX.HTML
+                    const { data: authData, error: authError } = await supabase.auth.signUp({
+                        email: email,
+                        password: contrasena,
+                        options: {
+                            data: {
+                                nombre: nombre,
+                                apellidos: apellidos,
+                                fecha_nacimiento: fecha_nacimiento,
+                                pais: pais,
+                                ciudad: ciudad,
+                                genero: genero,
+                                tipo_cuenta: tipo_cuenta
+                            },
+                            // ESTA ES LA PARTE IMPORTANTE:
+                            emailRedirectTo: redirectUrl
+                        }
+                    });
+
+                    if (authError) throw new Error(authError.message);
+
+                    // Insertar en tabla usuarios
+                    const userData = {
+                        email: email,
+                        password_hash: contrasena,
+                        nombre: nombre,
+                        apellidos: apellidos,
+                        fecha_nacimiento: fecha_nacimiento,
+                        pais: pais,
+                        ciudad: ciudad,
+                        genero: genero,
+                        tipo_cuenta: tipo_cuenta,
+                        confirmado: false,
+                        created_at: new Date().toISOString()
+                    };
+
+                    const { data: dbData, error: userError } = await supabase
+                        .from('usuarios')
+                        .insert([userData])
+                        .select();
+
+                    if (userError) throw new Error(userError.message);
+
+                    await loadingAlert.close();
+
+                    // Mostrar mensaje de éxito
+                    await showMessengerAlert({
+                        title: '¡Cuenta creada! 📧',
+                        html: `
+                            <div style="text-align: left;">
+                                <p>Hemos enviado un correo de confirmación a:</p>
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                                    <strong>${email}</strong>
+                                </div>
+                                <p>Revisa tu bandeja de entrada y haz clic en el enlace para activar tu cuenta.</p>
+                                <p style="font-size: 14px; color: #5f6368; margin-top: 10px;">
+                                    <i class="fas fa-info-circle"></i> Después de confirmar, serás redirigido al messenger.
+                                </p>
+                            </div>
+                        `,
+                        icon: 'success'
+                    });
+
+                    // Redirigir a login después de 5 segundos
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 5000);
+
+                } catch (error) {
+                    await loadingAlert.close();
+                    showMessengerAlert({
+                        title: 'Error',
+                        text: error.message,
+                        icon: 'error'
+                    });
+                }
+            });
+        }
+    });
+    </script>
+</body>
+</html>
