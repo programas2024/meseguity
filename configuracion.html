@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messery - Configuración</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Barra Lateral (mismo estilo que principal.html) */
+        .sidebar {
+            width: 280px;
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-icon {
+            font-size: 32px;
+            color: #1a73e8;
+        }
+
+        .sidebar-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a73e8;
+            margin: 0;
+        }
+
+        .sidebar-nav {
+            padding: 20px 0;
+            flex: 1;
+        }
+
+        .nav-btn {
+            width: 100%;
+            padding: 15px 25px;
+            border: none;
+            background: none;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: #666;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .nav-btn:hover {
+            background: #f5f5f5;
+            color: #1a73e8;
+        }
+
+        .nav-btn.active {
+            background: #e8f0fe;
+            color: #1a73e8;
+            border-left: 4px solid #1a73e8;
+        }
+
+        .nav-btn i {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .btn-logout {
+            width: 100%;
+            padding: 12px;
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            color: #666;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-logout:hover {
+            background: #ffebee;
+            color: #d32f2f;
+            border-color: #ffcdd2;
+        }
+
+        /* Contenido Principal */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .topbar {
+            background: white;
+            padding: 15px 25px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .page-header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .btn-back {
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .btn-back:hover {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        /* Área de Configuración */
+        .config-area {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .config-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Tarjeta de Perfil */
+        .profile-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f5f5f5;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1a73e8, #0d47a1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 36px;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .btn-change-avatar {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-change-avatar:hover {
+            background: white;
+            transform: scale(1.1);
+        }
+
+        .profile-info h2 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .profile-info p {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .profile-stats {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Formulario de Configuración */
+        .config-form {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 30px;
+        }
+
+        .form-section {
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #f5f5f5;
+        }
+
+        .form-section:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .form-section h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-section h3 i {
+            color: #1a73e8;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .input-group .label-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .input-group input,
+        .input-group select,
+        .input-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus,
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+        }
+
+        .input-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #1a73e8;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+        }
+
+        /* Botones de Acción */
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #f5f5f5;
+        }
+
+        .btn-primary {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            background: #0d62d9;
+            box-shadow: 0 2px 10px rgba(26, 115, 232, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #666;
+            border: 1px solid #e0e0e0;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-danger {
+            background: #ffebee;
+            color: #d32f2f;
+            border: 1px solid #ffcdd2;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-danger:hover {
+            background: #d32f2f;
+            color: white;
+        }
+
+        /* Alertas y Mensajes */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #4caf50;
+        }
+
+        .alert-error {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #f44336;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                max-height: 300px;
+            }
+            
+            .config-area {
+                padding: 20px;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .form-actions button {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Barra Lateral -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-paper-plane logo-icon"></i>
+                <h2>Messery</h2>
+            </div>
+
+            <nav class="sidebar-nav">
+                <button class="nav-btn active" onclick="window.location.href='configuracion.html'">
+                    <i class="fas fa-user-cog"></i> Perfil
+                </button>
+                <button class="nav-btn" onclick="window.location.href='principal.html'">
+                    <i class="fas fa-inbox"></i> Bandeja
+                </button>
+                <button class="nav-btn" onclick="window.location.href='principal.html#seccionMisAmigos'">
+                    <i class="fas fa-user-friends"></i> Amigos
+                </button>
+                <button class="nav-btn" onclick="window.location.href='principal.html#seccionMisGrupos'">
+                    <i class="fas fa-users"></i> Grupos
+                </button>
+                <button class="nav-btn">
+                    <i class="fas fa-bell"></i> Notificaciones
+                </button>
+                <button class="nav-btn">
+                    <i class="fas fa-shield-alt"></i> Privacidad
+                </button>
+                <button class="nav-btn">
+                    <i class="fas fa-palette"></i> Apariencia
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button class="btn-logout" id="btnLogout">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+                </button>
+            </div>
+        </aside>
+
+        <!-- Contenido Principal -->
+        <main class="main-content">
+            <!-- Barra Superior -->
+            <header class="topbar">
+                <div class="page-header">
+                    <button class="btn-back" onclick="window.location.href='principal.html'">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h1>Configuración de Perfil</h1>
+                </div>
+                <div class="user-actions">
+                    <button class="btn-icon" onclick="window.location.href='principal.html'">
+                        <i class="fas fa-home"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Área de Configuración -->
+            <div class="config-area">
+                <div class="config-container">
+                    <!-- Alertas -->
+                    <div id="alertSuccess" class="alert alert-success" style="display: none;">
+                        <i class="fas fa-check-circle"></i> Cambios guardados correctamente
+                    </div>
+                    <div id="alertError" class="alert alert-error" style="display: none;">
+                        <i class="fas fa-exclamation-circle"></i> Error al guardar los cambios
+                    </div>
+
+                    <!-- Tarjeta de Perfil -->
+                    <div class="profile-card">
+                        <div class="profile-header">
+                            <div class="profile-avatar" id="configAvatar">
+                                <i class="fas fa-user-circle"></i>
+                                <button class="btn-change-avatar" id="btnChangeAvatar">
+                                    <i class="fas fa-camera"></i>
+                                </button>
+                            </div>
+                            <div class="profile-info">
+                                <h2 id="configUserName">Cargando...</h2>
+                                <p id="configUserEmail">cargando...</p>
+                                <div class="profile-stats">
+                                    <span class="stat-item">
+                                        <i class="fas fa-envelope"></i> <span id="statMensajes">0</span> mensajes
+                                    </span>
+                                    <span class="stat-item">
+                                        <i class="fas fa-user-friends"></i> <span id="statAmigos">0</span> amigos
+                                    </span>
+                                    <span class="stat-item">
+                                        <i class="fas fa-users"></i> <span id="statGrupos">0</span> grupos
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Formulario de Configuración -->
+                    <form id="formConfiguracion" class="config-form">
+                        <!-- Sección 1: Información Personal -->
+                        <div class="form-section">
+                            <h3><i class="fas fa-id-card"></i> Información Personal</h3>
+                            <div class="form-grid">
+                                <div class="input-group">
+                                    <label for="configNombre">Nombre *</label>
+                                    <input type="text" id="configNombre" required>
+                                </div>
+                                <div class="input-group">
+                                    <label for="configApellidos">Apellidos *</label>
+                                    <input type="text" id="configApellidos" required>
+                                </div>
+                                <div class="input-group">
+                                    <label for="configEmail">Correo Electrónico *</label>
+                                    <input type="email" id="configEmail" required readonly>
+                                    <div class="label-info">No se puede cambiar el email principal</div>
+                                </div>
+                                <div class="input-group">
+                                    <label for="configTelefono">Teléfono</label>
+                                    <input type="tel" id="configTelefono" placeholder="+57 300 123 4567">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sección 2: Datos Demográficos -->
+                        <div class="form-section">
+                            <h3><i class="fas fa-globe-americas"></i> Datos Demográficos</h3>
+                            <div class="form-grid">
+                                <div class="input-group">
+                                    <label for="configFechaNacimiento">Fecha de Nacimiento *</label>
+                                    <input type="date" id="configFechaNacimiento" required>
+                                </div>
+                                <div class="input-group">
+                                    <label for="configGenero">Género *</label>
+                                    <select id="configGenero" required>
+                                        <option value="">Seleccionar...</option>
+                                        <option value="Masculino">Masculino</option>
+                                        <option value="Femenino">Femenino</option>
+                                        <option value="Otro">Otro</option>
+                                        <option value="Prefiero no decir">Prefiero no decir</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label for="configPais">País *</label>
+                                    <input type="text" id="configPais" required>
+                                </div>
+                                <div class="input-group">
+                                    <label for="configCiudad">Ciudad *</label>
+                                    <input type="text" id="configCiudad" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sección 3: Información de la Cuenta -->
+                        <div class="form-section">
+                            <h3><i class="fas fa-user-tag"></i> Información de la Cuenta</h3>
+                            <div class="form-grid">
+                                <div class="input-group">
+                                    <label for="configTipoCuenta">Tipo de Cuenta *</label>
+                                    <select id="configTipoCuenta" required>
+                                        <option value="">Seleccionar...</option>
+                                        <option value="personal">Personal</option>
+                                        <option value="educativa">Educativa</option>
+                                        <option value="empresa">Empresa</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label for="configBiografia">Biografía</label>
+                                    <textarea id="configBiografia" placeholder="Cuéntanos algo sobre ti..."></textarea>
+                                    <div class="label-info">Máximo 500 caracteres</div>
+                                </div>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="configRecibirNotificaciones" checked>
+                                <label for="configRecibirNotificaciones">Recibir notificaciones por email</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="configMostrarEnLinea" checked>
+                                <label for="configMostrarEnLinea">Mostrar estado en línea</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="configPerfilPublico">
+                                <label for="configPerfilPublico">Perfil público (visible para todos)</label>
+                            </div>
+                        </div>
+
+                        <!-- Sección 4: Seguridad -->
+                        <div class="form-section">
+                            <h3><i class="fas fa-shield-alt"></i> Seguridad</h3>
+                            <p style="color: #666; margin-bottom: 20px;">Para cambiar tu contraseña, haz clic en el botón de abajo.</p>
+                            <button type="button" class="btn-secondary" id="btnCambiarPassword">
+                                <i class="fas fa-key"></i> Cambiar Contraseña
+                            </button>
+                        </div>
+
+                        <!-- Botones de Acción -->
+                        <div class="form-actions">
+                            <button type="button" class="btn-secondary" onclick="window.location.href='principal.html'">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                            <button type="submit" class="btn-primary">
+                                <i class="fas fa-save"></i> Guardar Cambios
+                            </button>
+                            <button type="button" class="btn-danger" id="btnEliminarCuenta">
+                                <i class="fas fa-trash-alt"></i> Eliminar Cuenta
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="modulos/utilidades.js"></script>
+    <script src="modulos/autenticacion.js"></script>
+
+    <script>
+    // Configuración Supabase - MISMOS DATOS QUE EN principal.html
+    const SUPABASE_URL = 'https://enmiomqkkdlmodrjmfak.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVubWlvbXFra2RsbW9kcmptZmFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MDA0OTEsImV4cCI6MjA4MDk3NjQ5MX0.HeiJGnnkUjutlZkMTopFK7AIRZzRLxBTXvWk96OcAxg';
+    
+    // Crear cliente Supabase
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: {
+            persistSession: true,
+            autoRefreshToken: true
+        }
+    });
+
+    // Variables globales
+    let usuarioActual = null;
+
+    // Función para mostrar alertas (similar a Utilidades)
+    function mostrarAlerta(tipo, mensaje, tiempo = 3000) {
+        Swal.fire({
+            icon: tipo,
+            title: mensaje,
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: tiempo,
+            timerProgressBar: true
+        });
+    }
+
+    // Función para mostrar confirmación
+    function mostrarConfirmacion(titulo, texto, confirmarTexto = 'Sí', cancelarTexto = 'Cancelar') {
+        return Swal.fire({
+            title: titulo,
+            text: texto,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: confirmarTexto,
+            cancelButtonText: cancelarTexto
+        });
+    }
+
+    // Función para verificar sesión
+    async function verificarSesion() {
+        try {
+            const { data: { session }, error } = await supabase.auth.getSession();
+            
+            if (error) {
+                console.error('Error al verificar sesión:', error);
+                return null;
+            }
+            
+            if (!session) {
+                console.log('No hay sesión activa');
+                return null;
+            }
+            
+            return session;
+        } catch (error) {
+            console.error('Error en verificarSesion:', error);
+            return null;
+        }
+    }
+
+    // Función para cerrar sesión
+    async function cerrarSesion() {
+        try {
+            const { error } = await supabase.auth.signOut();
+            
+            if (error) {
+                throw error;
+            }
+            
+            // Redirigir a login
+            window.location.href = 'index.html';
+        } catch (error) {
+            console.error('Error al cerrar sesión:', error);
+            mostrarAlerta('error', 'Error al cerrar sesión: ' + error.message);
+        }
+    }
+
+    // Función para verificar y obtener usuario de la DB
+    async function verificarYRegistrarUsuario() {
+        try {
+            const session = await verificarSesion();
+            if (!session) {
+                return null;
+            }
+
+            const { user } = session;
+            console.log('Usuario Auth:', user);
+
+            // Verificar si el usuario ya existe en la tabla usuarios
+            const { data: usuarioExistente, error: errorConsulta } = await supabase
+                .from('usuarios')
+                .select('*')
+                .eq('id', user.id)
+                .single();
+
+            if (errorConsulta && errorConsulta.code !== 'PGRST116') { // PGRST116 = no encontrado
+                throw errorConsulta;
+            }
+
+            let usuarioDB = usuarioExistente;
+
+            // Si no existe, crear el usuario en la tabla
+            if (!usuarioExistente) {
+                console.log('Usuario no encontrado en DB, creando nuevo registro...');
+                
+                const datosUsuario = {
+                    id: user.id,
+                    email: user.email,
+                    nombre: user.user_metadata?.full_name?.split(' ')[0] || 'Usuario',
+                    apellidos: user.user_metadata?.full_name?.split(' ').slice(1).join(' ') || '',
+                    avatar_url: user.user_metadata?.avatar_url || null,
+                    fecha_creacion: new Date().toISOString()
+                };
+
+                const { data: nuevoUsuario, error: errorCreacion } = await supabase
+                    .from('usuarios')
+                    .insert([datosUsuario])
+                    .select()
+                    .single();
+
+                if (errorCreacion) {
+                    console.error('Error al crear usuario:', errorCreacion);
+                    // Intentar obtener de nuevo después del error
+                    const { data: usuarioRecuperado } = await supabase
+                        .from('usuarios')
+                        .select('*')
+                        .eq('id', user.id)
+                        .single();
+                    
+                    usuarioDB = usuarioRecuperado;
+                } else {
+                    usuarioDB = nuevoUsuario;
+                    console.log('✅ Usuario creado en DB:', nuevoUsuario);
+                }
+            }
+
+            return usuarioDB;
+
+        } catch (error) {
+            console.error('❌ Error en verificarYRegistrarUsuario:', error);
+            return null;
+        }
+    }
+
+    // Cargar datos del usuario (copia de la función de configuracion.html)
+    async function cargarDatosUsuario() {
+        try {
+            console.log("🔍 Cargando datos del usuario...");
+            
+            // Verificar sesión
+            const usuarioAuth = await verificarSesion();
+            if (!usuarioAuth) {
+                console.log("⚠️ No hay sesión, redirigiendo...");
+                window.location.href = 'index.html';
+                return;
+            }
+
+            console.log("✅ Sesión encontrada:", usuarioAuth.user.email);
+
+            // Obtener datos del usuario desde la tabla usuarios
+            const { data: usuario, error } = await supabase
+                .from('usuarios')
+                .select('*')
+                .eq('id', usuarioAuth.user.id)
+                .single();
+
+            if (error) {
+                console.error("❌ Error al cargar usuario:", error);
+                throw error;
+            }
+
+            usuarioActual = usuario;
+            console.log("✅ Usuario cargado:", usuario);
+
+            // Actualizar interfaz
+            document.getElementById('configUserName').textContent = `${usuario.nombre || ''} ${usuario.apellidos || ''}`.trim() || 'Usuario';
+            document.getElementById('configUserEmail').textContent = usuario.email || 'Sin email';
+            
+            // Avatar
+            const avatar = document.getElementById('configAvatar');
+            if (usuario.avatar_url) {
+                avatar.innerHTML = `<img src="${usuario.avatar_url}" alt="${usuario.nombre}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                                   <button class="btn-change-avatar" id="btnChangeAvatar">
+                                       <i class="fas fa-camera"></i>
+                                   </button>`;
+            } else {
+                const inicial = usuario.nombre ? usuario.nombre.charAt(0).toUpperCase() : 'U';
+                avatar.innerHTML = `<span style="font-size: 36px; font-weight: bold;">${inicial}</span>
+                                   <button class="btn-change-avatar" id="btnChangeAvatar">
+                                       <i class="fas fa-camera"></i>
+                                   </button>`;
+            }
+
+            // Llenar formulario
+            document.getElementById('configNombre').value = usuario.nombre || '';
+            document.getElementById('configApellidos').value = usuario.apellidos || '';
+            document.getElementById('configEmail').value = usuario.email || '';
+            document.getElementById('configTelefono').value = usuario.telefono || '';
+            document.getElementById('configFechaNacimiento').value = usuario.fecha_nacimiento || '';
+            document.getElementById('configGenero').value = usuario.genero || '';
+            document.getElementById('configPais').value = usuario.pais || '';
+            document.getElementById('configCiudad').value = usuario.ciudad || '';
+            document.getElementById('configTipoCuenta').value = usuario.tipo_cuenta || '';
+            document.getElementById('configBiografia').value = usuario.biografia || '';
+            
+            // Checkboxes
+            document.getElementById('configRecibirNotificaciones').checked = usuario.recibir_notificaciones !== false;
+            document.getElementById('configMostrarEnLinea').checked = usuario.mostrar_en_linea !== false;
+            document.getElementById('configPerfilPublico').checked = usuario.perfil_publico === true;
+
+            // Cargar estadísticas
+            await cargarEstadisticas(usuario.id);
+
+            console.log("✅ Datos del usuario cargados exitosamente");
+
+        } catch (error) {
+            console.error('❌ Error al cargar datos del usuario:', error);
+            mostrarAlerta('error', 'No se pudieron cargar los datos del usuario');
+        }
+    }
+
+    // Cargar estadísticas
+    async function cargarEstadisticas(usuarioId) {
+        try {
+            console.log("📊 Cargando estadísticas para usuario:", usuarioId);
+            
+            // Mensajes recibidos
+            const { count: mensajesCount, error: errorMensajes } = await supabase
+                .from('mensajes')
+                .select('*', { count: 'exact', head: true })
+                .eq('destinatario_email', usuarioActual.email);
+
+            if (errorMensajes) console.error("Error al contar mensajes:", errorMensajes);
+
+            // Amigos
+            const { count: amigosCount, error: errorAmigos } = await supabase
+                .from('amistades')
+                .select('*', { count: 'exact', head: true })
+                .or(`usuario_id.eq.${usuarioId},amigo_id.eq.${usuarioId}`)
+                .eq('estado', 'aceptada');
+
+            if (errorAmigos) console.error("Error al contar amigos:", errorAmigos);
+
+            // Grupos
+            const { count: gruposCount, error: errorGrupos } = await supabase
+                .from('miembros_grupo')
+                .select('*', { count: 'exact', head: true })
+                .eq('usuario_id', usuarioId)
+                .eq('estado', 'activo');
+
+            if (errorGrupos) console.error("Error al contar grupos:", errorGrupos);
+
+            // Actualizar UI
+            document.getElementById('statMensajes').textContent = mensajesCount || 0;
+            document.getElementById('statAmigos').textContent = amigosCount || 0;
+            document.getElementById('statGrupos').textContent = gruposCount || 0;
+
+            console.log("✅ Estadísticas cargadas:", { mensajesCount, amigosCount, gruposCount });
+
+        } catch (error) {
+            console.error('❌ Error al cargar estadísticas:', error);
+        }
+    }
+
+    // Guardar cambios
+    async function guardarCambios(event) {
+        event.preventDefault();
+        
+        try {
+            const datosActualizados = {
+                nombre: document.getElementById('configNombre').value.trim(),
+                apellidos: document.getElementById('configApellidos').value.trim(),
+                telefono: document.getElementById('configTelefono').value.trim() || null,
+                fecha_nacimiento: document.getElementById('configFechaNacimiento').value,
+                genero: document.getElementById('configGenero').value,
+                pais: document.getElementById('configPais').value.trim(),
+                ciudad: document.getElementById('configCiudad').value.trim(),
+                tipo_cuenta: document.getElementById('configTipoCuenta').value,
+                biografia: document.getElementById('configBiografia').value.trim().substring(0, 500) || null,
+                recibir_notificaciones: document.getElementById('configRecibirNotificaciones').checked,
+                mostrar_en_linea: document.getElementById('configMostrarEnLinea').checked,
+                perfil_publico: document.getElementById('configPerfilPublico').checked,
+                updated_at: new Date().toISOString()
+            };
+
+            console.log("💾 Guardando cambios:", datosActualizados);
+
+            // Validar campos requeridos
+            if (!datosActualizados.nombre || !datosActualizados.apellidos || !datosActualizados.fecha_nacimiento || 
+                !datosActualizados.genero || !datosActualizados.pais || !datosActualizados.ciudad || 
+                !datosActualizados.tipo_cuenta) {
+                mostrarAlerta('error', 'Por favor completa todos los campos obligatorios');
+                return;
+            }
+
+            // Actualizar en Supabase
+            const { error } = await supabase
+                .from('usuarios')
+                .update(datosActualizados)
+                .eq('id', usuarioActual.id);
+
+            if (error) throw error;
+
+            // Actualizar metadata de auth si es necesario
+            await supabase.auth.updateUser({
+                data: {
+                    nombre: datosActualizados.nombre,
+                    apellidos: datosActualizados.apellidos
+                }
+            });
+
+            mostrarAlerta('success', 'Cambios guardados correctamente');
+            
+            // Actualizar datos locales
+            usuarioActual = { ...usuarioActual, ...datosActualizados };
+            
+            // Actualizar estadísticas
+            await cargarEstadisticas(usuarioActual.id);
+
+            console.log("✅ Cambios guardados exitosamente");
+
+        } catch (error) {
+            console.error('❌ Error al guardar cambios:', error);
+            mostrarAlerta('error', 'Error al guardar los cambios: ' + error.message);
+        }
+    }
+
+    // Configurar funciones de la página
+    function configurarPagina() {
+        console.log("⚙️ Configurando página de configuración...");
+        
+        // Formulario
+        const form = document.getElementById('formConfiguracion');
+        if (form) {
+            form.addEventListener('submit', guardarCambios);
+            console.log("✅ Formulario configurado");
+        }
+
+        // Cambiar avatar
+        const btnChangeAvatar = document.getElementById('btnChangeAvatar');
+        if (btnChangeAvatar) {
+            btnChangeAvatar.addEventListener('click', function() {
+                mostrarAlerta('info', 'La funcionalidad de cambio de avatar estará disponible próximamente.');
+            });
+        }
+
+        // Cambiar contraseña
+        const btnCambiarPassword = document.getElementById('btnCambiarPassword');
+        if (btnCambiarPassword) {
+            btnCambiarPassword.addEventListener('click', async function() {
+                const { value: password } = await Swal.fire({
+                    title: 'Cambiar Contraseña',
+                    html: `
+                        <input type="password" id="currentPassword" class="swal2-input" placeholder="Contraseña actual">
+                        <input type="password" id="newPassword" class="swal2-input" placeholder="Nueva contraseña">
+                        <input type="password" id="confirmPassword" class="swal2-input" placeholder="Confirmar nueva contraseña">
+                    `,
+                    focusConfirm: false,
+                    showCancelButton: true,
+                    confirmButtonText: 'Cambiar',
+                    cancelButtonText: 'Cancelar',
+                    preConfirm: () => {
+                        const current = document.getElementById('currentPassword').value;
+                        const newPass = document.getElementById('newPassword').value;
+                        const confirm = document.getElementById('confirmPassword').value;
+                        
+                        if (!current || !newPass || !confirm) {
+                            Swal.showValidationMessage('Todos los campos son requeridos');
+                            return false;
+                        }
+                        
+                        if (newPass.length < 6) {
+                            Swal.showValidationMessage('La nueva contraseña debe tener al menos 6 caracteres');
+                            return false;
+                        }
+                        
+                        if (newPass !== confirm) {
+                            Swal.showValidationMessage('Las contraseñas no coinciden');
+                            return false;
+                        }
+                        
+                        return { current, newPass };
+                    }
+                });
+
+                if (password) {
+                    mostrarAlerta('info', 'La funcionalidad de cambio de contraseña estará disponible próximamente.');
+                }
+            });
+        }
+
+        // Eliminar cuenta
+        const btnEliminarCuenta = document.getElementById('btnEliminarCuenta');
+        if (btnEliminarCuenta) {
+            btnEliminarCuenta.addEventListener('click', async function() {
+                const confirmacion = await mostrarConfirmacion(
+                    'Eliminar cuenta',
+                    '¿Estás seguro de que quieres eliminar tu cuenta? Esta acción no se puede deshacer.',
+                    'Sí, eliminar',
+                    'Cancelar'
+                );
+
+                if (confirmacion.isConfirmed) {
+                    mostrarAlerta('info', 'La funcionalidad de eliminación de cuenta estará disponible próximamente.');
+                }
+            });
+        }
+
+        // Configurar logout
+        const btnLogout = document.getElementById('btnLogout');
+        if (btnLogout) {
+            btnLogout.addEventListener('click', async () => {
+                try {
+                    await cerrarSesion();
+                } catch (error) {
+                    console.error('Error al cerrar sesión:', error);
+                }
+            });
+        }
+
+        console.log("✅ Página configurada correctamente");
+    }
+
+    // Inicializar cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            console.log("🚀 Inicializando página de configuración...");
+            
+            // 1. Cargar datos del usuario
+            await cargarDatosUsuario();
+            
+            // 2. Configurar eventos de la página
+            configurarPagina();
+            
+            console.log("✅ Página de configuración inicializada correctamente");
+            
+        } catch (error) {
+            console.error('❌ Error al inicializar configuración:', error);
+            mostrarAlerta('error', 'Error al inicializar la configuración');
+        }
+    });
+</script>
+</body>
+</html>
