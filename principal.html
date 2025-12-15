@@ -3254,6 +3254,557 @@
             background: linear-gradient(45deg, #1976d2, #1565c0);
             box-shadow: 0 5px 15px rgba(33, 150, 243, 0.3);
         }
+
+        /* Estilos para el sistema de afinidad */
+.afinidad-content {
+    padding: 20px;
+}
+
+.afinidad-estadisticas {
+    margin-bottom: 30px;
+}
+
+.estadisticas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.estadistica-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: transform 0.3s ease;
+}
+
+.estadistica-card:hover {
+    transform: translateY(-5px);
+}
+
+.estadistica-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+}
+
+.estadistica-info h3 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: bold;
+    color: #333;
+}
+
+.estadistica-info p {
+    margin: 5px 0 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.afinidad-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+.tab-btn {
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #666;
+    transition: all 0.3s ease;
+}
+
+.tab-btn:hover {
+    background: #f5f5f5;
+    color: #333;
+}
+
+.tab-btn.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+.tab-pane {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Items de afinidad */
+.afinidad-item {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    border-left: 4px solid var(--primary-color);
+}
+
+.afinidad-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.afinidad-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    overflow: hidden;
+}
+
+.afinidad-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.afinidad-info h4 {
+    margin: 0;
+    font-size: 16px;
+    color: #333;
+}
+
+.afinidad-meta {
+    display: flex;
+    gap: 10px;
+    margin-top: 5px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.afinidad-tipo {
+    font-size: 13px;
+    padding: 2px 8px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 12px;
+}
+
+.afinidad-fecha {
+    font-size: 12px;
+    color: #999;
+}
+
+.afinidad-nota-preview {
+    background: #f9f9f9;
+    padding: 10px;
+    border-radius: 5px;
+    margin: 10px 0;
+    font-size: 14px;
+    color: #666;
+    border-left: 3px solid #ddd;
+}
+
+.afinidad-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 4px;
+}
+
+/* Modal de afinidad */
+.modal-afinidad-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-afinidad-content {
+    background: white;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-afinidad-header {
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-afinidad-header h2 {
+    margin: 0;
+    font-size: 20px;
+    color: #333;
+}
+
+.modal-afinidad-body {
+    padding: 20px;
+}
+
+.amigo-info-modal {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 8px;
+}
+
+.amigo-avatar-modal {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    overflow: hidden;
+}
+
+.amigo-avatar-modal img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.amigo-details-modal h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #333;
+}
+
+.amigo-details-modal p {
+    margin: 5px 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.current-affinity {
+    margin-top: 8px;
+    padding: 5px 10px;
+    background: #e3f2fd;
+    border-radius: 5px;
+    font-size: 13px;
+    color: #1976d2;
+}
+
+.afinidad-options {
+    margin: 20px 0;
+}
+
+.options-grid {
+    display: grid;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.afinidad-option {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.afinidad-option:hover {
+    border-color: var(--primary-color);
+    background: #f8f9ff;
+}
+
+.afinidad-option.selected {
+    border-color: var(--primary-color);
+    background: #e8f4ff;
+}
+
+.option-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+}
+
+.option-content h5 {
+    margin: 0;
+    font-size: 16px;
+    color: #333;
+}
+
+.option-content p {
+    margin: 5px 0 0;
+    font-size: 13px;
+    color: #666;
+}
+
+.option-select {
+    margin-left: auto;
+    color: var(--primary-color);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.afinidad-option.selected .option-select {
+    opacity: 1;
+}
+
+.afinidad-nota {
+    margin: 20px 0;
+}
+
+.afinidad-nota label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+}
+
+.afinidad-nota textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    resize: vertical;
+    min-height: 80px;
+}
+
+.modal-afinidad-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+/* Lista de amigos para seleccionar */
+.amigo-item {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: transform 0.2s ease;
+}
+
+.amigo-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+}
+
+.amigo-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    overflow: hidden;
+}
+
+.amigo-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.amigo-info {
+    flex: 1;
+}
+
+.amigo-nombre {
+    margin: 0;
+    font-size: 16px;
+    color: #333;
+}
+
+.amigo-email {
+    margin: 5px 0 0;
+    font-size: 13px;
+    color: #666;
+}
+
+.btn-afinidad-select {
+    padding: 8px 16px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s ease;
+}
+
+.btn-afinidad-select:hover {
+    background: var(--secondary-color);
+}
+
+/* Badges para estados */
+.badge {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+    color: white;
+}
+
+.badge-success {
+    background: #4CAF50;
+}
+
+.badge-warning {
+    background: #FF9800;
+}
+
+.badge-info {
+    background: #2196F3;
+}
+
+.badge-danger {
+    background: #f44336;
+}
+
+.badge-secondary {
+    background: #9E9E9E;
+}
+
+/* Detalle de afinidad */
+.afinidad-detalle {
+    text-align: left;
+}
+
+.detalle-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.detalle-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+}
+
+.detalle-info h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #333;
+}
+
+.detalle-info p {
+    margin: 5px 0;
+    color: #666;
+}
+
+.detalle-nota {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.detalle-nota h4 {
+    margin: 0 0 10px;
+    color: #333;
+}
+
+.detalle-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.meta-item i {
+    font-size: 20px;
+    color: var(--primary-color);
+}
+
+.meta-item strong {
+    display: block;
+    font-size: 14px;
+    color: #333;
+}
+
+.meta-item p {
+    margin: 2px 0 0;
+    font-size: 13px;
+    color: #666;
+}
     </style>
 </head>
 <body>
@@ -3292,7 +3843,11 @@
                 <button class="nav-btn" id="btnMisAmigos">
                     <i class="fas fa-user-friends"></i> Mis Amigos
                 </button>
-                
+       
+                <button class="nav-btn" id="btnAfinidad">
+                    <i class="fas fa-handshake"></i> Afinidad
+                    <span class="badge" id="contadorAfinidades">0</span>
+                </button>
                 <!-- Botones de Grupos -->
                 <button class="nav-btn" id="btnMisGrupos">
                     <i class="fas fa-users"></i> Mis Grupos
@@ -3450,7 +4005,64 @@
                         </div>
                     </div>
                 </div>
-
+<!-- Vista: Afinidad -->
+<div class="section hidden" id="seccionAfinidad">
+    <div class="section-header">
+        <h2><i class="fas fa-handshake"></i> Afinidad</h2>
+        <div class="section-actions">
+            <button class="btn-primary" id="btnEstablecerAfinidad">
+                <i class="fas fa-user-plus"></i> Establecer Afinidad
+            </button>
+            <button class="btn-icon" id="btnRefreshAfinidad">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+        </div>
+    </div>
+    
+    <div class="afinidad-content">
+        <!-- Estadísticas -->
+        <div class="afinidad-estadisticas" id="estadisticasAfinidad">
+            <!-- Se cargarán las estadísticas aquí -->
+        </div>
+        
+        <!-- Pestañas -->
+        <div class="afinidad-tabs">
+            <button class="tab-btn active" data-tab="mis-afinidades">
+                <i class="fas fa-list"></i> Mis Afinidades
+            </button>
+            <button class="tab-btn" data-tab="seleccionar-amigos">
+                <i class="fas fa-user-plus"></i> Seleccionar Amigos
+            </button>
+            <button class="tab-btn" data-tab="solicitudes-pendientes">
+                <i class="fas fa-clock"></i> Solicitudes Pendientes
+            </button>
+        </div>
+        
+        <!-- Contenido de pestañas -->
+        <div class="tab-content">
+            <!-- Mis Afinidades -->
+            <div class="tab-pane active" id="tab-mis-afinidades">
+                <div class="afinidades-list" id="listaAfinidades">
+                    <!-- Se cargarán las afinidades aquí -->
+                </div>
+            </div>
+            
+            <!-- Seleccionar Amigos -->
+            <div class="tab-pane" id="tab-seleccionar-amigos">
+                <div class="amigos-list" id="listaAmigosAfinidad">
+                    <!-- Se cargarán los amigos para seleccionar afinidad aquí -->
+                </div>
+            </div>
+            
+            <!-- Solicitudes Pendientes -->
+            <div class="tab-pane" id="tab-solicitudes-pendientes">
+                <div class="solicitudes-list" id="listaSolicitudesPendientes">
+                    <!-- Se cargarán las solicitudes pendientes aquí -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
                 <!-- Vista: Crear Grupo -->
                 <div class="section hidden" id="seccionCrearGrupo">
                     <div class="section-header">
@@ -3617,6 +4229,9 @@
     <script src="modulos/interfaz.js"></script>
     <script src="modulos/chat-tiempo-real.js"></script>
     <script src="modulos/archivos.js"></script>
+    <script src="modulos/afinidad.js"></script>
+    <script src="modulos/interfaz-afinidad.js"></script>
+    <script src="modulos/eventos-afinidad.js"></script>
 
     
 
@@ -3639,6 +4254,7 @@
     window.listaUsuarios = [];
     window.gruposActuales = [];
 
+   
     // FUNCIÓN PARA ACTUALIZAR LA INTERFAZ DEL USUARIO
     function actualizarUIUsuario(usuario) {
         try {

@@ -1,4 +1,6 @@
 // modulos/amigos.js
+
+
 const Amigos = {
     async cargarAmigos() {
         try {
@@ -424,6 +426,23 @@ const Amigos = {
         }
     }
 };
+
+// Agregar al módulo Amigos
+async function actualizarContadorAfinidades() {
+    try {
+        const count = await window.Afinidad.contarSolicitudesPendientes();
+        const badge = document.getElementById('contadorAfinidades');
+        if (badge) {
+            badge.textContent = count > 0 ? count : '0';
+            badge.style.display = count > 0 ? 'flex' : 'none';
+        }
+    } catch (error) {
+        console.error('Error al actualizar contador de afinidades:', error);
+    }
+}
+
+// Agregar esta función al objeto window.Amigos
+window.Amigos.actualizarContadorAfinidades = actualizarContadorAfinidades;
 
 // Hacer disponible globalmente
 window.Amigos = Amigos;
