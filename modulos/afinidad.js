@@ -932,7 +932,7 @@ const Afinidad = {
             html += `
                 <div class="afinidad-section">
                     <h3 class="section-subtitle">
-                        <i class="fas fa-clock" style="color: #FF9800;"></i>
+                        <i class="fas fa-clock" style="color: #FFA726;"></i>
                         Solicitudes Pendientes (${afinidadesPendientes.length})
                     </h3>
                     <div class="afinidades-grid">
@@ -960,87 +960,120 @@ const Afinidad = {
         contenedor.innerHTML = html;
     },
 
-    renderizarItemAfinidad(afinidad) {
-        const esUsuarioSolicitante = afinidad.usuario_id === window.usuarioIdActual;
-        const amigo = esUsuarioSolicitante ? afinidad.amigo : afinidad.usuario;
-        const tipoInfo = this.getTipoAfinidadInfo(afinidad.tipo_afinidad);
-        const fecha = new Date(afinidad.creado_en).toLocaleDateString('es-ES');
-        const iniciales = window.Utilidades.obtenerIniciales(`${amigo.nombre || ''} ${amigo.apellidos || ''}`);
-        
-        let estadoBadge = '';
-        switch (afinidad.estado) {
-            case 'aceptada':
-                estadoBadge = '<span class="badge badge-success">Aceptada</span>';
-                break;
-            case 'pendiente':
-                estadoBadge = esUsuarioSolicitante 
-                    ? '<span class="badge badge-warning">Esperando respuesta</span>'
-                    : '<span class="badge badge-info">¡Nueva solicitud!</span>';
-                break;
-            case 'rechazada':
-                estadoBadge = '<span class="badge badge-danger">Rechazada</span>';
-                break;
-            case 'cancelada':
-                estadoBadge = '<span class="badge badge-secondary">Cancelada</span>';
-                break;
-        }
-        
-        return `
-            <div class="afinidad-item" data-afinidad-id="${afinidad.id}">
-                <div class="afinidad-header">
-                    <div class="afinidad-avatar">
-                        ${amigo.avatar_url ? 
-                            `<img src="${amigo.avatar_url}" alt="${amigo.nombre}" loading="lazy">` : 
-                            `<span>${iniciales}</span>`
-                        }
-                    </div>
-                    <div class="afinidad-info">
-                        <h4>${amigo.nombre || ''} ${amigo.apellidos || ''}</h4>
-                        <div class="afinidad-meta">
-                            <span class="afinidad-tipo" style="color: ${tipoInfo.color};">
-                                <i class="${tipoInfo.icon}"></i> ${tipoInfo.label}
-                            </span>
-                            <span class="afinidad-fecha">
-                                <i class="fas fa-calendar"></i> ${fecha}
-                            </span>
-                            ${estadoBadge}
-                        </div>
-                    </div>
+   renderizarItemAfinidad(afinidad) {
+    const esUsuarioSolicitante = afinidad.usuario_id === window.usuarioIdActual;
+    const amigo = esUsuarioSolicitante ? afinidad.amigo : afinidad.usuario;
+    const tipoInfo = this.getTipoAfinidadInfo(afinidad.tipo_afinidad);
+    const fecha = new Date(afinidad.creado_en).toLocaleDateString('es-ES');
+    const iniciales = window.Utilidades.obtenerIniciales(`${amigo.nombre || ''} ${amigo.apellidos || ''}`);
+    
+    let estadoBadge = '';
+    let estadoClase = '';
+    switch (afinidad.estado) {
+        case 'aceptada':
+            estadoBadge = '<span class="badge badge-success" style="background: linear-gradient(135deg, #4CAF50, #2E7D32); color: white; padding: 4px 12px; font-size: 12px; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-check-circle"></i> Aceptada</span>';
+            estadoClase = 'aceptada';
+            break;
+        case 'pendiente':
+            if (esUsuarioSolicitante) {
+                estadoBadge = '<span class="badge badge-warning" style="background: linear-gradient(135deg, #FFA726, #F57C00); color: white; padding: 4px 12px; font-size: 12px; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-clock"></i> Esperando respuesta</span>';
+                estadoClase = 'pendiente-enviada';
+            } else {
+                // ¡Nueva solicitud! - Ahora más integrado a la izquierda
+                estadoBadge = '<span class="badge badge-info" style="background: linear-gradient(135deg, #29B6F6, #0288D1); color: white; padding: 4px 12px; font-size: 12px; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-bell"></i> ¡Nueva solicitud!</span>';
+                estadoClase = 'nueva-solicitud';
+            }
+            break;
+        case 'rechazada':
+            estadoBadge = '<span class="badge badge-danger" style="background: linear-gradient(135deg, #f44336, #c62828); color: white; padding: 4px 12px; font-size: 12px; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-times-circle"></i> Rechazada</span>';
+            estadoClase = 'rechazada';
+            break;
+        case 'cancelada':
+            estadoBadge = '<span class="badge badge-secondary" style="background: linear-gradient(135deg, #9E9E9E, #616161); color: white; padding: 4px 12px; font-size: 12px; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-ban"></i> Cancelada</span>';
+            estadoClase = 'cancelada';
+            break;
+    }
+    
+    return `
+        <div class="afinidad-item ${estadoClase}" data-afinidad-id="${afinidad.id}" style="border-radius: 12px; border: 1px solid #e0e0e0; padding: 18px; margin-bottom: 15px; background: white; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+            <div class="afinidad-header" style="display: flex; align-items: center; gap: 15px; margin-bottom: 12px;">
+                <div class="afinidad-avatar" style="width: 55px; height: 55px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 20px; overflow: hidden; flex-shrink: 0;">
+                    ${amigo.avatar_url ? 
+                        `<img src="${amigo.avatar_url}" alt="${amigo.nombre}" style="width: 100%; height: 100%; object-fit: cover;">` : 
+                        `<span>${iniciales}</span>`
+                    }
                 </div>
-                
-                ${afinidad.nota ? `
-                    <div class="afinidad-nota-preview">
-                        <i class="fas fa-sticky-note"></i> ${afinidad.nota}
+                <div class="afinidad-info" style="flex: 1; min-width: 0;">
+                    <h4 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        ${amigo.nombre || ''} ${amigo.apellidos || ''}
+                    </h4>
+                    <div class="afinidad-meta" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        ${afinidad.estado === 'pendiente' && !esUsuarioSolicitante ? `
+                            <!-- ¡Nueva solicitud! ahora integrado a la izquierda -->
+                            <div style="order: 1;">
+                                ${estadoBadge}
+                            </div>
+                            <span class="afinidad-tipo" style="order: 2; color: ${tipoInfo.color}; font-size: 13px; display: flex; align-items: center; gap: 4px; background: ${tipoInfo.color}15; padding: 4px 10px; border-radius: 10px; margin-right: auto;">
+                                <i class="${tipoInfo.icon}" style="font-size: 11px;"></i> ${tipoInfo.label}
+                            </span>
+                            <span class="afinidad-fecha" style="order: 3; color: #666; font-size: 12px; display: flex; align-items: center; gap: 4px; margin-left: auto;">
+                                <i class="fas fa-calendar" style="font-size: 11px;"></i> ${fecha}
+                            </span>
+                        ` : `
+                            <!-- Diseño normal para otros estados -->
+                            <span class="afinidad-tipo" style="order: 1; color: ${tipoInfo.color}; font-size: 13px; display: flex; align-items: center; gap: 4px; background: ${tipoInfo.color}15; padding: 4px 10px; border-radius: 10px; margin-right: auto;">
+                                <i class="${tipoInfo.icon}" style="font-size: 11px;"></i> ${tipoInfo.label}
+                            </span>
+                            <span class="afinidad-fecha" style="order: 2; color: #666; font-size: 12px; display: flex; align-items: center; gap: 4px;">
+                                <i class="fas fa-calendar" style="font-size: 11px;"></i> ${fecha}
+                            </span>
+                            <div style="order: 3; margin-left: auto;">
+                                ${estadoBadge}
+                            </div>
+                        `}
                     </div>
-                ` : ''}
-                
-                <div class="afinidad-actions">
-                    ${afinidad.estado === 'pendiente' && !esUsuarioSolicitante ? `
-                        <button class="btn-success btn-sm" onclick="Afinidad.responderSolicitud('${afinidad.id}', 'aceptada')">
-                            <i class="fas fa-check"></i> Aceptar
-                        </button>
-                        <button class="btn-danger btn-sm" onclick="Afinidad.responderSolicitud('${afinidad.id}', 'rechazada')">
-                            <i class="fas fa-times"></i> Rechazar
-                        </button>
-                    ` : ''}
-                    
-                    ${afinidad.estado === 'pendiente' && esUsuarioSolicitante ? `
-                        <button class="btn-warning btn-sm" onclick="Afinidad.cancelarSolicitud('${afinidad.id}')">
-                            <i class="fas fa-ban"></i> Cancelar
-                        </button>
-                    ` : ''}
-                    
-                    <button class="btn-info btn-sm" onclick="Afinidad.verDetalleAfinidad('${afinidad.id}')">
-                        <i class="fas fa-eye"></i> Ver
-                    </button>
-                    
-                    <button class="btn-danger btn-sm" onclick="Afinidad.eliminarAfinidad('${afinidad.id}')">
-                        <i class="fas fa-trash"></i> Eliminar
-                    </button>
                 </div>
             </div>
-        `;
-    },
+            
+            ${afinidad.nota ? `
+                <div class="afinidad-nota-preview" style="background: #f8f9fa; border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; border-left: 3px solid #667eea; font-size: 13px; color: #555; line-height: 1.4; display: flex; align-items: flex-start; gap: 8px;">
+                    <i class="fas fa-sticky-note" style="color: #667eea; font-size: 12px; margin-top: 2px; flex-shrink: 0;"></i>
+                    <span style="flex: 1;">${afinidad.nota.length > 100 ? afinidad.nota.substring(0, 100) + '...' : afinidad.nota}</span>
+                </div>
+            ` : ''}
+            
+            <div class="afinidad-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                ${afinidad.estado === 'pendiente' && !esUsuarioSolicitante ? `
+                    <button class="btn-success btn-sm" onclick="Afinidad.responderSolicitud('${afinidad.id}', 'aceptada')" 
+                            style="background: linear-gradient(135deg, #2196F3, #1976D2); color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.2s;">
+                        <i class="fas fa-check" style="font-size: 11px;"></i> Aceptar
+                    </button>
+                    <button class="btn-danger btn-sm" onclick="Afinidad.responderSolicitud('${afinidad.id}', 'rechazada')" 
+                            style="background: linear-gradient(135deg, #f44336, #d32f2f); color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.2s;">
+                        <i class="fas fa-times" style="font-size: 11px;"></i> Rechazar
+                    </button>
+                ` : ''}
+                
+                ${afinidad.estado === 'pendiente' && esUsuarioSolicitante ? `
+                    <button class="btn-warning btn-sm" onclick="Afinidad.cancelarSolicitud('${afinidad.id}')" 
+                            style="background: linear-gradient(135deg, #9C27B0, #7B1FA2); color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.2s;">
+                        <i class="fas fa-ban" style="font-size: 11px;"></i> Cancelar
+                    </button>
+                ` : ''}
+                
+                <button class="btn-info btn-sm" onclick="Afinidad.verDetalleAfinidad('${afinidad.id}')" 
+                        style="background: linear-gradient(135deg, #00BCD4, #0097A7); color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.2s;">
+                    <i class="fas fa-eye" style="font-size: 11px;"></i> Ver
+                </button>
+                
+                <button class="btn-danger btn-sm" onclick="Afinidad.eliminarAfinidad('${afinidad.id}')" 
+                        style="background: linear-gradient(135deg, #757575, #616161); color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.2s;">
+                    <i class="fas fa-trash" style="font-size: 11px;"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    `;
+},
 
     async responderSolicitud(afinidadId, respuesta) {
         try {
@@ -1198,7 +1231,7 @@ const Afinidad = {
                         <div class="estadistica-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
                             <i class="fas fa-user-friends"></i>
                         </div>
-                        .estadistica-info {
+                        <div class="estadistica-info">
                             <h3>${estadisticas.amigos}</h3>
                             <p>Amigos</p>
                         </div>
