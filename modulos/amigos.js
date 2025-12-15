@@ -67,8 +67,13 @@ const Amigos = {
             return;
         }
         
-        // Siempre usar nuestra propia función de renderizado
-        this.mostrarListaAmigosFallback();
+        // USAR LA MISMA FUNCIÓN DEL SCRIPT PRINCIPAL (3 BOTONES)
+        if (typeof renderizarListaAmigos === 'function') {
+            renderizarListaAmigos(window.listaAmigos);
+        } else {
+            // Fallback si la función no está disponible
+            this.mostrarListaAmigosFallback();
+        }
     },
 
     // Versión de fallback que muestra 3 botones
@@ -83,10 +88,6 @@ const Amigos = {
                 ? `${amigo.ciudad}, ${amigo.pais}` 
                 : 'Ubicación no especificada';
             
-            // Escapar comillas simples en las cadenas para evitar errores de JavaScript
-            const emailEscapado = amigo.email.replace(/'/g, "\\'");
-            const nombreEscapado = amigo.nombre.replace(/'/g, "\\'");
-            
             html += `
                 <div class="friend-item" data-amigo-id="${amigo.id}">
                     <div class="friend-avatar">
@@ -99,13 +100,13 @@ const Amigos = {
                         </div>
                         <p class="friend-description">${ubicacion}</p>
                         <div class="friend-actions">
-                            <button class="friend-btn friend-btn-chat" onclick="window.Amigos.enviarMensajeAAmigo('${emailEscapado}', '${nombreEscapado}')">
+                            <button class="friend-btn friend-btn-chat" onclick="enviarMensajeDirecto('${amigo.email}')">
                                 <i class="fas fa-paper-plane"></i> Mensaje
                             </button>
-                            <button class="friend-btn friend-btn-info" onclick="window.Amigos.mostrarPerfilAmigo('${amigo.id}')">
+                            <button class="friend-btn friend-btn-info" onclick="mostrarPerfilAmigo('${amigo.id}')">
                                 <i class="fas fa-user-circle"></i> Ver Perfil
                             </button>
-                            <button class="friend-btn friend-btn-remove" onclick="window.Amigos.eliminarAmigo('${amigo.amistad_id}')">
+                            <button class="friend-btn friend-btn-remove" onclick="eliminarAmigo('${amigo.id}')">
                                 <i class="fas fa-user-times"></i> Eliminar
                             </button>
                         </div>
@@ -118,10 +119,7 @@ const Amigos = {
     },
 
     enviarMensajeAAmigo(email, nombre) {
-        if (window.Interfaz && window.Interfaz.mostrarSeccion) {
-            window.Interfaz.mostrarSeccion('seccionNuevoMensaje');
-        }
-        
+        window.Interfaz.mostrarSeccion('seccionNuevoMensaje');
         const destinatarioInput = document.getElementById('destinatario');
         const asuntoInput = document.getElementById('asunto');
         const contenidoInput = document.getElementById('contenido');
@@ -222,7 +220,6 @@ const Amigos = {
         const badge = document.querySelector('#btnNotificaciones .badge');
         if (badge) {
             badge.textContent = totalSolicitudes > 0 ? totalSolicitudes : '';
-            badge.style.display = totalSolicitudes > 0 ? 'flex' : 'none';
         }
     },
 
@@ -248,7 +245,6 @@ const Amigos = {
         window.solicitudesPendientes.forEach(notificacion => {
             if (notificacion.tipo === 'amistad') {
                 const nombreUsuario = `${notificacion.usuario.nombre} ${notificacion.usuario.apellidos}`;
-                const nombreEscapado = nombreUsuario.replace(/'/g, "\\'");
                 html += `
                     <div class="notification-item unread">
                         <div class="notification-text">
@@ -256,10 +252,10 @@ const Amigos = {
                         </div>
                         <div class="notification-time">Ahora</div>
                         <div class="notification-actions">
-                            <button class="btn-notification-accept" onclick="window.Amigos.aceptarSolicitudAmistad('${notificacion.id}')">
+                            <button class="btn-notification-accept" onclick="Amigos.aceptarSolicitudAmistad('${notificacion.id}')">
                                 Aceptar
                             </button>
-                            <button class="btn-notification-decline" onclick="window.Amigos.rechazarSolicitudAmistad('${notificacion.id}')">
+                            <button class="btn-notification-decline" onclick="Amigos.rechazarSolicitudAmistad('${notificacion.id}')">
                                 Rechazar
                             </button>
                         </div>
@@ -269,8 +265,6 @@ const Amigos = {
                 const esCreador = notificacion.grupo.creador_id === notificacion.usuario_id;
                 const nombreInvitador = esCreador ? 'Creador del grupo' : 
                     (notificacion.usuario ? `${notificacion.usuario.nombre} ${notificacion.usuario.apellidos}` : 'Usuario');
-                const nombreInvitadorEscapado = nombreInvitador.replace(/'/g, "\\'");
-                const nombreGrupoEscapado = notificacion.grupo.nombre.replace(/'/g, "\\'");
                 
                 html += `
                     <div class="notification-item unread">
@@ -279,10 +273,10 @@ const Amigos = {
                         </div>
                         <div class="notification-time">Ahora</div>
                         <div class="notification-actions">
-                            <button class="btn-notification-accept" onclick="window.Amigos.verInvitacionGrupo('${notificacion.grupo_id}')">
+                            <button class="btn-notification-accept" onclick="Amigos.verInvitacionGrupo('${notificacion.grupo_id}')">
                                 Ver grupo
                             </button>
-                            <button class="btn-notification-decline" onclick="window.Amigos.rechazarInvitacionGrupo('${notificacion.id}')">
+                            <button class="btn-notification-decline" onclick="Amigos.rechazarInvitacionGrupo('${notificacion.id}')">
                                 Rechazar
                             </button>
                         </div>
@@ -427,16 +421,6 @@ const Amigos = {
         const seccionAmigos = document.getElementById('seccionAmigosLista');
         if (seccionAmigos) {
             seccionAmigos.innerHTML = window.Utilidades.plantillaEstadoVacio('exclamation-triangle', 'Error', 'Intenta recargar la página');
-        }
-    },
-
-    // Función auxiliar para mostrar perfil (si no existe en otro lugar)
-    mostrarPerfilAmigo(usuarioId) {
-        console.log('Mostrar perfil del usuario:', usuarioId);
-        // Aquí puedes implementar la lógica para mostrar el perfil del usuario
-        // Por ejemplo, abrir un modal o redirigir a una sección específica
-        if (window.Utilidades && window.Utilidades.mostrarAlerta) {
-            window.Utilidades.mostrarAlerta('Perfil de amigo', `Funcionalidad de perfil para usuario ${usuarioId}`, 'info');
         }
     }
 };
