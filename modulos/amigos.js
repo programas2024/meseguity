@@ -69,11 +69,9 @@ const Amigos = {
         
         // USAR LA MISMA FUNCIÓN DEL SCRIPT PRINCIPAL (3 BOTONES)
         if (typeof renderizarListaAmigos === 'function') {
-            // Pasar la función mostrarPerfilAmigo como callback
-            renderizarListaAmigos(window.listaAmigos, this.mostrarPerfilAmigo.bind(this));
+            renderizarListaAmigos(window.listaAmigos);
         } else if (window.renderizarListaAmigos && typeof window.renderizarListaAmigos === 'function') {
-            // También verificar si está en window
-            window.renderizarListaAmigos(window.listaAmigos, this.mostrarPerfilAmigo.bind(this));
+            window.renderizarListaAmigos(window.listaAmigos);
         } else {
             // Fallback si la función no está disponible
             this.mostrarListaAmigosFallback();
@@ -439,10 +437,12 @@ const Amigos = {
         }
     },
 
-    // Función para mostrar perfil del amigo
+    // Función para mostrar perfil del amigo - VERSIÓN COMPLETA
     async mostrarPerfilAmigo(usuarioId) {
         try {
-            // Obtener datos del usuario
+            console.log('Mostrar perfil del usuario:', usuarioId);
+            
+            // Obtener datos completos del usuario
             const { data: usuario, error } = await window.supabase
                 .from('usuarios')
                 .select('id, nombre, apellidos, email, ciudad, pais, bio, fecha_registro')
@@ -451,20 +451,37 @@ const Amigos = {
             
             if (error) throw error;
             
-            // Mostrar el perfil en un modal o sección específica
+            // Mostrar modal con el perfil
             this.mostrarModalPerfil(usuario);
             
         } catch (error) {
             console.error('Error al cargar perfil del amigo:', error);
-            window.Utilidades.mostrarAlerta('Error', 'No se pudo cargar el perfil del amigo', 'error');
+            
+            // Mostrar error al usuario
+            if (window.Utilidades && window.Utilidades.mostrarAlerta) {
+                window.Utilidades.mostrarAlerta('Error', 'No se pudo cargar el perfil del amigo', 'error');
+            }
         }
     },
 
     // Función para mostrar el modal con el perfil
     mostrarModalPerfil(usuario) {
+        // Generar iniciales para el avatar
+        const iniciales = window.Utilidades.obtenerIniciales(`${usuario.nombre} ${usuario.apellidos}`);
+        
+        // Formatear fecha de registro
+        const fechaRegistro = usuario.fecha_registro 
+            ? new Date(usuario.fecha_registro).toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            })
+            : 'No disponible';
+        
+        // Crear HTML del modal
         const modalHTML = `
-            <div class="modal" id="modalPerfilAmigo">
-                <div class="modal-content">
+            <div class="modal" id="modalPerfilAmigo" style="display: flex;">
+                <div class="modal-content" style="max-width: 500px;">
                     <div class="modal-header">
                         <h3>Perfil de ${usuario.nombre} ${usuario.apellidos}</h3>
                         <button class="btn-icon" onclick="document.getElementById('modalPerfilAmigo').remove()">
@@ -473,22 +490,33 @@ const Amigos = {
                     </div>
                     <div class="modal-body">
                         <div class="profile-info">
-                            <div class="profile-avatar-large">
-                                <span>${window.Utilidades.obtenerIniciales(`${usuario.nombre} ${usuario.apellidos}`)}</span>
+                            <div class="profile-avatar-large" style="margin: 0 auto 20px; width: 80px; height: 80px; font-size: 32px;">
+                                <span>${iniciales}</span>
                             </div>
                             <div class="profile-details">
-                                <p><strong>Email:</strong> ${usuario.email}</p>
-                                <p><strong>Ubicación:</strong> ${usuario.ciudad || 'No especificada'}, ${usuario.pais || 'No especificado'}</p>
-                                <p><strong>Miembro desde:</strong> ${new Date(usuario.fecha_registro).toLocaleDateString()}</p>
-                                ${usuario.bio ? `<p><strong>Biografía:</strong> ${usuario.bio}</p>` : ''}
+                                <div class="detail-row">
+                                    <strong>Email:</strong> ${usuario.email}
+                                </div>
+                                <div class="detail-row">
+                                    <strong>Ubicación:</strong> ${usuario.ciudad || 'No especificada'}, ${usuario.pais || 'No especificado'}
+                                </div>
+                                <div class="detail-row">
+                                    <strong>Miembro desde:</strong> ${fechaRegistro}
+                                </div>
+                                ${usuario.bio ? `
+                                <div class="detail-row">
+                                    <strong>Biografía:</strong><br>
+                                    ${usuario.bio}
+                                </div>
+                                ` : ''}
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer">
+                    <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
                         <button class="btn btn-secondary" onclick="document.getElementById('modalPerfilAmigo').remove()">
                             Cerrar
                         </button>
-                        <button class="btn btn-primary" onclick="window.Amigos.enviarMensajeAAmigo('${usuario.email}', '${usuario.nombre}')">
+                        <button class="btn btn-primary" onclick="window.Amigos.enviarMensajeAAmigo('${usuario.email.replace(/'/g, "\\'")}', '${usuario.nombre.replace(/'/g, "\\'")}'); document.getElementById('modalPerfilAmigo').remove()">
                             <i class="fas fa-paper-plane"></i> Enviar mensaje
                         </button>
                     </div>
@@ -504,53 +532,93 @@ const Amigos = {
         
         // Agregar nuevo modal
         document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Añadir estilos básicos si no existen
+        if (!document.querySelector('#estilosPerfilModal')) {
+            const estilos = `
+                <style id="estilosPerfilModal">
+                    .modal {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background-color: rgba(0, 0, 0, 0.5);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        z-index: 1000;
+                    }
+                    .modal-content {
+                        background: white;
+                        border-radius: 8px;
+                        padding: 20px;
+                        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+                    }
+                    .modal-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 20px;
+                        border-bottom: 1px solid #eee;
+                        padding-bottom: 10px;
+                    }
+                    .modal-header h3 {
+                        margin: 0;
+                        color: #333;
+                    }
+                    .btn-icon {
+                        background: none;
+                        border: none;
+                        cursor: pointer;
+                        color: #666;
+                        font-size: 1.2rem;
+                    }
+                    .profile-avatar-large {
+                        width: 80px;
+                        height: 80px;
+                        border-radius: 50%;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 32px;
+                        font-weight: bold;
+                        margin: 0 auto 20px;
+                    }
+                    .detail-row {
+                        margin-bottom: 10px;
+                        padding: 8px 0;
+                        border-bottom: 1px solid #f0f0f0;
+                    }
+                    .detail-row:last-child {
+                        border-bottom: none;
+                    }
+                    .btn {
+                        padding: 10px 20px;
+                        border: none;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-weight: 500;
+                    }
+                    .btn-primary {
+                        background: #4f46e5;
+                        color: white;
+                    }
+                    .btn-secondary {
+                        background: #6b7280;
+                        color: white;
+                    }
+                    .btn:hover {
+                        opacity: 0.9;
+                    }
+                </style>
+            `;
+            document.head.insertAdjacentHTML('beforeend', estilos);
+        }
     }
 };
 
 // Hacer disponible globalmente
 window.Amigos = Amigos;
-
-// También puedes definir renderizarListaAmigos aquí si es necesario
-if (!window.renderizarListaAmigos) {
-    window.renderizarListaAmigos = function(amigos, callbackPerfil) {
-        // Implementación básica si no existe en otro lado
-        const seccionAmigos = document.getElementById('seccionAmigosLista');
-        let html = '';
-        
-        amigos.forEach(amigo => {
-            const nombreCompleto = `${amigo.nombre} ${amigo.apellidos}`;
-            const iniciales = window.Utilidades.obtenerIniciales(nombreCompleto);
-            const ubicacion = amigo.ciudad && amigo.pais 
-                ? `${amigo.ciudad}, ${amigo.pais}` 
-                : 'Ubicación no especificada';
-            
-            html += `
-                <div class="friend-item" data-amigo-id="${amigo.id}">
-                    <div class="friend-avatar">
-                        <span>${iniciales}</span>
-                    </div>
-                    <div class="friend-content">
-                        <div class="friend-header">
-                            <h3 class="friend-name">${nombreCompleto}</h3>
-                            <span class="friend-info">${amigo.email}</span>
-                        </div>
-                        <p class="friend-description">${ubicacion}</p>
-                        <div class="friend-actions">
-                            <button class="friend-btn friend-btn-chat" onclick="window.Amigos.enviarMensajeAAmigo('${amigo.email.replace(/'/g, "\\'")}', '${amigo.nombre.replace(/'/g, "\\'")}')">
-                                <i class="fas fa-paper-plane"></i> Mensaje
-                            </button>
-                            <button class="friend-btn friend-btn-info" onclick="${callbackPerfil ? `window.Amigos.mostrarPerfilAmigo('${amigo.id}')` : ''}">
-                                <i class="fas fa-user-circle"></i> Ver Perfil
-                            </button>
-                            <button class="friend-btn friend-btn-remove" onclick="window.Amigos.eliminarAmigo('${amigo.amistad_id}')">
-                                <i class="fas fa-user-times"></i> Eliminar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-        
-        seccionAmigos.innerHTML = html;
-    };
-}
