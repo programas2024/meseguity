@@ -3805,6 +3805,617 @@
     font-size: 13px;
     color: #666;
 }
+
+/* Estilos para la sección de afinidad */
+#seccionAfinidad .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.afinidad-content {
+    padding: 20px 0;
+}
+
+.afinidad-estadisticas {
+    margin-bottom: 30px;
+}
+
+.estadisticas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.estadistica-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: transform 0.3s ease;
+}
+
+.estadistica-card:hover {
+    transform: translateY(-5px);
+}
+
+.estadistica-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+}
+
+.estadistica-info h3 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: bold;
+    color: #333;
+}
+
+.estadistica-info p {
+    margin: 5px 0 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.afinidad-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+.tab-btn {
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #666;
+    transition: all 0.3s ease;
+}
+
+.tab-btn:hover {
+    background: #f5f5f5;
+    color: #333;
+}
+
+.tab-btn.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+.tab-pane {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Items de afinidad */
+.afinidad-item {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    border-left: 4px solid var(--primary-color);
+}
+
+.afinidad-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.afinidad-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    overflow: hidden;
+}
+
+.afinidad-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.afinidad-info h4 {
+    margin: 0;
+    font-size: 16px;
+    color: #333;
+}
+
+.afinidad-meta {
+    display: flex;
+    gap: 10px;
+    margin-top: 5px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.afinidad-tipo {
+    font-size: 13px;
+    padding: 2px 8px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 12px;
+}
+
+.afinidad-fecha {
+    font-size: 12px;
+    color: #999;
+}
+
+.afinidad-nota-preview {
+    background: #f9f9f9;
+    padding: 10px;
+    border-radius: 5px;
+    margin: 10px 0;
+    font-size: 14px;
+    color: #666;
+    border-left: 3px solid #ddd;
+}
+
+.afinidad-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 4px;
+}
+
+/* Modal de afinidad */
+.modal-afinidad-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-afinidad-content {
+    background: white;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-afinidad-header {
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-afinidad-header h2 {
+    margin: 0;
+    font-size: 20px;
+    color: #333;
+}
+
+.modal-afinidad-body {
+    padding: 20px;
+}
+
+.amigo-info-modal {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 8px;
+}
+
+.amigo-avatar-modal {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    overflow: hidden;
+}
+
+.amigo-avatar-modal img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.amigo-details-modal h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #333;
+}
+
+.amigo-details-modal p {
+    margin: 5px 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.current-affinity {
+    margin-top: 8px;
+    padding: 5px 10px;
+    background: #e3f2fd;
+    border-radius: 5px;
+    font-size: 13px;
+    color: #1976d2;
+}
+
+.afinidad-options {
+    margin: 20px 0;
+}
+
+.options-grid {
+    display: grid;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.afinidad-option {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.afinidad-option:hover {
+    border-color: var(--primary-color);
+    background: #f8f9ff;
+}
+
+.afinidad-option.selected {
+    border-color: var(--primary-color);
+    background: #e8f4ff;
+}
+
+.option-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+}
+
+.option-content h5 {
+    margin: 0;
+    font-size: 16px;
+    color: #333;
+}
+
+.option-content p {
+    margin: 5px 0 0;
+    font-size: 13px;
+    color: #666;
+}
+
+.option-select {
+    margin-left: auto;
+    color: var(--primary-color);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.afinidad-option.selected .option-select {
+    opacity: 1;
+}
+
+.afinidad-nota {
+    margin: 20px 0;
+}
+
+.afinidad-nota label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+}
+
+.afinidad-nota textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    resize: vertical;
+    min-height: 80px;
+}
+
+.modal-afinidad-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+/* Lista de amigos para seleccionar */
+.amigo-item {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: transform 0.2s ease;
+}
+
+.amigo-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+}
+
+.amigo-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    overflow: hidden;
+}
+
+.amigo-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.amigo-info {
+    flex: 1;
+}
+
+.amigo-nombre {
+    margin: 0;
+    font-size: 16px;
+    color: #333;
+}
+
+.amigo-email {
+    margin: 5px 0 0;
+    font-size: 13px;
+    color: #666;
+}
+
+.btn-afinidad-select {
+    padding: 8px 16px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s ease;
+}
+
+.btn-afinidad-select:hover {
+    background: var(--secondary-color);
+}
+
+/* Badges para estados */
+.badge {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+    color: white;
+}
+
+.badge-success {
+    background: #4CAF50;
+}
+
+.badge-warning {
+    background: #FF9800;
+}
+
+.badge-info {
+    background: #2196F3;
+}
+
+.badge-danger {
+    background: #f44336;
+}
+
+.badge-secondary {
+    background: #9E9E9E;
+}
+
+/* Detalle de afinidad */
+.afinidad-detalle {
+    text-align: left;
+}
+
+.detalle-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.detalle-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+}
+
+.detalle-info h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #333;
+}
+
+.detalle-info p {
+    margin: 5px 0;
+    color: #666;
+}
+
+.detalle-nota {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.detalle-nota h4 {
+    margin: 0 0 10px;
+    color: #333;
+}
+
+.detalle-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.meta-item i {
+    font-size: 20px;
+    color: var(--primary-color);
+}
+
+.meta-item strong {
+    display: block;
+    font-size: 14px;
+    color: #333;
+}
+
+.meta-item p {
+    margin: 2px 0 0;
+    font-size: 13px;
+    color: #666;
+}
+
+/* Botones de colores para acciones */
+.btn-success {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-success:hover {
+    background: #45a049;
+}
+
+.btn-danger {
+    background: #f44336;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-danger:hover {
+    background: #d32f2f;
+}
+
+.btn-warning {
+    background: #ff9800;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-warning:hover {
+    background: #f57c00;
+}
+
+.btn-info {
+    background: #2196F3;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-info:hover {
+    background: #1976D2;
+}
     </style>
 </head>
 <body>
@@ -4723,181 +5334,269 @@
     window.eliminarAmigo = eliminarAmigo;
 
     // INICIALIZACIÓN DE LA APLICACIÓN
-    document.addEventListener('DOMContentLoaded', async () => {
-        try {
-            console.log("🚀 Inicializando aplicación Messery...");
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        console.log("🚀 Inicializando aplicación Messery...");
+        
+        // Verificar que los módulos necesarios estén cargados
+        if (!window.supabase) {
+            console.error("❌ Supabase no está disponible");
+            alert("Error: No se pudo conectar con el servidor. Recarga la página.");
+            return;
+        }
+
+        // Pequeña pausa para asegurar que los módulos estén cargados
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // 1. Verificar sesión usando el módulo Autenticacion
+        console.log("🔐 Verificando sesión...");
+        const usuarioAuth = await Autenticacion.verificarSesion();
+        
+        if (!usuarioAuth) {
+            console.log("⚠️ No hay sesión activa, redirigiendo a login...");
+            window.location.href = 'index.html';
+            return;
+        }
+        
+        console.log("✅ Sesión activa encontrada:", usuarioAuth.email);
+
+        // 2. Verificar y registrar usuario si no existe
+        console.log("📋 Verificando/registrando usuario en DB...");
+        const usuarioDB = await Autenticacion.verificarYRegistrarUsuario();
+        
+        if (!usuarioDB) {
+            console.error("❌ Error crítico: No se pudo registrar el usuario");
+            if (window.Utilidades && window.Utilidades.mostrarAlerta) {
+                window.Utilidades.mostrarAlerta(
+                    'Error de registro', 
+                    'No se pudo completar el registro. Intenta recargar la página o contacta al administrador.', 
+                    'error'
+                );
+            }
+            return;
+        }
+
+        // 3. Guardar usuario en variables globales
+        window.usuarioActual = usuarioDB;
+        window.usuarioIdActual = usuarioDB.id;
+        console.log("👤 Usuario cargado:", usuarioDB.nombre, "(ID:", usuarioDB.id, ")");
+
+        // 4. Actualizar interfaz del usuario
+        console.log("🎨 Configurando interfaz del usuario...");
+        actualizarUIUsuario(window.usuarioActual);
+
+        // 5. Cargar información adicional del usuario
+        if (window.Usuario && window.Usuario.cargarInformacion) {
+            console.log("👤 Cargando información adicional del usuario...");
+            await window.Usuario.cargarInformacion(usuarioDB);
+        }
+
+        // 6. Cargar amigos
+        console.log("👥 Cargando amigos...");
+        if (window.Amigos && window.Amigos.cargarAmigos) {
+            await window.Amigos.cargarAmigos();
+        }
+
+        // 7. Inicializar sistema de afinidad
+        console.log("🤝 Inicializando sistema de afinidad...");
+        if (window.Afinidad) {
+            console.log("✅ Módulo de afinidad disponible");
             
-            // Verificar que los módulos necesarios estén cargados
-            if (!window.supabase) {
-                console.error("❌ Supabase no está disponible");
-                alert("Error: No se pudo conectar con el servidor. Recarga la página.");
-                return;
-            }
-
-            // Pequeña pausa para asegurar que los módulos estén cargados
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            // 1. Verificar sesión usando el módulo Autenticacion
-            console.log("🔐 Verificando sesión...");
-            const usuarioAuth = await Autenticacion.verificarSesion();
+            // Cargar afinidades
+            await window.Afinidad.cargarAfinidades();
             
-            if (!usuarioAuth) {
-                console.log("⚠️ No hay sesión activa, redirigiendo a login...");
-                window.location.href = 'index.html';
-                return;
-            }
+            // Inicializar interfaz de afinidad
+            window.Afinidad.inicializar();
             
-            console.log("✅ Sesión activa encontrada:", usuarioAuth.email);
+            // Actualizar contador de afinidades
+            if (window.Amigos && window.Amigos.actualizarContadorAfinidades) {
+                await window.Amigos.actualizarContadorAfinidades();
+            }
+        } else {
+            console.log("⚠️ Módulo de afinidad no disponible");
+        }
 
-            // 2. Verificar y registrar usuario si no existe
-            console.log("📋 Verificando/registrando usuario en DB...");
-            const usuarioDB = await Autenticacion.verificarYRegistrarUsuario();
-            
-            if (!usuarioDB) {
-                console.error("❌ Error crítico: No se pudo registrar el usuario");
-                if (window.Utilidades && window.Utilidades.mostrarAlerta) {
-                    window.Utilidades.mostrarAlerta(
-                        'Error de registro', 
-                        'No se pudo completar el registro. Intenta recargar la página o contacta al administrador.', 
-                        'error'
-                    );
-                }
-                return;
+        // 8. Inicializar chat en tiempo real
+        if (window.ChatTiempoReal) {
+            console.log("💬 Inicializando chat en tiempo real...");
+            if (typeof window.ChatTiempoReal === 'function') {
+                window.chatTiempoRealInstance = new window.ChatTiempoReal();
+                console.log('✅ Chat en tiempo real inicializado');
+            } else if (typeof window.ChatTiempoReal === 'object') {
+                window.chatTiempoRealInstance = window.ChatTiempoReal;
+                console.log('✅ Chat en tiempo real ya disponible');
             }
+        } else {
+            console.log("⚠️ ChatTiempoReal no disponible");
+        }
 
-            // 3. Guardar usuario en variables globales
-            window.usuarioActual = usuarioDB;
-            window.usuarioIdActual = usuarioDB.id;
-            console.log("👤 Usuario cargado:", usuarioDB.nombre, "(ID:", usuarioDB.id, ")");
+        // 9. Inicializar sistema de archivos
+        if (window.Archivos && window.Archivos.inicializarStorage) {
+            console.log("📁 Inicializando sistema de archivos...");
+            await window.Archivos.inicializarStorage();
+            console.log('✅ Sistema de archivos inicializado');
+        }
 
-            // 4. Actualizar interfaz del usuario
-            console.log("🎨 Configurando interfaz del usuario...");
-            actualizarUIUsuario(window.usuarioActual);
+        // 10. Cargar datos iniciales
+        console.log("📥 Cargando datos iniciales...");
+        
+        if (window.Mensajes && window.Mensajes.cargarBandejaEntrada) {
+            await window.Mensajes.cargarBandejaEntrada();
+        }
+        
+        if (window.Mensajes && window.Mensajes.actualizarContadorNoLeidos) {
+            await window.Mensajes.actualizarContadorNoLeidos();
+        }
+        
+        if (window.Amigos && window.Amigos.cargarSolicitudesPendientes) {
+            await window.Amigos.cargarSolicitudesPendientes();
+        }
+        
+        if (window.UsuariosDisponibles && window.UsuariosDisponibles.cargarUsuariosDisponibles) {
+            await window.UsuariosDisponibles.cargarUsuariosDisponibles();
+        }
+        
+        // 11. Cargar grupos del usuario
+        if (window.Grupos && window.Grupos.cargarMisGrupos) {
+            console.log("👥 Cargando grupos...");
+            await window.Grupos.cargarMisGrupos();
+            console.log('✅ Grupos cargados');
+        }
 
-            // 5. Cargar información adicional del usuario
-            if (window.Usuario && window.Usuario.cargarInformacion) {
-                console.log("👤 Cargando información adicional del usuario...");
-                await window.Usuario.cargarInformacion(usuarioDB);
-            }
-
-            // 6. Cargar amigos
-            console.log("👥 Cargando amigos...");
-            if (window.Amigos && window.Amigos.cargarAmigos) {
-                await window.Amigos.cargarAmigos();
-            }
-
-            // 7. Inicializar chat en tiempo real
-            if (window.ChatTiempoReal) {
-                console.log("💬 Inicializando chat en tiempo real...");
-                if (typeof window.ChatTiempoReal === 'function') {
-                    window.chatTiempoRealInstance = new window.ChatTiempoReal();
-                    console.log('✅ Chat en tiempo real inicializado');
-                } else if (typeof window.ChatTiempoReal === 'object') {
-                    window.chatTiempoRealInstance = window.ChatTiempoReal;
-                    console.log('✅ Chat en tiempo real ya disponible');
-                }
-            } else {
-                console.log("⚠️ ChatTiempoReal no disponible");
-            }
-
-            // 8. Inicializar sistema de archivos
-            if (window.Archivos && window.Archivos.inicializarStorage) {
-                console.log("📁 Inicializando sistema de archivos...");
-                await window.Archivos.inicializarStorage();
-                console.log('✅ Sistema de archivos inicializado');
-            }
-
-            // 9. Cargar datos iniciales
-            console.log("📥 Cargando datos iniciales...");
-            
-            if (window.Mensajes && window.Mensajes.cargarBandejaEntrada) {
-                await window.Mensajes.cargarBandejaEntrada();
-            }
-            
-            if (window.Mensajes && window.Mensajes.actualizarContadorNoLeidos) {
-                await window.Mensajes.actualizarContadorNoLeidos();
-            }
-            
-            if (window.Amigos && window.Amigos.cargarSolicitudesPendientes) {
-                await window.Amigos.cargarSolicitudesPendientes();
-            }
-            
-            if (window.UsuariosDisponibles && window.UsuariosDisponibles.cargarUsuariosDisponibles) {
-                await window.UsuariosDisponibles.cargarUsuariosDisponibles();
-            }
-            
-            // 10. Cargar grupos del usuario
-            if (window.Grupos && window.Grupos.cargarMisGrupos) {
-                console.log("👥 Cargando grupos...");
-                await window.Grupos.cargarMisGrupos();
-                console.log('✅ Grupos cargados');
-            }
-
-            // 11. Configurar interfaz y eventos
-            if (window.Interfaz && window.Interfaz.configurarEventos) {
-                console.log("⚙️ Configurando eventos de interfaz...");
-                window.Interfaz.configurarEventos();
-            }
-            
-            // 12. Configurar logout
-            const btnLogout = document.getElementById('btnLogout');
-            if (btnLogout) {
-                btnLogout.addEventListener('click', async () => {
-                    try {
-                        await Autenticacion.cerrarSesion();
-                    } catch (error) {
-                        console.error('Error al cerrar sesión:', error);
+        // 12. Configurar botón de afinidad en la interfaz
+        console.log("⚙️ Configurando botón de afinidad...");
+        const btnAfinidad = document.getElementById('btnAfinidad');
+        if (btnAfinidad) {
+            btnAfinidad.addEventListener('click', async () => {
+                if (window.Interfaz && window.Interfaz.mostrarSeccion) {
+                    window.Interfaz.mostrarSeccion('seccionAfinidad');
+                    
+                    // Cargar datos de afinidad
+                    if (window.Afinidad) {
+                        await window.Afinidad.mostrarEstadisticasAfinidad();
+                        await window.Afinidad.mostrarListaAfinidades();
+                        
+                        // Cargar lista de amigos para seleccionar afinidad
+                        if (window.listaAmigos) {
+                            window.Afinidad.mostrarListaAmigosParaAfinidad();
+                        }
                     }
-                });
-            }
-
-            // 13. Ocultar mensaje de bienvenida después de 5 segundos
-            setTimeout(() => {
-                const welcomeMsg = document.getElementById('welcomeMessage');
-                if (welcomeMsg) {
-                    welcomeMsg.style.opacity = '0';
-                    welcomeMsg.style.transition = 'opacity 1s ease';
-                    setTimeout(() => {
-                        welcomeMsg.style.display = 'none';
-                    }, 1000);
-                }
-            }, 5000);
-
-            // 14. Configurar suscripción a cambios de autenticación
-            supabase.auth.onAuthStateChange((event, session) => {
-                console.log('🔄 Cambio en estado de autenticación:', event);
-                
-                if (event === 'SIGNED_OUT') {
-                    console.log('🚪 Usuario cerró sesión, redirigiendo...');
-                    window.location.href = 'index.html';
-                } else if (event === 'TOKEN_REFRESHED') {
-                    console.log('🔄 Token refrescado');
                 }
             });
-
-            console.log("🎉 Aplicación Messery inicializada correctamente");
-
-        } catch (error) {
-            console.error('❌ Error al inicializar la aplicación:', error);
-            
-            let errorMessage = 'No se pudo inicializar la aplicación. ';
-            if (error.message) {
-                errorMessage += 'Error: ' + error.message;
-            }
-            
-            if (window.Utilidades && window.Utilidades.mostrarAlerta) {
-                window.Utilidades.mostrarAlerta('Error de inicialización', errorMessage, 'error');
-            } else {
-                alert(errorMessage);
-            }
-            
-            if (error.message && (error.message.includes('auth') || error.message.includes('session'))) {
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 3000);
-            }
+        } else {
+            console.log("⚠️ Botón de afinidad no encontrado");
         }
-    });
+
+        // 13. Configurar interfaz y eventos
+        if (window.Interfaz && window.Interfaz.configurarEventos) {
+            console.log("⚙️ Configurando eventos de interfaz...");
+            window.Interfaz.configurarEventos();
+        }
+        
+        // 14. Configurar logout
+        const btnLogout = document.getElementById('btnLogout');
+        if (btnLogout) {
+            btnLogout.addEventListener('click', async () => {
+                try {
+                    await Autenticacion.cerrarSesion();
+                } catch (error) {
+                    console.error('Error al cerrar sesión:', error);
+                }
+            });
+        }
+
+        // 15. Ocultar mensaje de bienvenida después de 5 segundos
+        setTimeout(() => {
+            const welcomeMsg = document.getElementById('welcomeMessage');
+            if (welcomeMsg) {
+                welcomeMsg.style.opacity = '0';
+                welcomeMsg.style.transition = 'opacity 1s ease';
+                setTimeout(() => {
+                    welcomeMsg.style.display = 'none';
+                }, 1000);
+            }
+        }, 5000);
+
+        // 16. Configurar suscripción a cambios de autenticación
+        supabase.auth.onAuthStateChange((event, session) => {
+            console.log('🔄 Cambio en estado de autenticación:', event);
+            
+            if (event === 'SIGNED_OUT') {
+                console.log('🚪 Usuario cerró sesión, redirigiendo...');
+                window.location.href = 'index.html';
+            } else if (event === 'TOKEN_REFRESHED') {
+                console.log('🔄 Token refrescado');
+            }
+        });
+
+        console.log("🎉 Aplicación Messery inicializada correctamente");
+
+    } catch (error) {
+        console.error('❌ Error al inicializar la aplicación:', error);
+        
+        let errorMessage = 'No se pudo inicializar la aplicación. ';
+        if (error.message) {
+            errorMessage += 'Error: ' + error.message;
+        }
+        
+        if (window.Utilidades && window.Utilidades.mostrarAlerta) {
+            window.Utilidades.mostrarAlerta('Error de inicialización', errorMessage, 'error');
+        } else {
+            alert(errorMessage);
+        }
+        
+        if (error.message && (error.message.includes('auth') || error.message.includes('session'))) {
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 3000);
+        }
+    }
+});
+
+// Función para mostrar sección de afinidad (global)
+function mostrarSeccionAfinidad() {
+    if (window.Interfaz && window.Interfaz.mostrarSeccion) {
+        window.Interfaz.mostrarSeccion('seccionAfinidad');
+        
+        // Cargar datos de afinidad
+        if (window.Afinidad) {
+            setTimeout(async () => {
+                try {
+                    await window.Afinidad.mostrarEstadisticasAfinidad();
+                    await window.Afinidad.mostrarListaAfinidades();
+                    
+                    // Cargar amigos para seleccionar afinidad
+                    if (window.listaAmigos) {
+                        window.Afinidad.mostrarListaAmigosParaAfinidad();
+                    }
+                } catch (error) {
+                    console.error('Error al cargar datos de afinidad:', error);
+                }
+            }, 100);
+        }
+    }
+}
+
+// Hacer la función global
+window.mostrarSeccionAfinidad = mostrarSeccionAfinidad;
+
+// Función para mostrar selección de amigos para afinidad
+function mostrarSeleccionAmigosAfinidad() {
+    if (window.Interfaz && window.Interfaz.mostrarSeccion) {
+        // Cambiar a la pestaña de selección de amigos
+        if (window.cambiarTabAfinidad) {
+            window.cambiarTabAfinidad('seleccionar-amigos');
+        }
+        
+        // Cargar lista de amigos
+        if (window.Afinidad && window.listaAmigos) {
+            window.Afinidad.mostrarListaAmigosParaAfinidad();
+        }
+    }
+}
+
+// Hacer la función global
+window.mostrarSeleccionAmigosAfinidad = mostrarSeleccionAmigosAfinidad;
 
     // Configurar botón de configuración
     const btnConfiguracion = document.getElementById('btnConfiguracion');
