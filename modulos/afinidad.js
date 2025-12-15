@@ -960,7 +960,7 @@ const Afinidad = {
         contenedor.innerHTML = html;
     },
 
-   renderizarItemAfinidad(afinidad) {
+  renderizarItemAfinidad(afinidad) {
     const esUsuarioSolicitante = afinidad.usuario_id === window.usuarioIdActual;
     const amigo = esUsuarioSolicitante ? afinidad.amigo : afinidad.usuario;
     const tipoInfo = this.getTipoAfinidadInfo(afinidad.tipo_afinidad);
@@ -969,19 +969,21 @@ const Afinidad = {
     
     let estadoBadge = '';
     let estadoClase = '';
+    let esNuevaSolicitud = false;
+    
     switch (afinidad.estado) {
         case 'aceptada':
-            estadoBadge = '<span class="badge badge-success" style="background: linear-gradient(135deg, #4CAF50, #2E7D32); color: white; padding: 4px 12px; font-size: 12px; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-check-circle"></i> Aceptada</span>';
+           
             estadoClase = 'aceptada';
             break;
         case 'pendiente':
             if (esUsuarioSolicitante) {
-                estadoBadge = '<span class="badge badge-warning" style="background: linear-gradient(135deg, #FFA726, #F57C00); color: white; padding: 4px 12px; font-size: 12px; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-clock"></i> Esperando respuesta</span>';
+               
                 estadoClase = 'pendiente-enviada';
             } else {
-                // ¡Nueva solicitud! - Ahora más integrado a la izquierda
-                estadoBadge = '<span class="badge badge-info" style="background: linear-gradient(135deg, #29B6F6, #0288D1); color: white; padding: 4px 12px; font-size: 12px; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-bell"></i> ¡Nueva solicitud!</span>';
+               
                 estadoClase = 'nueva-solicitud';
+                esNuevaSolicitud = true;
             }
             break;
         case 'rechazada':
@@ -1004,33 +1006,22 @@ const Afinidad = {
                     }
                 </div>
                 <div class="afinidad-info" style="flex: 1; min-width: 0;">
-                    <h4 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    <h4 style="margin: 0 0 10px 0; font-size: 16px; font-weight: 600; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 10px;">
                         ${amigo.nombre || ''} ${amigo.apellidos || ''}
+                        ${esNuevaSolicitud ? estadoBadge : ''}
                     </h4>
                     <div class="afinidad-meta" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                        ${afinidad.estado === 'pendiente' && !esUsuarioSolicitante ? `
-                            <!-- ¡Nueva solicitud! ahora integrado a la izquierda -->
-                            <div style="order: 1;">
+                        <span class="afinidad-tipo" style="color: ${tipoInfo.color}; font-size: 13px; display: flex; align-items: center; gap: 4px; background: ${tipoInfo.color}15; padding: 4px 10px; border-radius: 10px;">
+                            <i class="${tipoInfo.icon}" style="font-size: 11px;"></i> ${tipoInfo.label}
+                        </span>
+                        <span class="afinidad-fecha" style="color: #666; font-size: 12px; display: flex; align-items: center; gap: 4px;">
+                            <i class="fas fa-calendar" style="font-size: 11px;"></i> ${fecha}
+                        </span>
+                        ${!esNuevaSolicitud ? `
+                            <div style="margin-left: auto;">
                                 ${estadoBadge}
                             </div>
-                            <span class="afinidad-tipo" style="order: 2; color: ${tipoInfo.color}; font-size: 13px; display: flex; align-items: center; gap: 4px; background: ${tipoInfo.color}15; padding: 4px 10px; border-radius: 10px; margin-right: auto;">
-                                <i class="${tipoInfo.icon}" style="font-size: 11px;"></i> ${tipoInfo.label}
-                            </span>
-                            <span class="afinidad-fecha" style="order: 3; color: #666; font-size: 12px; display: flex; align-items: center; gap: 4px; margin-left: auto;">
-                                <i class="fas fa-calendar" style="font-size: 11px;"></i> ${fecha}
-                            </span>
-                        ` : `
-                            <!-- Diseño normal para otros estados -->
-                            <span class="afinidad-tipo" style="order: 1; color: ${tipoInfo.color}; font-size: 13px; display: flex; align-items: center; gap: 4px; background: ${tipoInfo.color}15; padding: 4px 10px; border-radius: 10px; margin-right: auto;">
-                                <i class="${tipoInfo.icon}" style="font-size: 11px;"></i> ${tipoInfo.label}
-                            </span>
-                            <span class="afinidad-fecha" style="order: 2; color: #666; font-size: 12px; display: flex; align-items: center; gap: 4px;">
-                                <i class="fas fa-calendar" style="font-size: 11px;"></i> ${fecha}
-                            </span>
-                            <div style="order: 3; margin-left: auto;">
-                                ${estadoBadge}
-                            </div>
-                        `}
+                        ` : ''}
                     </div>
                 </div>
             </div>
