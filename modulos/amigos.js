@@ -67,7 +67,20 @@ const Amigos = {
             return;
         }
         
+        // USAR LA MISMA FUNCIÓN DEL SCRIPT PRINCIPAL (3 BOTONES)
+        if (typeof renderizarListaAmigos === 'function') {
+            renderizarListaAmigos(window.listaAmigos);
+        } else {
+            // Fallback si la función no está disponible
+            this.mostrarListaAmigosFallback();
+        }
+    },
+
+    // Versión de fallback que muestra 3 botones
+    mostrarListaAmigosFallback() {
+        const seccionAmigos = document.getElementById('seccionAmigosLista');
         let html = '';
+        
         window.listaAmigos.forEach(amigo => {
             const nombreCompleto = `${amigo.nombre} ${amigo.apellidos}`;
             const iniciales = window.Utilidades.obtenerIniciales(nombreCompleto);
@@ -76,23 +89,27 @@ const Amigos = {
                 : 'Ubicación no especificada';
             
             html += `
-                <div class="friend-card" data-amigo-id="${amigo.id}">
-                    <div class="friend-avatar">${iniciales}</div>
-                    <div class="friend-info">
-                        <div class="friend-name">${nombreCompleto}</div>
-                        <div class="friend-email">${amigo.email}</div>
-                        <div class="friend-location">
-                            <i class="fas fa-map-marker-alt"></i>
-                            ${ubicacion}
-                        </div>
+                <div class="friend-item" data-amigo-id="${amigo.id}">
+                    <div class="friend-avatar">
+                        <span>${iniciales}</span>
                     </div>
-                    <div class="friend-actions">
-                        <button class="btn-small btn-add" onclick="Amigos.enviarMensajeAAmigo('${amigo.email}', '${amigo.nombre}')">
-                            <i class="fas fa-envelope"></i> Mensaje
-                        </button>
-                        <button class="btn-small btn-remove" onclick="Amigos.eliminarAmigo('${amigo.amistad_id}')">
-                            <i class="fas fa-user-minus"></i> Eliminar
-                        </button>
+                    <div class="friend-content">
+                        <div class="friend-header">
+                            <h3 class="friend-name">${nombreCompleto}</h3>
+                            <span class="friend-info">${amigo.email}</span>
+                        </div>
+                        <p class="friend-description">${ubicacion}</p>
+                        <div class="friend-actions">
+                            <button class="friend-btn friend-btn-chat" onclick="enviarMensajeDirecto('${amigo.email}')">
+                                <i class="fas fa-paper-plane"></i> Mensaje
+                            </button>
+                            <button class="friend-btn friend-btn-info" onclick="mostrarPerfilAmigo('${amigo.id}')">
+                                <i class="fas fa-user-circle"></i> Ver Perfil
+                            </button>
+                            <button class="friend-btn friend-btn-remove" onclick="eliminarAmigo('${amigo.id}')">
+                                <i class="fas fa-user-times"></i> Eliminar
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -103,10 +120,16 @@ const Amigos = {
 
     enviarMensajeAAmigo(email, nombre) {
         window.Interfaz.mostrarSeccion('seccionNuevoMensaje');
-        document.getElementById('destinatario').value = email;
-        document.getElementById('asunto').value = `Hola ${nombre}`;
-        document.getElementById('contenido').value = `Hola ${nombre},\n\n`;
-        document.getElementById('contenido').focus();
+        const destinatarioInput = document.getElementById('destinatario');
+        const asuntoInput = document.getElementById('asunto');
+        const contenidoInput = document.getElementById('contenido');
+        
+        if (destinatarioInput) destinatarioInput.value = email;
+        if (asuntoInput) asuntoInput.value = `Hola ${nombre}`;
+        if (contenidoInput) {
+            contenidoInput.value = `Hola ${nombre},\n\n`;
+            contenidoInput.focus();
+        }
     },
 
     async eliminarAmigo(amistadId) {
