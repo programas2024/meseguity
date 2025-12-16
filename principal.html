@@ -4453,7 +4453,297 @@
     border-radius: 8px !important;
     font-weight: 600 !important;
 }
+/* ESTILOS PARA MENÚ DE AJUSTES */
+.popup-ajustes {
+    border-radius: 16px !important;
+    overflow: hidden !important;
+}
 
+.btn-cerrar-ajustes {
+    font-size: 40px !important;
+    color: #666 !important;
+    padding: 8px !important;
+}
+
+.menu-ajustes {
+    padding: 0;
+}
+
+.ajuste-opcion {
+    display: flex;
+    align-items: center;
+    padding: 20px 24px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.ajuste-opcion:last-child {
+    border-bottom: none;
+}
+
+.ajuste-opcion:hover {
+    background-color: #f8f9fa;
+}
+
+.ajuste-icono {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 16px;
+    flex-shrink: 0;
+}
+
+.ajuste-icono i {
+    font-size: 22px;
+    color: white;
+}
+
+.ajuste-contenido {
+    flex: 1;
+}
+
+.ajuste-contenido h4 {
+    margin: 0 0 5px 0;
+    color: #1a1a1a;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.ajuste-contenido p {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.ajuste-flecha {
+    color: #999;
+    font-size: 14px;
+}
+
+.separador-ajustes {
+    height: 1px;
+    background: #f0f0f0;
+    margin: 0 24px;
+}
+
+/* Animación para las opciones */
+.ajuste-opcion {
+    animation: slideIn 0.3s ease-out;
+}
+
+.ajuste-opcion:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.ajuste-opcion:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+
+/* Versión móvil */
+@media (max-width: 768px) {
+    .ajuste-opcion {
+        padding: 16px 20px;
+    }
+    
+    .ajuste-icono {
+        width: 44px;
+        height: 44px;
+    }
+    
+    .ajuste-icono i {
+        font-size: 20px;
+    }
+    
+    .popup-ajustes {
+        width: 90% !important;
+        max-width: 400px !important;
+    }
+}
+
+
+
+
+
+
+/* Estilos para el módulo de Información - CORREGIDO */
+
+/* Botón de información en la barra superior */
+#btnInformacion {
+    position: relative;
+    transition: all 0.3s ease;
+    color: inherit; /* Hereda el color del contexto */
+}
+
+/* SOLO el icono debe cambiar de color, no el botón completo */
+#btnInformacion:hover {
+    transform: scale(1.1);
+}
+
+#btnInformacion:hover i {
+    color: #667eea !important; /* Solo el icono se pone azul */
+}
+
+/* Tooltip emergente */
+#btnInformacion:hover::after {
+    content: 'Información';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+    margin-top: 5px;
+}
+
+/* Popup de información */
+.close-button-informacion {
+    font-size: 28px !important;
+    width: 40px !important;
+    height: 40px !important;
+    top: 15px !important;
+    right: 15px !important;
+    color: #666 !important;
+    transition: all 0.3s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.close-button-informacion:hover {
+    color: #333 !important;
+    transform: scale(1.1) !important;
+}
+
+.popup-informacion {
+    border-radius: 20px !important;
+    overflow: hidden !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Grid de características */
+.caracteristicas-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.caracteristica {
+    text-align: center;
+    padding: 20px;
+    border-radius: 12px;
+    background: white;
+    border: 2px solid #f0f0f0;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.caracteristica:hover {
+    transform: translateY(-5px);
+    border-color: #667eea;
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.1);
+}
+
+.caracteristica-icono {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+}
+
+/* Asegurar que los iconos dentro de las características mantengan su color */
+.caracteristica-icono i {
+    font-size: 24px;
+    /* El color se define inline en el HTML */
+}
+
+/* Animaciones para las características */
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+.caracteristica:nth-child(1) { animation: float 6s ease-in-out infinite; }
+.caracteristica:nth-child(2) { animation: float 6s ease-in-out infinite 0.5s; }
+.caracteristica:nth-child(3) { animation: float 6s ease-in-out infinite 1s; }
+.caracteristica:nth-child(4) { animation: float 6s ease-in-out infinite 1.5s; }
+.caracteristica:nth-child(5) { animation: float 6s ease-in-out infinite 2s; }
+.caracteristica:nth-child(6) { animation: float 6s ease-in-out infinite 2.5s; }
+
+/* Estilos responsivos */
+@media (max-width: 600px) {
+    .popup-informacion {
+        width: 90% !important;
+        max-width: 400px !important;
+    }
+    
+    .caracteristicas-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .caracteristica {
+        padding: 15px;
+    }
+    
+    .close-button-informacion {
+        font-size: 24px !important;
+        width: 36px !important;
+        height: 36px !important;
+        top: 10px !important;
+        right: 10px !important;
+    }
+}
+
+/* Popup de detalle */
+.popup-detalle {
+    border-radius: 16px !important;
+}
+
+/* Estilo para mantener el color original del icono en estado normal */
+.btn-icon i {
+    transition: color 0.3s ease;
+}
+
+/* Asegurar que todos los botones con icono funcionen igual */
+.btn-icon:hover i {
+    color: #667eea;
+}
+
+/* Pero si quieres que el botón de información sea diferente (solo el icono cambia) */
+#btnInformacion i {
+    color: inherit; /* Mantiene el color del contexto */
+    transition: color 0.3s ease;
+}
+
+#btnInformacion:hover i {
+    color: #667eea;
+}
     </style>
 </head>
 <body>
@@ -4530,6 +4820,10 @@
                     <input type="text" id="buscarMensajes" placeholder="Buscar mensajes, amigos...">
                 </div>
                 <div class="user-actions">
+                     <!-- Botón de Información NUEVO -->
+                    <button class="btn-icon" id="btnInformacion">
+                        <i class="fas fa-info-circle"></i>
+                    </button>
                     <button class="btn-icon" id="btnNotificaciones">
                         <i class="fas fa-bell"></i>
                         <span class="badge">0</span>
@@ -4881,6 +5175,8 @@
     <script src="modulos/afinidad.js"></script>
     <script src="modulos/interfaz-afinidad.js"></script>
     <script src="modulos/eventos-afinidad.js"></script>
+    <script src="modulos/opciones.js"></script>
+    <script src="modulos/informacion.js"></script>
 
     
 
@@ -5371,7 +5667,7 @@
     // Hacer la función global
     window.eliminarAmigo = eliminarAmigo;
 
-    // INICIALIZACIÓN DE LA APLICACIÓN
+// INICIALIZACIÓN DE LA APLICACIÓN
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         console.log("🚀 Inicializando aplicación Messery...");
@@ -5525,13 +5821,29 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log("⚠️ Botón de afinidad no encontrado");
         }
 
-        // 13. Configurar interfaz y eventos
+        // 13. Inicializar módulo de opciones/ajustes
+        if (window.Opciones && window.Opciones.inicializar) {
+            console.log("⚙️ Inicializando módulo de opciones...");
+            window.Opciones.inicializar();
+        } else {
+            console.log("⚠️ Módulo de opciones no disponible");
+        }
+
+        // 14. Inicializar módulo de información
+        if (window.Informacion && window.Informacion.inicializar) {
+            console.log("ℹ️ Inicializando módulo de información...");
+            window.Informacion.inicializar();
+        } else {
+            console.log("⚠️ Módulo de información no disponible");
+        }
+
+        // 14. Configurar interfaz y eventos
         if (window.Interfaz && window.Interfaz.configurarEventos) {
             console.log("⚙️ Configurando eventos de interfaz...");
             window.Interfaz.configurarEventos();
         }
         
-        // 14. Configurar logout
+        // 15. Configurar logout
         const btnLogout = document.getElementById('btnLogout');
         if (btnLogout) {
             btnLogout.addEventListener('click', async () => {
@@ -5543,7 +5855,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
-        // 15. Ocultar mensaje de bienvenida después de 5 segundos
+        // 16. Ocultar mensaje de bienvenida después de 5 segundos
         setTimeout(() => {
             const welcomeMsg = document.getElementById('welcomeMessage');
             if (welcomeMsg) {
@@ -5555,7 +5867,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }, 5000);
 
-        // 16. Configurar suscripción a cambios de autenticación
+        // 17. Configurar suscripción a cambios de autenticación
         supabase.auth.onAuthStateChange((event, session) => {
             console.log('🔄 Cambio en estado de autenticación:', event);
             
@@ -5677,6 +5989,8 @@ window.mostrarSeleccionAmigosAfinidad = mostrarSeleccionAmigosAfinidad;
             }
         });
     }
+
+   
 </script>
 </body>
 </html>
