@@ -3807,6 +3807,653 @@
 }
 
 
+/* ESTILOS PARA SOLICITUD DE GRUPO */
+.grupo-solicitud-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+.grupo-solicitud-header {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 32px;
+    padding: 24px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.grupo-avatar-solicitud {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    font-weight: bold;
+    color: white;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.grupo-solicitud-info {
+    flex: 1;
+}
+
+.grupo-solicitud-nombre {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 8px 0;
+}
+
+.grupo-solicitud-descripcion {
+    color: #666;
+    font-size: 16px;
+    line-height: 1.5;
+    margin: 0 0 16px 0;
+}
+
+.grupo-solicitud-metadata {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.grupo-metadata-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #666;
+    font-size: 14px;
+}
+
+.grupo-metadata-item i {
+    color: #667eea;
+}
+
+.grupo-solicitud-card {
+    background: var(--estado-bg);
+    border: 2px solid var(--estado-color);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.solicitud-card-icon {
+    font-size: 48px;
+    flex-shrink: 0;
+}
+
+.solicitud-card-content {
+    flex: 1;
+}
+
+.solicitud-card-title {
+    color: var(--estado-color);
+    margin: 0 0 12px 0;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.solicitud-card-message {
+    color: #5d4037;
+    font-size: 16px;
+    line-height: 1.5;
+    margin: 0 0 20px 0;
+}
+
+.solicitud-acciones {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+
+.btn {
+    padding: 14px 28px;
+    border-radius: 12px;
+    border: none;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    min-height: 56px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* BOTÓN DE ACEPTAR DESTACADO - PRIMERA POSICIÓN */
+.btn-aceptar-destacado {
+    background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+    color: white;
+    border: 2px solid #4CAF50;
+    flex: 2;
+    position: relative;
+    overflow: hidden;
+    animation: pulseAceptar 2s infinite;
+}
+
+.btn-aceptar-destacado:hover {
+    background: linear-gradient(135deg, #388E3C 0%, #2E7D32 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);
+}
+
+.btn-aceptar-destacado:active {
+    transform: translateY(-1px);
+}
+
+.btn-aceptar-destacado::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: 0.5s;
+}
+
+.btn-aceptar-destacado:hover::before {
+    left: 100%;
+}
+
+/* BOTÓN DE RECHAZAR - SEGUNDA POSICIÓN */
+.btn-rechazar {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    color: #495057;
+    border: 2px solid #dc3545;
+    flex: 1;
+    position: relative;
+}
+
+.btn-rechazar:hover {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3);
+}
+
+.btn-rechazar:active {
+    transform: translateY(-1px);
+}
+
+.btn-back {
+    background: #f8f9fa;
+    color: #495057;
+    border: 2px solid #e9ecef;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.btn-back:hover {
+    background: #e9ecef;
+    border-color: #dee2e6;
+    transform: translateY(-2px);
+}
+
+.btn-reconsiderar {
+    background: #FF9800;
+    color: white;
+    border: 2px solid #FF9800;
+}
+
+.btn-reconsiderar:hover {
+    background: #F57C00;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 152, 0, 0.3);
+}
+
+.solicitud-advertencia {
+    background: #FFF8E1;
+    border-left: 4px solid #FFA000;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin: 20px 0 0 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #5D4037;
+    font-size: 14px;
+    animation: shake 0.5s ease-in-out;
+}
+
+.solicitud-advertencia i {
+    color: #FFA000;
+    font-size: 16px;
+}
+
+/* COMPARACIÓN DE OPCIONES */
+.comparacion-opciones {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin: 32px 0;
+}
+
+.opcion-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease;
+}
+
+.opcion-card:hover {
+    transform: translateY(-5px);
+}
+
+.opcion-aceptar {
+    border-top: 4px solid #4CAF50;
+    animation: highlightAceptar 3s infinite alternate;
+}
+
+.opcion-rechazar {
+    border-top: 4px solid #6c757d;
+}
+
+.opcion-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.opcion-icon {
+    font-size: 28px;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(76, 175, 80, 0.1);
+    color: #4CAF50;
+}
+
+.opcion-rechazar .opcion-icon {
+    background: rgba(108, 117, 125, 0.1);
+    color: #6c757d;
+}
+
+.opcion-header h4 {
+    margin: 0;
+    font-size: 18px;
+    color: #1a1a1a;
+}
+
+.opcion-lista {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.opcion-lista li {
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #555;
+}
+
+.opcion-lista li:last-child {
+    border-bottom: none;
+}
+
+.opcion-lista li i {
+    font-size: 14px;
+    color: #4CAF50;
+    width: 20px;
+}
+
+.opcion-rechazar .opcion-lista li i {
+    color: #6c757d;
+}
+
+/* INFORMACIÓN DEL CREADOR */
+.creador-info-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    margin: 32px 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border-top: 4px solid #667eea;
+}
+
+.creador-info-card h4 {
+    color: #1a1a1a;
+    margin: 0 0 20px 0;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.creador-info-card h4 i {
+    color: #667eea;
+}
+
+.loading-creador {
+    text-align: center;
+    padding: 30px;
+    color: #666;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.loading-creador i {
+    font-size: 24px;
+    color: #667eea;
+}
+
+.creador-amigo, .creador-no-amigo {
+    padding: 20px;
+    border-radius: 12px;
+    background: #f8f9fa;
+}
+
+.creador-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.creador-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.creador-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.creador-avatar-iniciales {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.creador-info h5 {
+    margin: 0 0 5px 0;
+    color: #1a1a1a;
+    font-size: 18px;
+}
+
+.badge-amigo {
+    background: #4CAF50;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.badge-conocido {
+    background: #FF9800;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.creador-detalles {
+    margin-bottom: 20px;
+}
+
+.detalle-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    color: #555;
+    font-size: 14px;
+}
+
+.detalle-item i {
+    color: #667eea;
+    width: 20px;
+}
+
+.btn-ver-perfil {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.btn-ver-perfil:hover {
+    background: #5a67d8;
+    transform: translateY(-2px);
+}
+
+.creador-acciones {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-agregar-amigo {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    flex: 1;
+}
+
+.btn-agregar-amigo:hover {
+    background: #388E3C;
+    transform: translateY(-2px);
+}
+
+.btn-ver-perfil-simple {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    flex: 1;
+}
+
+.btn-ver-perfil-simple:hover {
+    background: #545b62;
+    transform: translateY(-2px);
+}
+
+.error-creador {
+    text-align: center;
+    padding: 20px;
+    color: #f44336;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.grupo-solicitud-footer {
+    text-align: center;
+    padding-top: 24px;
+    border-top: 2px solid #eee;
+}
+
+/* ANIMACIONES */
+@keyframes pulseAceptar {
+    0% {
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+    }
+    50% {
+        box-shadow: 0 4px 20px rgba(76, 175, 80, 0.6);
+    }
+    100% {
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+    }
+}
+
+@keyframes highlightAceptar {
+    0% {
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.1);
+    }
+    100% {
+        box-shadow: 0 8px 25px rgba(76, 175, 80, 0.2);
+    }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .grupo-solicitud-container {
+        padding: 16px;
+    }
+    
+    .grupo-solicitud-header {
+        flex-direction: column;
+        text-align: center;
+        padding: 20px;
+    }
+    
+    .grupo-solicitud-metadata {
+        justify-content: center;
+    }
+    
+    .grupo-solicitud-card {
+        flex-direction: column;
+        text-align: center;
+        padding: 24px 20px;
+    }
+    
+    .solicitud-acciones {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .comparacion-opciones {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .btn {
+        width: 100%;
+        justify-content: center;
+        padding: 16px 24px;
+    }
+    
+    .btn-aceptar-destacado {
+        order: 1;
+    }
+    
+    .btn-rechazar {
+        order: 2;
+    }
+    
+    .grupo-avatar-solicitud {
+        width: 80px;
+        height: 80px;
+        font-size: 28px;
+    }
+    
+  
+}
+@media (max-width: 480px) {
+    .grupo-solicitud-nombre {
+        font-size: 24px;
+    }
+    
+    .solicitud-card-title {
+        font-size: 20px;
+    }
+    
+    .btn {
+        font-size: 15px;
+        padding: 14px 20px;
+        min-height: 52px;
+    }
+}
+
+/* ESTILOS PARA SWEETALERT */
+.btn-rechazar-swal {
+    background: #f44336 !important;
+    color: white !important;
+    border: none !important;
+    padding: 10px 24px !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+}
+
+.btn-cancelar-swal {
+    background: #6c757d !important;
+    color: white !important;
+    border: none !important;
+    padding: 10px 24px !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+}
+
     </style>
 </head>
 <body>
