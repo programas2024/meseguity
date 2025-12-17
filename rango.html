@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trangos - Panel de Administración</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/rangos.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+</head>
+<body>
+    <div class="app-container">
+        <!-- BARRA LATERAL -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">RANGOS</div>
+                <div class="sidebar-subtitle">Panel de Administración</div>
+            </div>
+            
+            <nav class="categories">
+                <button class="category-btn active" data-category="usuarios">
+                    <i class="fas fa-users"></i>
+                    <span>Todos los Usuarios</span>
+                    <span class="category-count" id="count-usuarios">0</span>
+                </button>
+                
+                <button class="category-btn" data-category="amigos">
+                    <i class="fas fa-user-friends"></i>
+                    <span>Amigos</span>
+                    <span class="category-count" id="count-amigos">0</span>
+                </button>
+                
+                <button class="category-btn" data-category="mensajes">
+                    <i class="fas fa-comments"></i>
+                    <span>Mensajes</span>
+                    <span class="category-count" id="count-mensajes">0</span>
+                </button>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="admin-info">
+                    <div class="user-avatar">
+                        <div class="avatar-placeholder" id="admin-avatar">A</div>
+                        <div class="user-info">
+                            <span class="user-name" id="admin-name">Administrador</span>
+                            <span class="user-email" id="admin-email">admin@trangos.com</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn-logout" id="btn-logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Cerrar Sesión</span>
+                </button>
+            </div>
+        </aside>
+
+     <!-- CONTENIDO PRINCIPAL -->
+<main class="main-content">
+    <!-- ENCABEZADO -->
+    <div class="content-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <!-- Botón para volver a principal.html -->
+            <a href="principal.html" class="back-button" style="display: flex; align-items: center; gap: 8px; padding: 10px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);">
+                <i class="fas fa-arrow-left"></i>
+                <span></span>
+            </a>
+            
+            <div>
+                <h1 id="page-title">Todos los Usuarios</h1>
+                <p id="page-description">Gestiona y administra todos los usuarios registrados en Trangos</p>
+            </div>
+        </div>
+    </div>
+            <!-- ESTADÍSTICAS RÁPIDAS -->
+            <div class="quick-stats">
+                <div class="stat-card">
+                    <div class="stat-icon users">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="total-users">0</h3>
+                        <p>Usuarios Totales</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon friends">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="total-friends">0</h3>
+                        <p>Mis Amigos</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon groups">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="total-messages">0</h3>
+                        <p>Mis Mensajes</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTENIDO DINÁMICO -->
+            <div class="table-container" id="content-container">
+                <!-- Tabla de Usuarios (Se muestra por defecto) -->
+                <div class="content-section active" id="usuarios-content">
+                    <div class="table-header">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="search-users" placeholder="Buscar usuarios...">
+                        </div>
+                        <button class="btn-primary" id="refresh-users">
+                            <i class="fas fa-sync-alt"></i>
+                            Actualizar
+                        </button>
+                    </div>
+                    
+                    <table class="data-table" id="usuarios-table">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usuarios-body">
+                            <!-- Los usuarios se cargarán aquí dinámicamente -->
+                            <tr>
+                                <td colspan="4" class="loading-row">
+                                    <div class="loading-spinner">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                        <span>Cargando usuarios...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Tabla de Amigos -->
+                <div class="content-section" id="amigos-content">
+                    <div class="table-header">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="search-friends" placeholder="Buscar amigos...">
+                        </div>
+                        <button class="btn-primary" id="refresh-friends">
+                            <i class="fas fa-sync-alt"></i>
+                            Actualizar
+                        </button>
+                    </div>
+                    
+                    <table class="data-table" id="amigos-table">
+                        <thead>
+                            <tr>
+                                <th>Amigo</th>
+                               
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="amigos-body">
+                            <!-- Los amigos se cargarán aquí dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Tabla de Mensajes -->
+<div class="content-section" id="mensajes-content">
+    <div class="table-header">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="search-messages" placeholder="Buscar en ranking...">
+        </div>
+        <button class="btn-primary" id="refresh-messages">
+            <i class="fas fa-sync-alt"></i>
+            Actualizar
+        </button>
+    </div>
+    
+    <table class="data-table" id="mensajes-table">
+        <thead>
+            <tr>
+                <th>Posición</th>
+                <th>Usuario</th>
+                <th>Enviados</th>
+                <th>Recibidos</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody id="mensajes-body">
+            <!-- El ranking se cargará aquí dinámicamente -->
+        </tbody>
+    </table>
+</div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL PARA VER DETALLES DE USUARIO -->
+    <div class="modal" id="detail-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Detalles del Usuario</h2>
+                <button class="modal-close" id="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Contenido dinámico del modal -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="modal-cancel">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PARA VER DETALLES DE MENSAJE -->
+    <div class="modal" id="message-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="message-modal-title">Detalles del Mensaje</h2>
+                <button class="modal-close" id="message-modal-close">&times;</button>
+            </div>
+            <div class="modal-body" id="message-modal-body">
+                <!-- Contenido dinámico del modal -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="message-modal-cancel">Cerrar</button>
+            </div>
+        </div>
+    </div>
+ <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+        <!-- Scripts separados en español -->
+    <script src="modulos/conexion-supabase.js"></script>
+    <script src="modulos/rangos.js"></script>
+</body>
+</html>
