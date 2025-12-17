@@ -28,7 +28,7 @@ async function verificarSesion() {
         
         if (error || !user) {
             // Si no hay sesión, redirigir al login
-            window.location.href = '/login.html';
+            window.location.href = 'index.html';
             return;
         }
         
@@ -45,29 +45,52 @@ async function verificarSesion() {
         if (!perfilError && perfil) {
             currentUserName = perfil.nombre + (perfil.apellidos ? ' ' + perfil.apellidos : '');
             
-            // Actualizar interfaz con información del usuario
-            document.getElementById('admin-name').textContent = currentUserName || 'Administrador';
-            document.getElementById('admin-email').textContent = currentUserEmail;
+            // ACTUALIZAR INTERFAZ CON LOS NUEVOS IDs
+            const userNameElement = document.getElementById('userName');
+            const userEmailElement = document.getElementById('userEmail');
+            const userAvatarElement = document.getElementById('userAvatar');
             
-            if (perfil.avatar_url) {
-                document.getElementById('admin-avatar').innerHTML = 
-                    `<img src="${perfil.avatar_url}" alt="${currentUserName}" class="avatar-img">`;
-            } else {
-                const initials = currentUserName ? currentUserName.charAt(0).toUpperCase() : 'A';
-                document.getElementById('admin-avatar').textContent = initials;
+            if (userNameElement) {
+                userNameElement.textContent = currentUserName || 'Administrador';
+            }
+            
+            if (userEmailElement) {
+                userEmailElement.textContent = currentUserEmail;
+            }
+            
+            if (userAvatarElement) {
+                if (perfil.avatar_url) {
+                    userAvatarElement.innerHTML = 
+                        `<img src="${perfil.avatar_url}" alt="${currentUserName}" class="avatar-img">`;
+                } else {
+                    const initials = currentUserName ? currentUserName.charAt(0).toUpperCase() : 'A';
+                    userAvatarElement.innerHTML = `<span style="color: white; font-weight: bold; font-size: 20px;">${initials}</span>`;
+                }
+            }
+        } else {
+            // Si no hay perfil, usar datos básicos del auth
+            const userNameElement = document.getElementById('userName');
+            const userEmailElement = document.getElementById('userEmail');
+            
+            if (userNameElement) {
+                userNameElement.textContent = 'Administrador';
+            }
+            
+            if (userEmailElement) {
+                userEmailElement.textContent = currentUserEmail;
             }
         }
         
     } catch (error) {
         console.error('Error verificando sesión:', error);
-        window.location.href = '/login.html';
+        window.location.href = 'index.html';
     }
 }
 
 // Inicializar eventos
 function inicializarEventos() {
     // Navegación entre categorías
-    document.querySelectorAll('.category-btn').forEach(btn => {
+    document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             cambiarCategoria(this.dataset.category);
         });
@@ -98,31 +121,25 @@ function inicializarEventos() {
         });
     });
 
-    // Cerrar sesión
-    document.getElementById('btn-logout').addEventListener('click', async function() {
-        if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-            await supabase.auth.signOut();
-            window.location.href = '/login.html';
-        }
-    });
-
-    // Botón de ayuda/rangos
-    const btnAyuda = document.getElementById('btn-ayuda');
-    if (btnAyuda) {
-        btnAyuda.addEventListener('click', abrirAyudaRangos);
-    }
-
-    // Botón de inicio
-    const btnInicio = document.getElementById('btn-inicio');
-    if (btnInicio) {
-        btnInicio.addEventListener('click', irAPrincipal);
+  
+    // Botón de usuario (ya tiene onclick en el HTML)
+    const btnConfiguracion = document.getElementById('btnConfiguracion');
+    if (btnConfiguracion) {
+        // Ya tiene onclick="window.location.href='configuracion.html'" en el HTML
+        // También podemos agregar un listener para efectos visuales
+        btnConfiguracion.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+        });
+        btnConfiguracion.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
     }
 }
 
 // Cambiar categoría activa
 async function cambiarCategoria(categoria) {
     // Actualizar botones activos
-    document.querySelectorAll('.category-btn').forEach(btn => {
+    document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.category === categoria);
     });
 
@@ -253,7 +270,7 @@ async function cargarUsuarios() {
     }
 }
 
-// Mostrar usuarios en la tabla
+// Mostrar usuarios en la tabla con etiqueta "(Tú)" para el usuario actual
 function mostrarUsuarios(usuarios) {
     const tbody = document.getElementById('usuarios-body');
     
@@ -274,18 +291,39 @@ function mostrarUsuarios(usuarios) {
     tbody.innerHTML = usuarios.map(usuario => {
         const nombreCompleto = usuario.nombre + (usuario.apellidos ? ' ' + usuario.apellidos : '');
         const avatarIniciales = usuario.nombre ? usuario.nombre.charAt(0).toUpperCase() : 'U';
-
+        const nombreMostrar = nombreCompleto.length > 20 ? nombreCompleto.substring(0, 20) + '...' : nombreCompleto;
+        const esUsuarioActual = usuario.id === currentUserId;
+        
         return `
-        <tr data-id="${usuario.id}">
+        <tr data-id="${usuario.id}" class="${esUsuarioActual ? 'current-user-row' : ''}">
             <td>
-                <div class="user-avatar">
-                    ${usuario.avatar_url ? 
-                        `<img src="${usuario.avatar_url}" alt="${nombreCompleto}" class="avatar-img">` :
-                        `<div class="avatar-placeholder">${avatarIniciales}</div>`
-                    }
-                    <div class="user-info">
-                        <span class="user-name">${nombreCompleto}</span>
-                        <span class="user-email">${usuario.email}</span>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <!-- AVATAR (IZQUIERDA) -->
+                    <div style="flex-shrink: 0;">
+                        ${usuario.avatar_url ? 
+                            `<img src="${usuario.avatar_url}" alt="${nombreCompleto}" 
+                                 style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: ${esUsuarioActual ? '3px solid #667eea' : '2px solid #e0e0e0'};">` :
+                            `<div style="width: 45px; height: 45px; border-radius: 50%; 
+                                      background: ${esUsuarioActual ? 
+                                        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 
+                                        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'};
+                                      display: flex; align-items: center; justify-content: center; 
+                                      color: white; font-weight: 600; font-size: 18px;
+                                      border: ${esUsuarioActual ? '3px solid #667eea' : '2px solid rgba(102, 126, 234, 0.3)'};">
+                                ${avatarIniciales}
+                            </div>`
+                        }
+                    </div>
+                    
+                    <!-- NOMBRE (DERECHA) -->
+                    <div style="flex: 1;">
+                        <span style="font-weight: 600; color: ${esUsuarioActual ? '#667eea' : '#333'}; font-size: 15px;" 
+                              title="${nombreCompleto}">
+                            ${nombreMostrar} 
+                            ${esUsuarioActual ? 
+                                '<span style="background: #667eea; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; margin-left: 8px;">Tú</span>' 
+                                : ''}
+                        </span>
                     </div>
                 </div>
             </td>
@@ -293,7 +331,7 @@ function mostrarUsuarios(usuarios) {
                 <div class="action-buttons">
                     <button class="action-btn btn-view" onclick="verDetalleUsuario('${usuario.id}')">
                         <i class="fas fa-eye"></i>
-                        Ver
+                        <span>Ver</span>
                     </button>
                 </div>
             </td>
@@ -301,7 +339,6 @@ function mostrarUsuarios(usuarios) {
         `;
     }).join('');
 }
-
 // CONSULTA 3: Cargar amigos del usuario actual
 async function cargarAmigos() {
     const tbody = document.getElementById('amigos-body');
@@ -359,7 +396,7 @@ async function cargarAmigos() {
     }
 }
 
-// Mostrar amigos en la tabla
+// Mostrar amigos en la tabla con etiqueta "(Tú)" para el usuario actual
 function mostrarAmigos(amistades) {
     const tbody = document.getElementById('amigos-body');
     
@@ -383,18 +420,39 @@ function mostrarAmigos(amistades) {
         
         const nombreAmigo = amigo.nombre + (amigo.apellidos ? ' ' + amigo.apellidos : '');
         const avatarIniciales = amigo.nombre ? amigo.nombre.charAt(0).toUpperCase() : 'A';
-
+        const nombreMostrar = nombreAmigo.length > 20 ? nombreAmigo.substring(0, 20) + '...' : nombreAmigo;
+        const esAmigoElUsuarioActual = amigo.id === currentUserId;
+        
         return `
-        <tr>
+        <tr class="${esAmigoElUsuarioActual ? 'current-user-row' : ''}">
             <td>
-                <div class="user-avatar">
-                    ${amigo.avatar_url ? 
-                        `<img src="${amigo.avatar_url}" alt="${nombreAmigo}" class="avatar-img">` :
-                        `<div class="avatar-placeholder">${avatarIniciales}</div>`
-                    }
-                    <div class="user-info">
-                        <span class="user-name">${nombreAmigo}</span>
-                        <span class="user-email">${amigo.email}</span>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <!-- AVATAR (IZQUIERDA) -->
+                    <div style="flex-shrink: 0;">
+                        ${amigo.avatar_url ? 
+                            `<img src="${amigo.avatar_url}" alt="${nombreAmigo}" 
+                                 style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: ${esAmigoElUsuarioActual ? '3px solid #667eea' : '2px solid #e0e0e0'};">` :
+                            `<div style="width: 45px; height: 45px; border-radius: 50%; 
+                                      background: ${esAmigoElUsuarioActual ? 
+                                        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 
+                                        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'};
+                                      display: flex; align-items: center; justify-content: center; 
+                                      color: white; font-weight: 600; font-size: 18px;
+                                      border: ${esAmigoElUsuarioActual ? '3px solid #667eea' : '2px solid rgba(102, 126, 234, 0.3)'};">
+                                ${avatarIniciales}
+                            </div>`
+                        }
+                    </div>
+                    
+                    <!-- NOMBRE (DERECHA) -->
+                    <div style="flex: 1;">
+                        <span style="font-weight: 600; color: ${esAmigoElUsuarioActual ? '#667eea' : '#333'}; font-size: 15px;" 
+                              title="${nombreAmigo}">
+                            ${nombreMostrar} 
+                            ${esAmigoElUsuarioActual ? 
+                                '<span style="background: #667eea; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; margin-left: 8px;">Tú</span>' 
+                                : ''}
+                        </span>
                     </div>
                 </div>
             </td>
@@ -402,7 +460,7 @@ function mostrarAmigos(amistades) {
                 <div class="action-buttons">
                     <button class="action-btn btn-view" onclick="verDetalleUsuario('${amigo.id}')">
                         <i class="fas fa-eye"></i>
-                        Ver
+                        <span>Ver</span>
                     </button>
                 </div>
             </td>
@@ -506,7 +564,7 @@ function obtenerMedalla(posicion) {
     return '📊';
 }
 
-// Mostrar ranking de mensajes en tabla
+// Mostrar ranking de mensajes en tabla con etiqueta "(Tú)" para el usuario actual
 function mostrarRankingMensajes(ranking) {
     const tbody = document.getElementById('mensajes-body');
     
@@ -528,6 +586,7 @@ function mostrarRankingMensajes(ranking) {
         const avatarIniciales = usuario.nombre ? usuario.nombre.charAt(0).toUpperCase() : 'U';
         const esUsuarioActual = usuario.id === currentUserId;
         const claseFila = esUsuarioActual ? 'current-user-row' : '';
+        const nombreMostrar = usuario.nombre.length > 18 ? usuario.nombre.substring(0, 18) + '...' : usuario.nombre;
         
         return `
         <tr class="${claseFila}" data-id="${usuario.id}">
@@ -538,24 +597,43 @@ function mostrarRankingMensajes(ranking) {
                 </div>
             </td>
             <td>
-                <div class="user-avatar">
-                    ${usuario.avatar_url ? 
-                        `<img src="${usuario.avatar_url}" alt="${usuario.nombre}" class="avatar-img">` :
-                        `<div class="avatar-placeholder">${avatarIniciales}</div>`
-                    }
-                    <div class="user-info">
-                        <span class="user-name">${usuario.nombre} ${esUsuarioActual ? '<span class="you-badge">(Tú)</span>' : ''}</span>
-                        <span class="user-email">${usuario.email}</span>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <!-- AVATAR (IZQUIERDA) -->
+                    <div style="flex-shrink: 0;">
+                        ${usuario.avatar_url ? 
+                            `<img src="${usuario.avatar_url}" alt="${usuario.nombre}" 
+                                 style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: ${esUsuarioActual ? '3px solid #667eea' : '2px solid #e0e0e0'};">` :
+                            `<div style="width: 45px; height: 45px; border-radius: 50%; 
+                                      background: ${esUsuarioActual ? 
+                                        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 
+                                        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'};
+                                      display: flex; align-items: center; justify-content: center; 
+                                      color: white; font-weight: 600; font-size: 18px;
+                                      border: ${esUsuarioActual ? '3px solid #667eea' : '2px solid rgba(102, 126, 234, 0.3)'};">
+                                ${avatarIniciales}
+                            </div>`
+                        }
+                    </div>
+                    
+                    <!-- NOMBRE (DERECHA) -->
+                    <div style="flex: 1;">
+                        <span style="font-weight: 600; color: ${esUsuarioActual ? '#667eea' : '#333'}; font-size: 15px;" 
+                              title="${usuario.nombre}">
+                            ${nombreMostrar} 
+                            ${esUsuarioActual ? 
+                                '<span style="background: #667eea; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; margin-left: 8px;">Tú</span>' 
+                                : ''}
+                        </span>
                     </div>
                 </div>
             </td>
-            <td>
+            <td style="text-align: center;">
                 <span class="message-count enviados">${usuario.enviados}</span>
             </td>
-            <td>
+            <td style="text-align: center;">
                 <span class="message-count recibidos">${usuario.recibidos}</span>
             </td>
-            <td>
+            <td style="text-align: center;">
                 <span class="message-count total">${usuario.total}</span>
             </td>
         </tr>
@@ -616,7 +694,7 @@ function buscarMensajes(termino) {
     mostrarRankingMensajes(resultados);
 }
 
-// FUNCIÓN AUXILIAR PARA OBTENER ESTADÍSTICAS DEL USUARIO - AGREGADA
+// FUNCIÓN AUXILIAR PARA OBTENER ESTADÍSTICAS DEL USUARIO
 async function obtenerEstadisticasUsuario(usuarioId) {
     try {
         const estadisticas = {
@@ -661,7 +739,7 @@ async function obtenerEstadisticasUsuario(usuarioId) {
     }
 }
 
-// Función para ver detalles del usuario - VERSIÓN CON REDES CLICKEABLES PERO SEGURAS
+// Función para ver detalles del usuario
 async function verDetalleUsuario(usuarioId) {
     try {
         // Mostrar loader
@@ -706,7 +784,7 @@ async function verDetalleUsuario(usuarioId) {
         
         if (error) throw error;
         
-        // 2. Obtener redes sociales del usuario (AHORA CON URL pero procesada)
+        // 2. Obtener redes sociales del usuario
         let redes = [];
         try {
             const { data: redesData } = await supabase
@@ -722,24 +800,10 @@ async function verDetalleUsuario(usuarioId) {
         // 3. Obtener estadísticas del usuario
         const estadisticas = await obtenerEstadisticasUsuario(usuarioId);
         
-        // 4. Renderizar el perfil completo con scroll invisible
+        // 4. Renderizar el perfil completo
         modalBody.innerHTML = renderizarPerfilCompletoDetalle(usuario, redes, estadisticas);
         
         document.getElementById('modal-title').textContent = `👤 Perfil de ${usuario.nombre || ''} ${usuario.apellidos || ''}`;
-        
-        // 5. Agregar funcionalidad de scroll invisible
-        setTimeout(() => {
-            const modalDetails = modalBody.querySelector('.modal-user-details');
-            if (modalDetails && modalDetails.scrollHeight > modalDetails.clientHeight) {
-                // Agregar eventos para scroll
-                modalDetails.addEventListener('wheel', function(e) {
-                    if (e.deltaY !== 0) {
-                        this.scrollTop += e.deltaY;
-                        e.preventDefault();
-                    }
-                });
-            }
-        }, 100);
         
     } catch (error) {
         console.error('Error cargando detalles del usuario:', error);
@@ -756,7 +820,7 @@ async function verDetalleUsuario(usuarioId) {
     }
 }
 
-// Función para renderizar el perfil completo en detalle - VERSIÓN MEJORADA CON 2 FILAS
+// Función para renderizar el perfil completo en detalle
 function renderizarPerfilCompletoDetalle(usuario, redes, estadisticas) {
     // Información del rango
     const rango = usuario.usuario_rangos?.[0]?.rangos?.nombre || 'Sin rango';
@@ -987,9 +1051,7 @@ function renderizarPerfilCompletoDetalle(usuario, redes, estadisticas) {
                         </div>
                     </div>
                 </div>
-                
             </div>
-               
             
             <!-- SECCIÓN DE INFORMACIÓN PRINCIPAL -->
             <div class="info-section">
@@ -1246,120 +1308,6 @@ function renderizarIconoRedSocialSimple(red) {
         </a>
     `;
 }
-// Función para renderizar ítem de información con estilo app
-function renderizarInfoItemApp(icono, label, valor, colorIcono = '#667eea', esPublico = false) {
-    if (!valor || !esPublico) return '';
-    
-    return `
-        <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid rgba(0,0,0,0.05);">
-            <div style="display: flex; align-items: center; gap: 14px;">
-                <div style="width: 36px; height: 36px; background: ${colorIcono}15; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                    <i class="${icono}" style="color: ${colorIcono}; font-size: 16px;"></i>
-                </div>
-                <span style="color: #666; font-size: 15px; font-weight: 500;">${label}</span>
-            </div>
-            <span style="color: #333; font-weight: 700; font-size: 15px; background: ${colorIcono}10; padding: 8px 14px; border-radius: 10px;">${valor}</span>
-        </div>
-    `;
-}
-
-// Función para renderizar ícono de red social con colores de la app
-function renderizarIconoRedSocialApp(red) {
-    const iconosRedesApp = {
-        'facebook': { icon: 'fab fa-facebook-f', color: '#1877F2', nombre: 'Facebook' },
-        'instagram': { icon: 'fab fa-instagram', color: '#E4405F', nombre: 'Instagram' },
-        'twitter': { icon: 'fab fa-twitter', color: '#1DA1F2', nombre: 'Twitter' },
-        'x': { icon: 'fab fa-twitter', color: '#000000', nombre: 'X' },
-        'tiktok': { icon: 'fab fa-tiktok', color: '#000000', nombre: 'TikTok' },
-        'youtube': { icon: 'fab fa-youtube', color: '#FF0000', nombre: 'YouTube' },
-        'linkedin': { icon: 'fab fa-linkedin-in', color: '#0A66C2', nombre: 'LinkedIn' },
-        'github': { icon: 'fab fa-github', color: '#333333', nombre: 'GitHub' },
-        'whatsapp': { icon: 'fab fa-whatsapp', color: '#25D366', nombre: 'WhatsApp' },
-        'discord': { icon: 'fab fa-discord', color: '#5865F2', nombre: 'Discord' },
-        'twitch': { icon: 'fab fa-twitch', color: '#9146FF', nombre: 'Twitch' },
-        'reddit': { icon: 'fab fa-reddit', color: '#FF4500', nombre: 'Reddit' },
-        'pinterest': { icon: 'fab fa-pinterest', color: '#E60023', nombre: 'Pinterest' },
-        'snapchat': { icon: 'fab fa-snapchat', color: '#FFFC00', nombre: 'Snapchat' },
-        'telegram': { icon: 'fab fa-telegram', color: '#0088cc', nombre: 'Telegram' },
-        'spotify': { icon: 'fab fa-spotify', color: '#1DB954', nombre: 'Spotify' }
-    };
-    
-    const plataforma = red.plataforma ? red.plataforma.toLowerCase() : 'link';
-    const icono = iconosRedesApp[plataforma] || { icon: 'fas fa-external-link-alt', color: '#667eea', nombre: 'Web' };
-    
-    // Verificar URL
-    const urlValida = red.url && (red.url.startsWith('http://') || red.url.startsWith('https://'));
-    const urlFinal = urlValida ? red.url : `https://${red.url}`;
-    
-    // Tooltip con el nombre completo
-    const tooltipText = icono.nombre || plataforma.charAt(0).toUpperCase() + plataforma.slice(1);
-    
-    return `
-        <a href="${urlFinal}" target="_blank" rel="noopener noreferrer" 
-           title="${tooltipText}" 
-           style="text-decoration: none; display: block;">
-            <div class="social-icon-app" 
-                 style="background: linear-gradient(135deg, ${icono.color}, ${oscurecerColor(icono.color, 25)});">
-                <i class="${icono.icon}"></i>
-                <!-- Indicador de estado activo con brillo -->
-                <div style="position: absolute; bottom: 8px; right: 8px; width: 12px; height: 12px; background: #10b981; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 10px #10b981;"></div>
-            </div>
-        </a>
-    `;
-}
-// Función para oscurecer un color (para gradientes)
-function oscurecerColor(color, porcentaje) {
-    // Si el color ya es un gradiente o no es un color válido, retornar el color original
-    if (!color || color.includes('gradient') || color.length < 7) {
-        return color || '#667eea';
-    }
-    
-    try {
-        // Remover el # si existe
-        let hex = color.replace('#', '');
-        
-        // Si es un color de 3 caracteres, convertirlo a 6
-        if (hex.length === 3) {
-            hex = hex.split('').map(c => c + c).join('');
-        }
-        
-        // Convertir hex a RGB
-        let r = parseInt(hex.substring(0, 2), 16);
-        let g = parseInt(hex.substring(2, 4), 16);
-        let b = parseInt(hex.substring(4, 6), 16);
-        
-        // Oscurecer
-        r = Math.floor(r * (100 - porcentaje) / 100);
-        g = Math.floor(g * (100 - porcentaje) / 100);
-        b = Math.floor(b * (100 - porcentaje) / 100);
-        
-        // Asegurarse de que los valores estén entre 0 y 255
-        r = Math.max(0, Math.min(255, r));
-        g = Math.max(0, Math.min(255, g));
-        b = Math.max(0, Math.min(255, b));
-        
-        // Convertir de nuevo a hex
-        const toHex = (n) => n.toString(16).padStart(2, '0');
-        return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-    } catch (e) {
-        console.error('Error oscureciendo color:', e);
-        return color;
-    }
-}
-// Función auxiliar para renderizar campos de información
-function renderizarCampoInfo(icono, label, valor, esPublico = false) {
-    if (!valor || !esPublico) return '';
-    
-    return `
-        <div style="background: #f8f9fa; padding: 12px; border-radius: 8px;">
-            <div style="display: flex; align-items: center; margin-bottom: 6px;">
-                <i class="${icono}" style="color: #667eea; font-size: 14px; margin-right: 8px;"></i>
-                <span style="font-size: 13px; color: #666;">${label}</span>
-            </div>
-            <div style="font-size: 14px; font-weight: 600; color: #333;">${valor}</div>
-        </div>
-    `;
-}
 
 // Función para obtener edad aproximada
 function obtenerEdadAproximada(fechaNacimiento) {
@@ -1388,161 +1336,3 @@ function enviarMensajeUsuario(email, nombre) {
     document.getElementById('detail-modal').style.display = 'none';
     alert(`📨 Redirigiendo para enviar mensaje a ${nombre || 'el usuario'} (${email})`);
 }
-
-// Función para abrir la página de ayuda/rangos
-function abrirAyudaRangos() {
-    window.open('rangosinfo.html', '_blank');
-}
-
-// Función para ir a la página principal
-function irAPrincipal() {
-    window.location.href = 'principal.html';
-}
-
-// Agregar CSS para los estilos del ranking
-document.addEventListener('DOMContentLoaded', function() {
-    const style = document.createElement('style');
-    style.textContent = `
-        .ranking-position {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .position-number {
-            font-size: 20px;
-            font-weight: bold;
-            color: #333;
-        }
-        
-        .position-medal {
-            font-size: 24px;
-            margin-top: 5px;
-        }
-        
-        .message-count {
-            font-weight: bold;
-            padding: 6px 12px;
-            border-radius: 20px;
-            display: inline-block;
-            min-width: 40px;
-            text-align: center;
-            font-size: 14px;
-        }
-        
-        .message-count.enviados {
-            background: #e3f2fd;
-            color: #1976d2;
-            border: 1px solid #bbdefb;
-        }
-        
-        .message-count.recibidos {
-            background: #e8f5e9;
-            color: #388e3c;
-            border: 1px solid #c8e6c9;
-        }
-        
-        .message-count.total {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            font-size: 16px;
-            min-width: 50px;
-        }
-        
-        .current-user-row {
-            background: linear-gradient(90deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.05) 100%);
-            border-left: 4px solid #667eea;
-        }
-        
-        .you-badge {
-            background: #667eea;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 11px;
-            margin-left: 5px;
-        }
-        
-        #mensajes-stats-container {
-            display: none;
-        }
-        
-        .data-table th:nth-child(1) { width: 80px; }
-        .data-table th:nth-child(2) { width: 40%; }
-        .data-table th:nth-child(3),
-        .data-table th:nth-child(4),
-        .data-table th:nth-child(5) { width: 15%; }
-        
-        /* Estilos para el modal mejorado */
-        #detail-modal .modal-content {
-            animation: modalSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-        }
-        
-        @keyframes modalSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(40px) scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-        
-        .modal-user-details {
-            overflow: hidden !important;
-        }
-        
-        .modal-user-details > div {
-            overflow: hidden;
-        }
-        
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.2);
-        }
-        
-        #detail-modal .modal-content div[style*="border: 1px solid #e9ecef"]:hover {
-            border-color: #667eea !important;
-            transition: border-color 0.3s ease;
-        }
-        
-        .modal-header .close-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f8f9fa;
-            color: #666;
-            border: 1px solid #e9ecef;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .modal-header .close-btn:hover {
-            background: #667eea;
-            color: white;
-            transform: rotate(90deg);
-        }
-        
-        @media (max-width: 768px) {
-            #detail-modal .modal-content {
-                width: 95% !important;
-                max-height: 85vh !important;
-            }
-            
-            .modal-user-details > div[style*="grid-template-columns: 1fr 1fr"] {
-                grid-template-columns: 1fr !important;
-                gap: 20px !important;
-            }
-        }
-    `;
-    document.head.appendChild(style);
-});

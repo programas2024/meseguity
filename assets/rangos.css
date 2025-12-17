@@ -1,6 +1,6 @@
 /* ESTILOS PARA TRANGOS - ADMIN PANEL */
 
-/* RESET Y CONFIGURACIÓN BASE */
+/* RESET Y ESTILOS BASE */
 * {
     margin: 0;
     padding: 0;
@@ -9,60 +9,276 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #f5f5f5;
     color: #333;
-    min-height: 100vh;
-    overflow-x: hidden;
+    height: 100vh;
+    overflow: hidden;
 }
 
-/* CONTENEDOR PRINCIPAL */
+/* LAYOUT PRINCIPAL */
 .app-container {
     display: flex;
-    min-height: 100vh;
-    max-width: 1600px;
-    margin: 0 auto;
-    padding: 20px;
-    gap: 20px;
+    height: 100vh;
 }
 
-/* BARRA LATERAL - CATEGORÍAS */
+/* BARRA LATERAL - COLORES ELEGANTES (MANTENIDO) */
 .sidebar {
-    width: 280px;
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-    padding: 25px;
+    width: 280px; /* Un poco más estrecho para balance */
+    background: linear-gradient(180deg, #2C3E50 0%, #4A6491 100%);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-    flex-shrink: 0;
+    overflow-y: auto;
+    box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
 }
 
+/* ENCABEZADO CON MESSEGY RANGOS EN DOS LÍNEAS */
 .sidebar-header {
+    padding: 30px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
     text-align: center;
-    margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 2px solid #f0f0f0;
 }
 
-.logo {
+/* Contenedor para el logo y texto */
+.logo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Icono de copa/trofeo */
+.logo-icon {
     font-size: 32px;
-    font-weight: 800;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 10px;
+    color: #4FC3F7;
+    margin-bottom: 5px;
+    text-shadow: 0 0 10px rgba(79, 195, 247, 0.5);
 }
 
-.sidebar-subtitle {
-    color: #666;
-    font-size: 14px;
+/* "MESSEGY" - línea superior */
+.logo-main {
+    font-size: 24px;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1;
+    letter-spacing: 1px;
+}
+
+/* "RANGOS" - línea inferior */
+.logo-subtitle {
+    font-size: 18px;
+    font-weight: 600;
+    color: #4FC3F7;
+    line-height: 1;
+    letter-spacing: 2px;
+}
+
+/* NAVEGACIÓN - BOTONES (MANTENIDO IGUAL) */
+.sidebar-nav {
+    padding: 20px 0;
+    flex: 1;
+}
+
+.nav-btn {
+    width: 100%;
+    padding: 15px 25px;
+    border: none;
+    background: none;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 15px;
     font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.nav-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    padding-left: 30px;
+}
+
+.nav-btn.active {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    border-left: 4px solid #4FC3F7;
+}
+
+.nav-btn i {
+    font-size: 18px;
+    width: 24px;
+    text-align: center;
+    color: #ffffff;
+}
+
+.nav-btn.active i {
+    color: #ffffff;
+}
+
+/* CONTADOR PARA BOTONES (nuevo) */
+.nav-count {
+    margin-left: auto;
+    background: rgba(79, 195, 247, 0.3);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    min-width: 30px;
+    text-align: center;
+    border: 1px solid rgba(79, 195, 247, 0.5);
+}
+
+ /* Botón de Usuario */
+        .user-info-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+            width: 100%;
+            text-align: left;
+            margin-top: 30px;
+        }
+
+        .user-info-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .user-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-details h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #5cb5fd;
+        }
+
+        .user-details p {
+            font-size: 13px;
+            color: rgb(255, 255, 255);
+            margin-bottom: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .config-link {
+            font-size: 12px;
+            color: #64b5f6;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .config-link i {
+            font-size: 10px;
+            transition: transform 0.3s ease;
+        }
+
+        .user-info-btn:hover .config-link i {
+            transform: translateX(3px);
+        }
+
+
+/* BOTÓN CERRAR SESIÓN (con efecto hover específico) */
+.btn-logout {
+    background: linear-gradient(45deg, #ff5252, #ff4081);
+    color: white;
+    border: none;
+    right: 20px;
+    margin: 20px;
+    padding: 14px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-logout:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 82, 82, 0.4);
+    background: white; /* Fondo blanco al pasar el cursor */
+    color: #ff5252; /* Letras rojas al pasar el cursor */
+}
+
+.btn-logout:hover i {
+    color: #ff5252; /* Icono rojo al pasar el cursor */
+}
+
+/* Footer de la sidebar */
+.sidebar-footer {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Para el efecto de onda en hover (opcional) */
+.btn-logout::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 82, 82, 0.1);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+    z-index: 0;
+}
+
+.btn-logout:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.btn-logout > * {
+    position: relative;
+    z-index: 1;
 }
 
 /* CATEGORÍAS */
 .categories {
     flex: 1;
+    padding: 25px 20px;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -72,58 +288,170 @@ body {
     display: flex;
     align-items: center;
     gap: 15px;
-    padding: 18px 20px;
+    padding: 15px 20px;
     border: none;
-    background: #f8f9fa;
-    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.08);
+    width: 100%; /* CAMBIADO: ahora ocupa el 100% del ancho */
     font-size: 15px;
-    font-weight: 600;
-    color: #555;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.8);
     cursor: pointer;
     transition: all 0.3s ease;
     text-align: left;
     position: relative;
     overflow: hidden;
+    border-left: 3px solid transparent;
 }
 
 .category-btn:hover {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: rgba(76, 201, 240, 0.15);
     color: white;
-    transform: translateX(10px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    transform: translateX(5px);
 }
 
 .category-btn.active {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, rgba(76, 201, 240, 0.2) 0%, rgba(67, 97, 238, 0.2) 100%);
     color: white;
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    border-left: 3px solid #4cc9f0;
+    box-shadow: 0 5px 15px rgba(76, 201, 240, 0.2);
 }
 
 .category-btn i {
     font-size: 18px;
     width: 24px;
     text-align: center;
+    color: #4cc9f0;
 }
 
 .category-count {
     margin-left: auto;
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(76, 201, 240, 0.2);
+    color: #4cc9f0;
     padding: 4px 10px;
     border-radius: 20px;
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 600;
+    border: 1px solid rgba(76, 201, 240, 0.3);
 }
 
-/* CONTENIDO PRINCIPAL */
+/* PIE DE BARRA LATERAL */
+.sidebar-footer {
+    padding: 25px 20px;
+    margin-top: auto;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+/* ADMIN INFO - REUBICADO ARRIBA DE LOS BOTONES */
+.admin-info {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-avatar {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.avatar-placeholder {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4cc9f0 0%, #4361ee 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 18px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.user-name {
+    font-weight: 600;
+    color: white;
+    font-size: 16px;
+    margin-bottom: 3px;
+}
+
+.user-email {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* ENLACE EDITAR PERFIL */
+.edit-profile-link {
+    display: block;
+    text-align: center;
+    padding: 10px;
+    color: #4cc9f0;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.edit-profile-link:hover {
+    color: white;
+    background: rgba(76, 201, 240, 0.1);
+}
+
+.edit-profile-link i {
+    margin-right: 8px;
+    font-size: 12px;
+}
+
+/* BOTÓN CERRAR SESIÓN */
+.btn-logout {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+}
+
+.btn-logout:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 65, 108, 0.4);
+    background: white;
+    color: #ff416c;
+    border: 2px solid #ff416c;
+}
+
+/* ELIMINADO: brand-title y brand-text */
+
+/* CONTENIDO PRINCIPAL (MANTENIDO COMO ANTES) */
 .main-content {
     flex: 1;
     background: white;
-    border-radius: 20px;
+    
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
     padding: 30px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    
+    margin-left: 0;
 }
 
 /* ENCABEZADO DE CONTENIDO */
@@ -252,19 +580,6 @@ body {
     border: 3px solid #f0f0f0;
 }
 
-.avatar-placeholder {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: 600;
-    font-size: 16px;
-}
-
 .user-info {
     display: flex;
     flex-direction: column;
@@ -369,27 +684,28 @@ body {
     color: #666;
 }
 
-/* BOTÓN CERRAR SESIÓN */
-.btn-logout {
-    width: 100%;
-    padding: 12px;
-    background: linear-gradient(135deg, #ff5252 0%, #d32f2f 100%);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-weight: 600;
-    cursor: pointer;
+/* BOTÓN VOLVER */
+.back-button {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 20px;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    color: #2C3E50;
+    font-size: 18px;
+    cursor: pointer;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
     transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
 }
 
-.btn-logout:hover {
+.back-button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 82, 82, 0.4);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4196 100%);
 }
 
 /* MODALES */
@@ -740,15 +1056,105 @@ button:hover {
     }
 }
 
-.back-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
-    background: linear-gradient(135deg, #5a6fd8 0%, #6a4196 100%);
+
+/* ESTILOS PARA TABLAS SIMPLIFICADAS */
+
+.data-table td {
+    padding: 12px 15px;
+    color: #555;
+    font-size: 14px;
+    vertical-align: middle;
 }
 
-/* Para la versión minimalista */
-.back-button:hover {
-    background: #667eea;
+/* Asegurar que las celdas no se desborden */
+.data-table td:first-child {
+    max-width: 350px;
+    overflow: hidden;
+}
+
+/* Estilo para el avatar simplificado en tablas */
+.user-avatar.simple {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.user-avatar.simple img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e0e0e0;
+    flex-shrink: 0;
+}
+
+.user-avatar.simple .avatar-placeholder-simple {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: white;
-    border-color: #667eea;
+    font-weight: 600;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.user-avatar.simple .user-name-simple {
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+/* Ajustar ancho de columnas para mejor distribución */
+.data-table th:nth-child(1) { 
+    width: auto; 
+    min-width: 200px;
+}
+
+.data-table th:nth-child(2) { 
+    width: 120px; 
+}
+
+/* Para la tabla de ranking */
+.data-table th:nth-child(1) { width: 80px; }
+.data-table th:nth-child(2) { width: 250px; }
+.data-table th:nth-child(3),
+.data-table th:nth-child(4),
+.data-table th:nth-child(5) { width: 100px; text-align: center; }
+
+/* Centrar números en tabla de ranking */
+.data-table td:nth-child(3),
+.data-table td:nth-child(4),
+.data-table td:nth-child(5) {
+    text-align: center;
+}
+
+/* Estilos responsivos para tablas */
+@media (max-width: 768px) {
+    .data-table td {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+    
+    .user-avatar.simple {
+        gap: 8px;
+    }
+    
+    .user-avatar.simple img,
+    .user-avatar.simple .avatar-placeholder-simple {
+        width: 35px;
+        height: 35px;
+        font-size: 14px;
+    }
+    
+    .data-table th:nth-child(2) { 
+        width: 100px; 
+    }
 }
