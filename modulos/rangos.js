@@ -121,7 +121,6 @@ function inicializarEventos() {
         });
     });
 
-  
     // Botón de usuario (ya tiene onclick en el HTML)
     const btnConfiguracion = document.getElementById('btnConfiguracion');
     if (btnConfiguracion) {
@@ -339,6 +338,7 @@ function mostrarUsuarios(usuarios) {
         `;
     }).join('');
 }
+
 // CONSULTA 3: Cargar amigos del usuario actual
 async function cargarAmigos() {
     const tbody = document.getElementById('amigos-body');
@@ -739,32 +739,51 @@ async function obtenerEstadisticasUsuario(usuarioId) {
     }
 }
 
-// Función para ver detalles del usuario
-async function verDetalleUsuario(usuarioId) {
+// Función para obtener edad aproximada
+function obtenerEdadAproximada(fechaNacimiento) {
     try {
-        // Mostrar loader
-        const modal = document.getElementById('detail-modal');
-        const modalBody = document.getElementById('modal-body');
+        const nacimiento = new Date(fechaNacimiento);
+        const hoy = new Date();
+        let edad = hoy.getFullYear() - nacimiento.getFullYear();
+        const mes = hoy.getMonth() - nacimiento.getMonth();
         
-        // Hacer el modal más grande
-        modal.style.display = 'flex';
-        const modalContent = modal.querySelector('.modal-content');
-        if (modalContent) {
-            modalContent.style.maxWidth = '800px';
-            modalContent.style.width = '90%';
-            modalContent.style.maxHeight = '85vh';
-            modalContent.style.overflow = 'hidden';
+        if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+            edad--;
         }
         
-        modalBody.innerHTML = `
-            <div style="text-align: center; padding: 60px 40px;">
-                <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-size: 32px; margin: 0 auto 20px;">
-                    <i class="fas fa-spinner fa-spin"></i>
+        if (edad < 18) return 'Menor de 18';
+        if (edad < 25) return '18-24 años';
+        if (edad < 35) return '25-34 años';
+        if (edad < 50) return '35-49 años';
+        return '50+ años';
+    } catch (e) {
+        return null;
+    }
+}
+
+// Función para enviar mensaje al usuario
+function enviarMensajeUsuario(email, nombre) {
+    document.getElementById('detail-modal').style.display = 'none';
+    alert(`📨 Redirigiendo para enviar mensaje a ${nombre || 'el usuario'} (${email})`);
+}
+
+// Función para ver detalles del usuario usando SweetAlert2
+async function verDetalleUsuario(usuarioId) {
+    try {
+        // Mostrar loader mientras se cargan los datos - TEXTO CORREGIDO
+        Swal.fire({
+            title: 'Cargando perfil...',
+            html: `
+                <div style="text-align: center; padding: 30px 20px;">
+                    <div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; margin: 0 auto 15px;">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                    <p style="color: #888;">Obteniendo información del usuario...</p>
                 </div>
-                <h3 style="color: #667eea; margin-bottom: 10px;">Cargando perfil...</h3>
-                <p style="color: #888;">Obteniendo información del usuario</p>
-            </div>
-        `;
+            `,
+            showConfirmButton: false,
+            allowOutsideClick: false
+        });
         
         // 1. Obtener datos básicos del usuario
         const { data: usuario, error } = await supabase
@@ -801,22 +820,79 @@ async function verDetalleUsuario(usuarioId) {
         const estadisticas = await obtenerEstadisticasUsuario(usuarioId);
         
         // 4. Renderizar el perfil completo
-        modalBody.innerHTML = renderizarPerfilCompletoDetalle(usuario, redes, estadisticas);
+        const contenidoHTML = renderizarPerfilCompletoDetalle(usuario, redes, estadisticas);
         
-        document.getElementById('modal-title').textContent = `👤 Perfil de ${usuario.nombre || ''} ${usuario.apellidos || ''}`;
+        // 5. Mostrar el modal de SweetAlert2 con SCROLL
+        Swal.fire({
+            title: `👤 Perfil de ${usuario.nombre || ''} ${usuario.apellidos || ''}`,
+            html: contenidoHTML,
+            width: 850, // Ancho fijo
+            padding: '0',
+            showCloseButton: true,
+            showConfirmButton: false,
+            backdrop: true,
+            allowOutsideClick: true,
+            customClass: {
+                popup: 'swal2-popup-custom',
+                container: 'swal2-container-custom'
+            },
+            // Configuración para que el scroll funcione
+            heightAuto: false,
+            grow: 'fullscreen', // Esto permite que crezca
+            scrollbarPadding: false
+        });
+        
+        // Asegurarnos de que el scroll esté visible
+        setTimeout(() => {
+            const swalPopup = document.querySelector('.swal2-popup');
+            if (swalPopup) {
+                swalPopup.style.maxHeight = '85vh';
+                swalPopup.style.overflow = 'hidden';
+                
+                const swalHtmlContainer = swalPopup.querySelector('.swal2-html-container');
+                if (swalHtmlContainer) {
+                    swalHtmlContainer.style.maxHeight = '65vh';
+                    swalHtmlContainer.style.overflowY = 'auto';
+                    swalHtmlContainer.style.overflowX = 'hidden';
+                    swalHtmlContainer.style.padding = '0 10px 20px 0';
+                    swalHtmlContainer.style.marginRight = '-10px';
+                    
+                    // Agregar estilos de scrollbar
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        .swal2-html-container::-webkit-scrollbar {
+                            width: 8px;
+                        }
+                        .swal2-html-container::-webkit-scrollbar-track {
+                            background: #f1f1f1;
+                            border-radius: 4px;
+                        }
+                        .swal2-html-container::-webkit-scrollbar-thumb {
+                            background: #c1c1c1;
+                            border-radius: 4px;
+                        }
+                        .swal2-html-container::-webkit-scrollbar-thumb:hover {
+                            background: #a1a1a1;
+                        }
+                        .swal2-html-container {
+                            scrollbar-width: thin;
+                            scrollbar-color: #c1c1c1 #f1f1f1;
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+            }
+        }, 100);
         
     } catch (error) {
         console.error('Error cargando detalles del usuario:', error);
-        const modalBody = document.getElementById('modal-body');
-        modalBody.innerHTML = `
-            <div style="text-align: center; padding: 60px 40px;">
-                <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(45deg, #ff6b6b, #ff8e8e); display: flex; align-items: center; justify-content: center; color: white; font-size: 32px; margin: 0 auto 20px;">
-                    <i class="fas fa-exclamation-triangle"></i>
-                </div>
-                <h3 style="color: #ff6b6b; margin-bottom: 10px;">Error al cargar</h3>
-                <p style="color: #888;">No se pudieron cargar los datos del usuario</p>
-            </div>
-        `;
+        Swal.fire({
+            icon: 'error',
+            title: 'Error al cargar',
+            text: 'No se pudieron cargar los datos del usuario',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#667eea'
+        });
     }
 }
 
@@ -849,21 +925,8 @@ function renderizarPerfilCompletoDetalle(usuario, redes, estadisticas) {
     const mostrarPais = usuario.mostrar_ubicacion !== false && usuario.pais;
     
     return `
-        <div class="modal-user-details" style="overflow-y: auto; overflow-x: hidden; max-height: 60vh; padding-right: 10px; margin-right: -10px;">
+        <div class="perfil-completo" style="padding: 20px 15px 0 15px;">
             <style>
-                /* Scrollbar bonito */
-                .modal-user-details::-webkit-scrollbar { 
-                    width: 8px; 
-                }
-                .modal-user-details::-webkit-scrollbar-track { 
-                    background: #f8f9fa; 
-                    border-radius: 4px;
-                }
-                .modal-user-details::-webkit-scrollbar-thumb { 
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                    border-radius: 4px;
-                }
-                
                 /* Tarjetas con bordes suaves */
                 .info-section {
                     background: white;
@@ -874,7 +937,7 @@ function renderizarPerfilCompletoDetalle(usuario, redes, estadisticas) {
                     box-shadow: 0 2px 10px rgba(0,0,0,0.04);
                 }
                 
-                /* Header de sección grande y visible */
+                /* Header de sección */
                 .section-header {
                     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                     color: white;
@@ -889,13 +952,6 @@ function renderizarPerfilCompletoDetalle(usuario, redes, estadisticas) {
                 /* Contenido de sección */
                 .section-content {
                     padding: 25px;
-                }
-                
-                /* Grid para información en 2 filas */
-                .info-grid-2rows {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    gap: 30px;
                 }
                 
                 /* Fila con 2 columnas */
@@ -957,7 +1013,7 @@ function renderizarPerfilCompletoDetalle(usuario, redes, estadisticas) {
                     padding-left: 26px;
                 }
                 
-                /* Iconos de redes sociales */
+                /* Iconos de redes sociales - SIN LÍNEA AZUL EN MITAD */
                 .social-icon-container {
                     width: 60px;
                     height: 60px;
@@ -998,6 +1054,8 @@ function renderizarPerfilCompletoDetalle(usuario, redes, estadisticas) {
                     align-items: center;
                     justify-content: center;
                     gap: 10px;
+                    width: 100%;
+                    margin-top: 20px;
                 }
                 
                 .btn-primary {
@@ -1024,7 +1082,7 @@ function renderizarPerfilCompletoDetalle(usuario, redes, estadisticas) {
             </style>
             
             <!-- HEADER DEL PERFIL -->
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 12px; color: white; margin-bottom: 25px; position: relative;">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 12px; color: white; margin-bottom: 25px;">
                 <div style="display: flex; align-items: center;">
                     <div style="width: 100px; height: 100px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; overflow: hidden; margin-right: 25px; flex-shrink: 0; border: 4px solid rgba(255,255,255,0.3);">
                         ${avatarHtml}
@@ -1238,16 +1296,16 @@ function renderizarPerfilCompletoDetalle(usuario, redes, estadisticas) {
             </div>
             ` : ''}
             
-            <!-- BOTONES DE ACCIÓN -->
-            <div style="display: flex; gap: 15px; margin-top: 20px;">
-                <button onclick="enviarMensajeUsuario('${usuario.email}', '${usuario.nombre || ''}')" 
-                        class="action-button btn-primary" style="flex: 1;">
+            <!-- BOTONES DE ACCIÓN - AL FINAL DEL SCROLL -->
+            <div style="display: flex; gap: 15px; margin: 25px 0 15px 0;">
+                <button onclick="enviarMensajeUsuarioSweetAlert('${usuario.email}', '${usuario.nombre || ''}')" 
+                        class="action-button btn-primary">
                     <i class="fas fa-paper-plane"></i>
                     <span>Enviar Mensaje</span>
                 </button>
                 
-                <button onclick="document.getElementById('detail-modal').style.display = 'none';" 
-                        class="action-button btn-secondary" style="flex: 1;">
+                <button onclick="Swal.close()" 
+                        class="action-button btn-secondary">
                     <i class="fas fa-times"></i>
                     <span>Cerrar</span>
                 </button>
@@ -1259,7 +1317,6 @@ function renderizarPerfilCompletoDetalle(usuario, redes, estadisticas) {
 // Función para renderizar item de información vertical
 function renderizarInfoItemVertical(icono, label, valor) {
     if (!valor) return '';
-    
     return `
         <div class="info-item-vertical">
             <div class="info-label-vertical">
@@ -1271,68 +1328,49 @@ function renderizarInfoItemVertical(icono, label, valor) {
     `;
 }
 
-// Función para renderizar icono de red social simple
+// Función auxiliar para renderizar iconos de redes sociales - CORREGIDO SIN LÍNEA AZUL
 function renderizarIconoRedSocialSimple(red) {
-    const iconosRedes = {
-        'facebook': { icon: 'fab fa-facebook-f', color: '#1877F2', nombre: 'Facebook' },
-        'instagram': { icon: 'fab fa-instagram', color: '#E4405F', nombre: 'Instagram' },
-        'twitter': { icon: 'fab fa-twitter', color: '#1DA1F2', nombre: 'Twitter' },
-        'x': { icon: 'fab fa-twitter', color: '#000000', nombre: 'X' },
-        'tiktok': { icon: 'fab fa-tiktok', color: '#000000', nombre: 'TikTok' },
-        'youtube': { icon: 'fab fa-youtube', color: '#FF0000', nombre: 'YouTube' },
-        'linkedin': { icon: 'fab fa-linkedin-in', color: '#0A66C2', nombre: 'LinkedIn' },
-        'github': { icon: 'fab fa-github', color: '#333333', nombre: 'GitHub' },
-        'whatsapp': { icon: 'fab fa-whatsapp', color: '#25D366', nombre: 'WhatsApp' },
-        'discord': { icon: 'fab fa-discord', color: '#5865F2', nombre: 'Discord' },
-        'twitch': { icon: 'fab fa-twitch', color: '#9146FF', nombre: 'Twitch' },
-        'reddit': { icon: 'fab fa-reddit', color: '#FF4500', nombre: 'Reddit' },
-        'pinterest': { icon: 'fab fa-pinterest', color: '#E60023', nombre: 'Pinterest' },
-        'snapchat': { icon: 'fab fa-snapchat', color: '#FFFC00', nombre: 'Snapchat' },
-        'telegram': { icon: 'fab fa-telegram', color: '#0088cc', nombre: 'Telegram' }
+    const plataformas = {
+        'facebook': { icon: 'fab fa-facebook-f', color: '#1877F2' },
+        'twitter': { icon: 'fab fa-twitter', color: '#1DA1F2' },
+        'instagram': { icon: 'fab fa-instagram', color: '#E4405F' },
+        'linkedin': { icon: 'fab fa-linkedin-in', color: '#0A66C2' },
+        'youtube': { icon: 'fab fa-youtube', color: '#FF0000' },
+        'tiktok': { icon: 'fab fa-tiktok', color: '#000000' },
+        'whatsapp': { icon: 'fab fa-whatsapp', color: '#25D366' },
+        'telegram': { icon: 'fab fa-telegram', color: '#0088CC' },
+        'discord': { icon: 'fab fa-discord', color: '#5865F2' },
+        'spotify': { icon: 'fab fa-spotify', color: '#1DB954' },
+        'github': { icon: 'fab fa-github', color: '#181717' },
+        'twitch': { icon: 'fab fa-twitch', color: '#9146FF' }
     };
     
-    const plataforma = red.plataforma ? red.plataforma.toLowerCase() : 'link';
-    const icono = iconosRedes[plataforma] || { icon: 'fas fa-link', color: '#667eea', nombre: 'Web' };
+    const plataforma = red.plataforma.toLowerCase();
+    const config = plataformas[plataforma] || { icon: 'fas fa-share-alt', color: '#667eea' };
     
-    // Verificar URL
-    const urlValida = red.url && (red.url.startsWith('http://') || red.url.startsWith('https://'));
-    const urlFinal = urlValida ? red.url : `https://${red.url}`;
-    
+    // CAMBIO IMPORTANTE: Usar un solo color sólido en lugar del gradiente con línea azul
     return `
-        <a href="${urlFinal}" target="_blank" rel="noopener noreferrer" 
-           title="${icono.nombre}" 
-           style="text-decoration: none;">
-            <div class="social-icon-container" style="background: ${icono.color};">
-                <i class="${icono.icon}"></i>
+        <a href="${red.url}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
+            <div class="social-icon-container" style="background: ${config.color};">
+                <i class="${config.icon}"></i>
             </div>
         </a>
     `;
 }
 
-// Función para obtener edad aproximada
-function obtenerEdadAproximada(fechaNacimiento) {
-    try {
-        const nacimiento = new Date(fechaNacimiento);
-        const hoy = new Date();
-        let edad = hoy.getFullYear() - nacimiento.getFullYear();
-        const mes = hoy.getMonth() - nacimiento.getMonth();
-        
-        if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
-            edad--;
-        }
-        
-        if (edad < 18) return 'Menor de 18';
-        if (edad < 25) return '18-24 años';
-        if (edad < 35) return '25-34 años';
-        if (edad < 50) return '35-49 años';
-        return '50+ años';
-    } catch (e) {
-        return null;
-    }
-}
-
-// Función para enviar mensaje al usuario
-function enviarMensajeUsuario(email, nombre) {
-    document.getElementById('detail-modal').style.display = 'none';
-    alert(`📨 Redirigiendo para enviar mensaje a ${nombre || 'el usuario'} (${email})`);
+// Función para enviar mensaje (compatible con SweetAlert2)
+function enviarMensajeUsuarioSweetAlert(email, nombre) {
+    Swal.close();
+    Swal.fire({
+        title: `Enviar mensaje a ${nombre || 'el usuario'}`,
+        html: `
+            <div style="text-align: left; padding: 20px 0;">
+                <p>Redirigiendo para enviar mensaje a:</p>
+                <p style="font-weight: bold; color: #667eea;">${email}</p>
+            </div>
+        `,
+        icon: 'info',
+        confirmButtonText: 'Continuar',
+        confirmButtonColor: '#667eea'
+    });
 }
