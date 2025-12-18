@@ -6,6 +6,7 @@
     <title>Trangos - Panel de Administración</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/rangos.css">
+    <link rel="stylesheet" href="assets/informarank.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 </head>
@@ -81,6 +82,11 @@
                         <p id="page-description">Gestiona y administra todos los usuarios registrados en Trangos</p>
                     </div>
                 </div>
+                 <!-- BOTÓN DE INFORMACIÓN -->
+        <button onclick="mostrarInformacionRank()" class="info-button">
+            <i class="fas fa-info-circle"></i>
+            <span></span>
+        </button>
             </div>
             
             <!-- ESTADÍSTICAS RÁPIDAS -->
@@ -250,5 +256,6 @@
     <script src="modulos/conexion-supabase.js"></script>
     <script src="modulos/rangos.js"></script>
     <script src="modulos/cerrarsesion_ranking.js"></script>
+    <script src="modulos/inforango.js"></script>
 </body>
 </html>
