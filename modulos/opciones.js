@@ -28,7 +28,7 @@ const Opciones = {
             html: `
                 <div class="menu-ajustes">
                     <div class="ajuste-opcion" onclick="Opciones.redirigirAJuegos()">
-                        <div class="ajuste-icono">
+                        <div class="ajuste-icono" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                             <i class="fas fa-gamepad"></i>
                         </div>
                         <div class="ajuste-contenido">
@@ -43,12 +43,27 @@ const Opciones = {
                     <div class="separador-ajustes"></div>
                     
                     <div class="ajuste-opcion" onclick="Opciones.redirigirARango()">
-                        <div class="ajuste-icono">
+                        <div class="ajuste-icono" style="background: linear-gradient(135deg, #FF9800 0%, #FF5722 100%);">
                             <i class="fas fa-trophy"></i>
                         </div>
                         <div class="ajuste-contenido">
                             <h4>Rango</h4>
                             <p>Consulta tu progreso y ranking</p>
+                        </div>
+                        <div class="ajuste-flecha">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="separador-ajustes"></div>
+                    
+                    <div class="ajuste-opcion" onclick="Opciones.redirigirALogros()">
+                        <div class="ajuste-icono" style="background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%);">
+                            <i class="fas fa-medal"></i>
+                        </div>
+                        <div class="ajuste-contenido">
+                            <h4>Logros</h4>
+                            <p>Desbloquea y visualiza tus logros</p>
                         </div>
                         <div class="ajuste-flecha">
                             <i class="fas fa-chevron-right"></i>
@@ -77,6 +92,11 @@ const Opciones = {
     redirigirARango: function() {
         Swal.close();
         window.location.href = 'rango.html';
+    },
+
+    redirigirALogros: function() {
+        Swal.close();
+        window.location.href = 'logros.html';
     }
 };
 

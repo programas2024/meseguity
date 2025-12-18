@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trangos - Logros</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/logros.css">
+    <link rel="stylesheet" href="assets/informarank.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+</head>
+<body>
+     <div class="app-container">
+        <!-- BARRA LATERAL -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <i class="fas fa-trophy logo-icon"></i>
+                    <div class="logo-main">MESSEGY</div>
+                    <div class="logo-subtitle">LOGROS</div>
+                </div>
+            </div>
+            
+            <!-- INFORMACIÓN DEL USUARIO -->
+            <button class="user-info-btn" id="btnConfiguracion" onclick="window.location.href='configuracion.html'">
+                <div class="user-avatar" id="userAvatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="user-details">
+                    <h3 id="userName">Cargando...</h3>
+                    <p id="userEmail">cargando...</p>
+                    <span class="config-link">Editar perfil <i class="fas fa-chevron-right"></i></span>
+                </div>
+            </button>
+            
+            <!-- MENÚ DE NAVEGACIÓN PARA LOGROS -->
+            <nav class="sidebar-nav">
+                <button class="nav-btn active" data-category="mensajes">
+                    <i class="fas fa-comment-alt"></i>
+                    <span>Logros de Mensajes</span>
+                    <span class="nav-count" id="count-mensajes">4</span>
+                </button>
+                
+                <button class="nav-btn" data-category="grupos">
+                    <i class="fas fa-users"></i>
+                    <span>Logros de Grupos</span>
+                    <span class="nav-count" id="count-grupos">2</span>
+                </button>
+                
+                <button class="nav-btn" data-category="amigos">
+                    <i class="fas fa-user-friends"></i>
+                    <span>Logros de Amigos</span>
+                    <span class="nav-count" id="count-amigos">2</span>
+                </button>
+            </nav>
+            
+            <!-- BOTÓN CERRAR SESIÓN -->
+            <div class="sidebar-footer">
+                <button class="btn-logout" id="btn-logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Cerrar Sesión</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <main class="main-content">
+            <!-- BANNER DE CARGA -->
+            <div id="loading-banner" class="loading-banner active">
+                <div class="loading-content">
+                    <div class="loading-spinner-large">
+                        <i class="fas fa-trophy fa-spin"></i>
+                    </div>
+                    <div class="loading-text">
+                        <h3><i class="fas fa-medal"></i> Cargando tus logros...</h3>
+                        <p>Estamos preparando tus logros y recompensas. Esto solo tomará un momento.</p>
+                        <div class="loading-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="loading-progress-fill"></div>
+                            </div>
+                            <div class="progress-text">
+                                <span id="loading-status">Iniciando...</span>
+                                <span id="loading-percentage">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ENCABEZADO -->
+            <div class="content-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <!-- Botón para volver a principal.html -->
+                    <a href="principal.html" class="back-button">
+                        <i class="fas fa-arrow-left"></i>
+                        <span></span>
+                    </a>
+                    
+                    <div>
+                        <h1 id="page-title">Logros de Mensajes</h1>
+                        <p id="page-description">Desbloquea logros especiales y gana recompensas</p>
+                    </div>
+                </div>
+                <!-- BOTÓN DE INFORMACIÓN -->
+                <button onclick="mostrarInformacionRank()" class="info-button">
+                    <i class="fas fa-info-circle"></i>
+                    <span></span>
+                </button>
+            </div>
+            
+            <!-- ESTADÍSTICAS RÁPIDAS -->
+            <div class="quick-stats">
+                <div class="stat-card">
+                    <div class="stat-icon users">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="total-logros">0/8</h3>
+                        <p>Logros Desbloqueados</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon friends">
+                        <i class="fas fa-gem"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="total-puntos">0</h3>
+                        <p>Puntos de Logros</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon groups">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="progreso">0%</h3>
+                        <p>Progreso Total</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTENIDO DINÁMICO -->
+            <div class="achievements-container" id="content-container">
+                <!-- Logros de Mensajes (Se muestra por defecto) -->
+                <div class="content-section active" id="mensajes-content">
+                    <h2 class="achievements-title">Logros de Mensajes</h2>
+                    <p class="achievements-subtitle">Completa estos logros relacionados con mensajes</p>
+                    
+                    <div class="achievements-grid" id="mensajes-logros">
+                        <!-- Logros se cargarán aquí dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Logros de Grupos -->
+                <div class="content-section" id="grupos-content">
+                    <h2 class="achievements-title">Logros de Grupos</h2>
+                    <p class="achievements-subtitle">Completa estos logros relacionados con grupos</p>
+                    
+                    <div class="achievements-grid" id="grupos-logros">
+                        <!-- Logros se cargarán aquí dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Logros de Amigos -->
+                <div class="content-section" id="amigos-content">
+                    <h2 class="achievements-title">Logros de Amigos</h2>
+                    <p class="achievements-subtitle">Completa estos logros relacionados con amigos</p>
+                    
+                    <div class="achievements-grid" id="amigos-logros">
+                        <!-- Logros se cargarán aquí dinámicamente -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL PARA VER DETALLES DEL LOGRO -->
+    <div class="modal" id="achievement-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Detalles del Logro</h2>
+                <button class="modal-close" id="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Contenido dinámico del modal -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="modal-cancel">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Scripts separados en español -->
+    <script src="modulos/conexion-supabase.js"></script>
+    <script src="modulos/logros.js"></script>
+    <script src="modulos/cerrarsesion_ranking2.js"></script>
+    <script src="modulos/informalogro.js"></script>
+</body>
+</html>
