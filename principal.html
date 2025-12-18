@@ -6704,26 +6704,6 @@ window.mostrarSeleccionAmigosAfinidad = mostrarSeleccionAmigosAfinidad;
         });
     }
 
-
-    let tiempoOculto = null
-
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden) {
-    tiempoOculto = Date.now()
-  } else {
-    const ahora = Date.now()
-    const segundosFuera = (ahora - tiempoOculto) / 1000
-
-    if (segundosFuera > 20) {
-      document.body.classList.add('reconectando')
-
-      setTimeout(() => {
-        location.reload()
-      }, 300)
-    }
-  }
-})
-
    
 </script>
 </body>
