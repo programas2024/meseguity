@@ -64,10 +64,31 @@
                 </button>
             </div>
         </aside>
-       
 
         <!-- CONTENIDO PRINCIPAL (MANTENIDO IGUAL) -->
         <main class="main-content">
+            <!-- BANNER DE CARGA RÁPIDO -->
+            <div id="loading-banner" class="loading-banner active">
+                <div class="loading-content">
+                    <div class="loading-spinner-large">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="loading-text">
+                        <h3><i class="fas fa-users"></i> Cargando panel de administración...</h3>
+                        <p>Preparando todos los datos de usuarios, amigos y mensajes.</p>
+                        <div class="loading-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="loading-progress-fill"></div>
+                            </div>
+                            <div class="progress-text">
+                                <span id="loading-status">Iniciando...</span>
+                                <span id="loading-percentage">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- ENCABEZADO -->
             <div class="content-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
                 <div style="display: flex; align-items: center; gap: 15px;">

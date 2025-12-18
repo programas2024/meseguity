@@ -9,18 +9,126 @@ let amigosData = [];
 let mensajesData = [];
 
 // Inicialización cuando se carga la página
+// Modifica la función de inicialización:
 document.addEventListener('DOMContentLoaded', async function() {
+    // Mostrar banner de carga
+    actualizarBannerCarga('iniciando');
+    
     // Verificar sesión del usuario
+    actualizarBannerCarga('sesion');
     await verificarSesion();
+    
+    // Cargar estadísticas
+    actualizarBannerCarga('estadisticas');
+    await cargarEstadisticas();
+    
+    // Cargar usuarios
+    actualizarBannerCarga('usuarios');
+    await cargarUsuarios();
     
     // Inicializar eventos
     inicializarEventos();
     
-    // Cargar datos iniciales
-    await cargarEstadisticas();
-    await cargarUsuarios();
+    // Completar - banner visible solo 800ms máximo
+    actualizarBannerCarga('completado');
 });
 
+// Función para manejar errores
+function mostrarErrorCarga(mensaje) {
+    const banner = document.getElementById('loading-banner');
+    if (banner) {
+        banner.innerHTML = `
+            <div class="loading-content">
+                <div class="loading-spinner-large" style="background: linear-gradient(135deg, #ff5252 0%, #d32f2f 100%);">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="loading-text">
+                    <h3><i class="fas fa-exclamation-circle"></i> Error al cargar</h3>
+                    <p>${mensaje || 'Ocurrió un error al cargar el panel.'}</p>
+                    <button class="btn-reclamar" onclick="location.reload()" style="margin-top: 20px;">
+                        <i class="fas fa-redo"></i>
+                        Reintentar
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// Función para actualizar el banner de carga
+function actualizarBannerCarga(estado, porcentaje) {
+    const banner = document.getElementById('loading-banner');
+    const progressFill = document.getElementById('loading-progress-fill');
+    const statusText = document.getElementById('loading-status');
+    const percentageText = document.getElementById('loading-percentage');
+    
+    if (!banner) return;
+    
+    // Asegurar que el banner esté visible
+    banner.classList.remove('hidden');
+    banner.classList.remove('fade-out');
+    
+    // Actualizar progreso
+    if (porcentaje !== undefined) {
+        progressFill.style.width = `${porcentaje}%`;
+        percentageText.textContent = `${porcentaje}%`;
+    }
+    
+    switch(estado) {
+        case 'iniciando':
+            statusText.textContent = 'Preparando panel...';
+            progressFill.style.width = '10%';
+            percentageText.textContent = '10%';
+            break;
+            
+        case 'sesion':
+            statusText.textContent = 'Verificando sesión...';
+            progressFill.style.width = '25%';
+            percentageText.textContent = '25%';
+            break;
+            
+        case 'estadisticas':
+            statusText.textContent = 'Cargando estadísticas...';
+            progressFill.style.width = '40%';
+            percentageText.textContent = '40%';
+            break;
+            
+        case 'usuarios':
+            statusText.textContent = 'Cargando usuarios...';
+            progressFill.style.width = '60%';
+            percentageText.textContent = '60%';
+            break;
+            
+        case 'amigos':
+            statusText.textContent = 'Cargando amigos...';
+            progressFill.style.width = '75%';
+            percentageText.textContent = '75%';
+            break;
+            
+        case 'mensajes':
+            statusText.textContent = 'Cargando ranking...';
+            progressFill.style.width = '90%';
+            percentageText.textContent = '90%';
+            break;
+            
+        case 'completado':
+            statusText.textContent = '¡Listo!';
+            progressFill.style.width = '100%';
+            percentageText.textContent = '100%';
+            
+            // Ocultar el banner RÁPIDO (solo 300ms de delay)
+            setTimeout(() => {
+                banner.classList.add('fade-out');
+                setTimeout(() => {
+                    banner.classList.add('hidden');
+                }, 150);
+            }, 300);
+            break;
+            
+        default:
+            statusText.textContent = estado || 'Cargando...';
+    }
+}
 // Verificar sesión del usuario
 async function verificarSesion() {
     try {

@@ -4953,9 +4953,177 @@
 }
 
 
+
+
+
+
+/* ===== BANNER DE CARGA RÁPIDO SIN GIRO ===== */
+
+.loading-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.98);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 1;
+    transition: opacity 0.2s ease;
+    visibility: visible;
+}
+
+.loading-banner.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.loading-content {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 5px 20px rgba(102, 126, 234, 0.15);
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    border: 1px solid #667eea;
+    animation: fadeIn 0.15s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.loading-spinner-large {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    font-size: 32px;
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    /* SIN ANIMACIÓN DE PULSO - ESTÁTICO */
+}
+
+.loading-spinner-large i {
+    /* SIN ANIMACIÓN DE GIRO - ESTÁTICO */
+    animation: none !important;
+}
+
+.loading-text h3 {
+    color: #667eea;
+    font-size: 20px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.loading-text p {
+    color: #666;
+    font-size: 14px;
+    line-height: 1.4;
+    margin-bottom: 20px;
+}
+
+.loading-progress {
+    margin-top: 20px;
+}
+
+.loading-progress .progress-bar {
+    height: 6px;
+    background: #e0e0e0;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.loading-progress .progress-fill {
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 3px;
+    transition: width 0.15s ease; /* Transición más rápida */
+    width: 0%;
+}
+
+.loading-progress .progress-text {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #666;
+    font-weight: 600;
+}
+
+/* ===== EFECTO DE SALIDA RÁPIDO ===== */
+
+.fade-out {
+    animation: fadeOut 0.15s ease forwards !important;
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 768px) {
+    .loading-content {
+        padding: 25px 15px;
+        width: 95%;
+    }
+    
+    .loading-spinner-large {
+        width: 60px;
+        height: 60px;
+        font-size: 28px;
+        margin-bottom: 15px;
+    }
+    
+    .loading-text h3 {
+        font-size: 18px;
+    }
+    
+    .loading-text p {
+        font-size: 13px;
+    }
+}
+
     </style>
 </head>
-<body>
+
+    <body>
+    <!-- BANNER DE CARGA RÁPIDO -->
+    <div id="loading-banner" class="loading-banner active">
+        <div class="loading-content">
+            <div class="loading-spinner-large">
+                <i class="fas fa-paper-plane"></i>
+            </div>
+            <div class="loading-text">
+                <h3><i class="fas fa-comment-dots"></i> ¡Bienvenido a Messery!</h3>
+                <p>Estamos cargando tus mensajes y amigos. Espera un momento...</p>
+                <div class="loading-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="loading-progress-fill"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span id="loading-status">Iniciando...</span>
+                        <span id="loading-percentage">0%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="app-container">
         <!-- Barra Lateral -->
         <aside class="sidebar">
@@ -5386,8 +5554,6 @@
     <script src="modulos/eventos-afinidad.js"></script>
     <script src="modulos/opciones.js"></script>
     <script src="modulos/informacion.js"></script>
-
-    
 
   <script>
     // Script de inicialización modificado para incluir el botón de información
@@ -5879,19 +6045,21 @@
 // INICIALIZACIÓN DE LA APLICACIÓN
 document.addEventListener('DOMContentLoaded', async () => {
     try {
+        // 1. MOSTRAR BANNER DE CARGA INICIAL
+        actualizarBannerCarga('iniciando', 5);
+        
         console.log("🚀 Inicializando aplicación Messery...");
         
         // Verificar que los módulos necesarios estén cargados
+        actualizarBannerCarga('verificando_modulos', 10);
         if (!window.supabase) {
             console.error("❌ Supabase no está disponible");
-            alert("Error: No se pudo conectar con el servidor. Recarga la página.");
+            mostrarErrorCarga("No se pudo conectar con el servidor");
             return;
         }
 
-        // Pequeña pausa para asegurar que los módulos estén cargados
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        // 1. Verificar sesión usando el módulo Autenticacion
+        // 2. VERIFICAR SESIÓN
+        actualizarBannerCarga('sesion', 15);
         console.log("🔐 Verificando sesión...");
         const usuarioAuth = await Autenticacion.verificarSesion();
         
@@ -5903,44 +6071,44 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         console.log("✅ Sesión activa encontrada:", usuarioAuth.email);
 
-        // 2. Verificar y registrar usuario si no existe
+        // 3. VERIFICAR Y REGISTRAR USUARIO
+        actualizarBannerCarga('registrando_usuario', 25);
         console.log("📋 Verificando/registrando usuario en DB...");
         const usuarioDB = await Autenticacion.verificarYRegistrarUsuario();
         
         if (!usuarioDB) {
             console.error("❌ Error crítico: No se pudo registrar el usuario");
-            if (window.Utilidades && window.Utilidades.mostrarAlerta) {
-                window.Utilidades.mostrarAlerta(
-                    'Error de registro', 
-                    'No se pudo completar el registro. Intenta recargar la página o contacta al administrador.', 
-                    'error'
-                );
-            }
+            mostrarErrorCarga('No se pudo completar el registro');
             return;
         }
 
-        // 3. Guardar usuario en variables globales
+        // 4. GUARDAR USUARIO EN VARIABLES GLOBALES
+        actualizarBannerCarga('configurando_usuario', 30);
         window.usuarioActual = usuarioDB;
         window.usuarioIdActual = usuarioDB.id;
         console.log("👤 Usuario cargado:", usuarioDB.nombre, "(ID:", usuarioDB.id, ")");
 
-        // 4. Actualizar interfaz del usuario
+        // 5. ACTUALIZAR INTERFAZ DEL USUARIO
+        actualizarBannerCarga('actualizando_interfaz', 35);
         console.log("🎨 Configurando interfaz del usuario...");
         actualizarUIUsuario(window.usuarioActual);
 
-        // 5. Cargar información adicional del usuario
+        // 6. CARGAR INFORMACIÓN ADICIONAL DEL USUARIO
+        actualizarBannerCarga('cargando_info_usuario', 40);
         if (window.Usuario && window.Usuario.cargarInformacion) {
             console.log("👤 Cargando información adicional del usuario...");
             await window.Usuario.cargarInformacion(usuarioDB);
         }
 
-        // 6. Cargar amigos
+        // 7. CARGAR AMIGOS
+        actualizarBannerCarga('cargando_amigos', 45);
         console.log("👥 Cargando amigos...");
         if (window.Amigos && window.Amigos.cargarAmigos) {
             await window.Amigos.cargarAmigos();
         }
 
-        // 7. Inicializar sistema de afinidad
+        // 8. INICIALIZAR SISTEMA DE AFINIDAD
+        actualizarBannerCarga('inicializando_afinidad', 50);
         console.log("🤝 Inicializando sistema de afinidad...");
         if (window.Afinidad) {
             console.log("✅ Módulo de afinidad disponible");
@@ -5959,7 +6127,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log("⚠️ Módulo de afinidad no disponible");
         }
 
-        // 8. Inicializar chat en tiempo real
+        // 9. INICIALIZAR CHAT EN TIEMPO REAL
+        actualizarBannerCarga('inicializando_chat', 55);
         if (window.ChatTiempoReal) {
             console.log("💬 Inicializando chat en tiempo real...");
             if (typeof window.ChatTiempoReal === 'function') {
@@ -5973,40 +6142,50 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log("⚠️ ChatTiempoReal no disponible");
         }
 
-        // 9. Inicializar sistema de archivos
+        // 10. INICIALIZAR SISTEMA DE ARCHIVOS
+        actualizarBannerCarga('inicializando_archivos', 60);
         if (window.Archivos && window.Archivos.inicializarStorage) {
             console.log("📁 Inicializando sistema de archivos...");
             await window.Archivos.inicializarStorage();
             console.log('✅ Sistema de archivos inicializado');
         }
 
-        // 10. Cargar datos iniciales
+        // 11. CARGAR DATOS INICIALES (EN PARALELO PARA MAYOR VELOCIDAD)
+        actualizarBannerCarga('cargando_datos', 65);
         console.log("📥 Cargando datos iniciales...");
         
+        // Ejecutar cargas en paralelo
+        const tareasCarga = [];
+        
         if (window.Mensajes && window.Mensajes.cargarBandejaEntrada) {
-            await window.Mensajes.cargarBandejaEntrada();
+            tareasCarga.push(window.Mensajes.cargarBandejaEntrada());
         }
         
         if (window.Mensajes && window.Mensajes.actualizarContadorNoLeidos) {
-            await window.Mensajes.actualizarContadorNoLeidos();
+            tareasCarga.push(window.Mensajes.actualizarContadorNoLeidos());
         }
         
         if (window.Amigos && window.Amigos.cargarSolicitudesPendientes) {
-            await window.Amigos.cargarSolicitudesPendientes();
+            tareasCarga.push(window.Amigos.cargarSolicitudesPendientes());
         }
         
         if (window.UsuariosDisponibles && window.UsuariosDisponibles.cargarUsuariosDisponibles) {
-            await window.UsuariosDisponibles.cargarUsuariosDisponibles();
+            tareasCarga.push(window.UsuariosDisponibles.cargarUsuariosDisponibles());
         }
         
-        // 11. Cargar grupos del usuario
+        // Ejecutar todas las tareas en paralelo
+        await Promise.all(tareasCarga);
+        
+        // 12. CARGAR GRUPOS DEL USUARIO
+        actualizarBannerCarga('cargando_grupos', 75);
         if (window.Grupos && window.Grupos.cargarMisGrupos) {
             console.log("👥 Cargando grupos...");
             await window.Grupos.cargarMisGrupos();
             console.log('✅ Grupos cargados');
         }
 
-        // 12. Configurar botón de afinidad en la interfaz
+        // 13. CONFIGURAR BOTÓN DE AFINIDAD EN LA INTERFAZ
+        actualizarBannerCarga('configurando_botones', 80);
         console.log("⚙️ Configurando botón de afinidad...");
         const btnAfinidad = document.getElementById('btnAfinidad');
         if (btnAfinidad) {
@@ -6030,7 +6209,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log("⚠️ Botón de afinidad no encontrado");
         }
 
-        // 13. Inicializar módulo de opciones/ajustes
+        // 14. INICIALIZAR MÓDULO DE OPCIONES/AJUSTES
+        actualizarBannerCarga('configurando_opciones', 85);
         if (window.Opciones && window.Opciones.inicializar) {
             console.log("⚙️ Inicializando módulo de opciones...");
             window.Opciones.inicializar();
@@ -6038,7 +6218,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log("⚠️ Módulo de opciones no disponible");
         }
 
-        // 14. Inicializar módulo de información
+        // 15. INICIALIZAR MÓDULO DE INFORMACIÓN
+        actualizarBannerCarga('configurando_informacion', 90);
         if (window.Informacion && window.Informacion.inicializar) {
             console.log("ℹ️ Inicializando módulo de información...");
             window.Informacion.inicializar();
@@ -6046,13 +6227,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log("⚠️ Módulo de información no disponible");
         }
 
-        // 14. Configurar interfaz y eventos
+        // 16. CONFIGURAR INTERFAZ Y EVENTOS
+        actualizarBannerCarga('configurando_interfaz', 95);
         if (window.Interfaz && window.Interfaz.configurarEventos) {
             console.log("⚙️ Configurando eventos de interfaz...");
             window.Interfaz.configurarEventos();
         }
         
-        // 15. Configurar logout
+        // 17. CONFIGURAR LOGOUT
         const btnLogout = document.getElementById('btnLogout');
         if (btnLogout) {
             btnLogout.addEventListener('click', async () => {
@@ -6064,7 +6246,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
-        // 16. Ocultar mensaje de bienvenida después de 5 segundos
+        // 18. COMPLETAR CARGA - OCULTAR BANNER
+        actualizarBannerCarga('completado', 100);
+        
+        // 19. OCULTAR MENSAJE DE BIENVENIDA DESPUÉS DE 5 SEGUNDOS
         setTimeout(() => {
             const welcomeMsg = document.getElementById('welcomeMessage');
             if (welcomeMsg) {
@@ -6076,7 +6261,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }, 5000);
 
-        // 17. Configurar suscripción a cambios de autenticación
+        // 20. CONFIGURAR SUSCRIPCIÓN A CAMBIOS DE AUTENTICACIÓN
         supabase.auth.onAuthStateChange((event, session) => {
             console.log('🔄 Cambio en estado de autenticación:', event);
             
@@ -6098,11 +6283,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             errorMessage += 'Error: ' + error.message;
         }
         
-        if (window.Utilidades && window.Utilidades.mostrarAlerta) {
-            window.Utilidades.mostrarAlerta('Error de inicialización', errorMessage, 'error');
-        } else {
-            alert(errorMessage);
-        }
+        // Mostrar error en el banner
+        mostrarErrorCarga(errorMessage);
         
         if (error.message && (error.message.includes('auth') || error.message.includes('session'))) {
             setTimeout(() => {
@@ -6111,6 +6293,174 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 });
+
+// Función para actualizar el banner de carga
+function actualizarBannerCarga(estado, porcentaje) {
+    const banner = document.getElementById('loading-banner');
+    const progressFill = document.getElementById('loading-progress-fill');
+    const statusText = document.getElementById('loading-status');
+    const percentageText = document.getElementById('loading-percentage');
+    
+    if (!banner) return;
+    
+    // Asegurar que el banner esté visible
+    banner.classList.remove('hidden');
+    banner.classList.remove('fade-out');
+    
+    // Actualizar progreso
+    if (porcentaje !== undefined) {
+        progressFill.style.width = `${porcentaje}%`;
+        percentageText.textContent = `${porcentaje}%`;
+    }
+    
+    switch(estado) {
+        case 'iniciando':
+            statusText.textContent = 'Preparando Messery...';
+            progressFill.style.width = '5%';
+            percentageText.textContent = '5%';
+            break;
+            
+        case 'verificando_modulos':
+            statusText.textContent = 'Verificando módulos...';
+            progressFill.style.width = '10%';
+            percentageText.textContent = '10%';
+            break;
+            
+        case 'sesion':
+            statusText.textContent = 'Verificando sesión...';
+            progressFill.style.width = '15%';
+            percentageText.textContent = '15%';
+            break;
+            
+        case 'registrando_usuario':
+            statusText.textContent = 'Registrando usuario...';
+            progressFill.style.width = '25%';
+            percentageText.textContent = '25%';
+            break;
+            
+        case 'configurando_usuario':
+            statusText.textContent = 'Configurando usuario...';
+            progressFill.style.width = '30%';
+            percentageText.textContent = '30%';
+            break;
+            
+        case 'actualizando_interfaz':
+            statusText.textContent = 'Actualizando interfaz...';
+            progressFill.style.width = '35%';
+            percentageText.textContent = '35%';
+            break;
+            
+        case 'cargando_info_usuario':
+            statusText.textContent = 'Cargando información...';
+            progressFill.style.width = '40%';
+            percentageText.textContent = '40%';
+            break;
+            
+        case 'cargando_amigos':
+            statusText.textContent = 'Cargando amigos...';
+            progressFill.style.width = '45%';
+            percentageText.textContent = '45%';
+            break;
+            
+        case 'inicializando_afinidad':
+            statusText.textContent = 'Inicializando afinidad...';
+            progressFill.style.width = '50%';
+            percentageText.textContent = '50%';
+            break;
+            
+        case 'inicializando_chat':
+            statusText.textContent = 'Inicializando chat...';
+            progressFill.style.width = '55%';
+            percentageText.textContent = '55%';
+            break;
+            
+        case 'inicializando_archivos':
+            statusText.textContent = 'Inicializando archivos...';
+            progressFill.style.width = '60%';
+            percentageText.textContent = '60%';
+            break;
+            
+        case 'cargando_datos':
+            statusText.textContent = 'Cargando datos...';
+            progressFill.style.width = '65%';
+            percentageText.textContent = '65%';
+            break;
+            
+        case 'cargando_grupos':
+            statusText.textContent = 'Cargando grupos...';
+            progressFill.style.width = '75%';
+            percentageText.textContent = '75%';
+            break;
+            
+        case 'configurando_botones':
+            statusText.textContent = 'Configurando botones...';
+            progressFill.style.width = '80%';
+            percentageText.textContent = '80%';
+            break;
+            
+        case 'configurando_opciones':
+            statusText.textContent = 'Configurando opciones...';
+            progressFill.style.width = '85%';
+            percentageText.textContent = '85%';
+            break;
+            
+        case 'configurando_informacion':
+            statusText.textContent = 'Configurando información...';
+            progressFill.style.width = '90%';
+            percentageText.textContent = '90%';
+            break;
+            
+        case 'configurando_interfaz':
+            statusText.textContent = 'Configurando interfaz...';
+            progressFill.style.width = '95%';
+            percentageText.textContent = '95%';
+            break;
+            
+        case 'completado':
+            statusText.textContent = '¡Listo!';
+            progressFill.style.width = '100%';
+            percentageText.textContent = '100%';
+            
+            // Ocultar el banner RÁPIDO (solo 300ms de delay)
+            setTimeout(() => {
+                banner.classList.add('fade-out');
+                setTimeout(() => {
+                    banner.classList.add('hidden');
+                }, 150);
+            }, 300);
+            break;
+            
+        default:
+            statusText.textContent = estado || 'Cargando...';
+            if (porcentaje !== undefined) {
+                progressFill.style.width = `${porcentaje}%`;
+                percentageText.textContent = `${porcentaje}%`;
+            }
+    }
+}
+
+// Función para manejar errores
+function mostrarErrorCarga(mensaje) {
+    const banner = document.getElementById('loading-banner');
+    if (banner) {
+        banner.innerHTML = `
+            <div class="loading-content">
+                <div class="loading-spinner-large" style="background: linear-gradient(135deg, #ff5252 0%, #d32f2f 100%);">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="loading-text">
+                    <h3><i class="fas fa-exclamation-circle"></i> Error al cargar</h3>
+                    <p>${mensaje || 'Ocurrió un error al cargar Messery.'}</p>
+                    <button class="btn-reclamar" onclick="location.reload()" style="margin-top: 20px;">
+                        <i class="fas fa-redo"></i>
+                        Reintentar
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+}
+
 
 // Función para mostrar sección de afinidad (global)
 function mostrarSeccionAfinidad() {
