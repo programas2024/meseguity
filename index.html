@@ -38,16 +38,71 @@
     <!-- SweetAlert -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- Supabase -->
+    <!-- Supabase - DEBE IR PRIMERO -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <!-- Conexión Supabase -->
+    <!-- Mi módulo de conexión -->
     <script src="modulos/conexion-supabase2.js"></script>
 
     <script>
-        // Esperar a que todo esté cargado
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Función para manejar errores de login
+        // Esperar a que TODO esté cargado
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('DOM cargado, verificando Supabase...');
+            
+            // Verificar que supabase esté disponible
+            if (!window.supabase || !window.supabaseClient) {
+                console.error('Supabase no está disponible');
+                Swal.fire({
+                    title: "Error de configuración",
+                    text: "No se pudo cargar el sistema de autenticación. Por favor recarga la página.",
+                    icon: "error"
+                });
+                return;
+            }
+
+            // Usar el cliente correcto
+            const supabase = window.supabaseClient || window.supabase;
+            
+            // ----------------- VERIFICAR SESIÓN ACTIVA -----------------
+            async function verificarSesionActiva() {
+                try {
+                    const { data: { session }, error } = await supabase.auth.getSession();
+                    
+                    if (error) {
+                        console.error('Error al verificar sesión:', error);
+                        return null;
+                    }
+                    
+                    if (session) {
+                        console.log('Sesión activa encontrada:', session.user.email);
+                        return session;
+                    }
+                    
+                    return null;
+                } catch (error) {
+                    console.error('Error en verificarSesionActiva:', error);
+                    return null;
+                }
+            }
+
+            // Verificar sesión al cargar
+            const session = await verificarSesionActiva();
+            if (session) {
+                Swal.fire({
+                    title: "Ya estás autenticado",
+                    text: `Serás redirigido a la página principal...`,
+                    icon: "info",
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                
+                setTimeout(() => {
+                    window.location.href = "principal.html";
+                }, 2000);
+                return; // Salir para evitar configurar los event listeners
+            }
+
+            // ----------------- FUNCIÓN PARA MANEJAR ERRORES -----------------
             function mostrarErrorLogin(error) {
                 let errorMessage = error.message;
                 
@@ -77,7 +132,7 @@
                 const password = document.getElementById("password").value;
 
                 try {
-                    const { data, error } = await window.supabase.auth.signInWithPassword({
+                    const { data, error } = await supabase.auth.signInWithPassword({
                         email: email,
                         password: password
                     });
@@ -87,8 +142,8 @@
                         return;
                     }
 
-                    // Verificar y registrar usuario en DB
-                    const usuarioDB = await window.verificarYRegistrarUsuario();
+                    // Esperar un momento para que se establezca la sesión
+                    await new Promise(resolve => setTimeout(resolve, 500));
                     
                     Swal.fire({
                         title: "¡Bienvenido!",
@@ -115,10 +170,15 @@
             // ----------------- LOGIN CON GITHUB -----------------
             document.getElementById("githubLogin").addEventListener("click", async () => {
                 try {
-                    const { data, error } = await window.supabase.auth.signInWithOAuth({
+                    // Usar la URL actual como base para el redirect
+                    const redirectUrl = `${window.location.origin}/principal.html`;
+                    
+                    console.log('Redirigiendo a GitHub...', redirectUrl);
+                    
+                    const { error } = await supabase.auth.signInWithOAuth({
                         provider: "github",
                         options: {
-                            redirectTo: window.location.origin + "/principal.html"
+                            redirectTo: redirectUrl
                         }
                     });
 
@@ -139,27 +199,6 @@
                     });
                 }
             });
-
-            // Verificar si ya hay sesión activa
-            try {
-                const session = await window.verificarSesion();
-                
-                if (session) {
-                    Swal.fire({
-                        title: "Ya estás autenticado",
-                        text: `Serás redirigido a la página principal...`,
-                        icon: "info",
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                    
-                    setTimeout(() => {
-                        window.location.href = "principal.html";
-                    }, 2000);
-                }
-            } catch (error) {
-                console.log('No hay sesión activa o error:', error);
-            }
         });
     </script>
 </body>
