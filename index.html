@@ -2,49 +2,140 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Iniciar Sesión</title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+    <title>Meseguity | Conecta, Juega, Crece</title>
+    
+    <!-- Meta tags -->
+    <meta name="theme-color" content="#2C3E50">
+    <meta name="description" content="Plataforma de mensajería con juegos, comunidades y desarrollo de habilidades">
+    
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <!-- SweetAlert -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    
+    <!-- Mis estilos -->
     <link rel="stylesheet" href="assets/estilos.css" />
-    <link rel="stylesheet" href="assets/inforlogin.css" />
+    <link rel="stylesheet" href="assets/ayuda.css">
 </head>
 
 <body>
     <div class="login-container">
+        <!-- Botón de información -->
+        <button class="info-button" id="infoButton">
+            <i class="fas fa-info"></i>
+        </button>
+        
+        <!-- Logo y título -->
+        <div class="logo-container">
+            <div class="logo">
+                <i class="fas fa-comment-dots"></i>
+                Meseguity
+            </div>
+            <p class="tagline">Conecta, juega y descubre con amigos alrededor del mundo</p>
+        </div>
+        
         <h2>Iniciar Sesión</h2>
         
+        <!-- Formulario con íconos -->
         <form id="loginForm">
-            <label>Email</label>
-            <input type="email" id="email" placeholder="Ingresa tu correo" required />
-
-            <label>Contraseña</label>
-            <input type="password" id="password" placeholder="Ingresa tu contraseña" required />
-
-            <button type="submit" class="btn-submit">Entrar</button>
+            <!-- Campo Email -->
+            <div class="form-group">
+                <label for="email">
+                    <i class="fas fa-envelope"></i> Correo Electrónico
+                </label>
+                <div class="input-wrapper">
+                    <input 
+                        type="email" 
+                        id="email" 
+                        class="input-field email-field"
+                        placeholder="ejemplo@correo.com" 
+                        required 
+                    />
+                   
+                </div>
+            </div>
+            
+            <!-- Campo Contraseña -->
+            <div class="form-group">
+                <label for="password">
+                    <i class="fas fa-key"></i> Contraseña
+                </label>
+                <div class="input-wrapper">
+                    <div class="password-container">
+                        <input 
+                            type="password" 
+                            id="password" 
+                            class="input-field password-field password-input"
+                            placeholder="Ingresa tu contraseña" 
+                            required 
+                        />
+                       
+                        <button 
+                            type="button" 
+                            class="password-toggle-btn"
+                            id="togglePassword"
+                            data-tooltip="Mostrar contraseña"
+                        >
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Indicador de fortaleza (opcional) -->
+                <div class="password-strength hidden" id="passwordStrength">
+                    <div class="strength-meter"></div>
+                    <div class="strength-text"></div>
+                </div>
+            </div>
+            
+            <!-- Botón de submit -->
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>Ingresar a la Plataforma</span>
+            </button>
         </form>
-
-        <hr />
-
-        <!-- BOTÓN LOGIN CON GITHUB -->
-        <button id="githubLogin" class="btn-submit" style="background:#333;">
+        
+        <!-- Separador -->
+        <div class="divider">
+            <span>O ingresa con</span>
+        </div>
+        
+        <!-- Botón GitHub -->
+        <button id="githubLogin" class="btn-submit">
             <i class="fab fa-github"></i>
-            Ingresar con GitHub
+            <span>Continuar con GitHub</span>
         </button>
-
-        <p>¿No tienes cuenta? <a href="registro.html">Registrarse</a></p>
+        
+        <!-- Enlaces -->
+        <div class="links">
+            <a href="registro.html" class="link-item">
+                <i class="fas fa-user-plus"></i>
+                Crear cuenta nueva
+            </a>
+            <a href="#" class="link-item" id="forgotPassword">
+                <i class="fas fa-question-circle"></i>
+                Recuperar contraseña
+           
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+           
+            <p class="mt-2" style="font-size: 12px; color: #999;">
+                <i class="fas fa-heart"></i> Diseñado para conectar personas de forma divertida
+            </p>
+        </div>
     </div>
-
-    <!-- SweetAlert -->
+    
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <!-- Supabase - DEBE IR PRIMERO -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-    <!-- Mi módulo de conexión -->
     <script src="modulos/conexion-supabase2.js"></script>
     <script src="modulos/informlogin.js"></script>
+    <script src="modulos/password-toggle.js"></script>
+    <script src="modulos/ayulogin.js"></script>
 
     <script>
         // Esperar a que TODO esté cargado
