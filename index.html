@@ -42,13 +42,10 @@
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
+    <script src="modulos/conexion-supabase.js"></script>
+
     <script>
-        // SOLO UNA DECLARACIÓN DE SUPABASE
-        const supabaseUrl = 'https://enmiomqkkdlmodrjmfak.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVubWlvbXFra2RsbW9kcmptZmFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MDA0OTEsImV4cCI6MjA4MDk3NjQ5MX0.HeiJGnnkUjutlZkMTopFK7AIRZzRLxBTXvWk96OcAxg';
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
         
-        const loginForm = document.getElementById("loginForm");
 
         // ----------------- LOGIN NORMAL (email + contraseña) -----------------
         loginForm.addEventListener("submit", async (e) => {
