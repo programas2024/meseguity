@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Iniciar Sesión</title>
 
-    <!-- FontAwesome (icono de GitHub) -->
+    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
     <link rel="stylesheet" href="assets/estilos.css" />
 </head>
 
@@ -40,170 +39,112 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <script src="modulos/conexion-supabase.js"></script>
+    <!-- Conexión Supabase -->
+    <script src="modulos/conexion-supabase2.js"></script>
 
     <script>
-        
-
-        // ----------------- LOGIN NORMAL (email + contraseña) -----------------
-        loginForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
-
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
-
-            console.log('Intentando login con:', { email, password });
-
-            try {
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email: email,
-                    password: password
-                });
-
-                if (error) {
-                    console.error('Error en login:', error);
-                    
-                    let errorMessage = error.message;
-                    
-                    if (error.message.includes('Invalid login credentials')) {
-                        errorMessage = "Credenciales incorrectas. Verifica tu email y contraseña.";
-                    } else if (error.message.includes('Email not confirmed')) {
-                        errorMessage = "Por favor confirma tu email antes de iniciar sesión.";
-                    } else if (error.message.includes('User not found')) {
-                        errorMessage = "Usuario no encontrado. ¿Estás registrado?";
-                    } else if (error.message.includes('Email not found')) {
-                        errorMessage = "Email no registrado. Por favor regístrate primero.";
-                    } else if (error.message.includes('too many requests')) {
-                        errorMessage = "Demasiados intentos. Por favor espera unos minutos.";
-                    }
-                    
-                    Swal.fire({ 
-                        title: "Error en el inicio de sesión", 
-                        text: errorMessage, 
-                        icon: "error",
-                        confirmButtonText: "Entendido"
-                    });
-                    return;
-                }
-
-                console.log('Login exitoso:', data.user);
+        // Esperar a que todo esté cargado
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Función para manejar errores de login
+            function mostrarErrorLogin(error) {
+                let errorMessage = error.message;
                 
-                Swal.fire({
-                    title: "¡Bienvenido!",
-                    text: `Inicio de sesión exitoso para ${data.user.email}`,
-                    icon: "success",
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-
-                setTimeout(() => {
-                    window.location.href = "principal.html";
-                }, 1500);
-
-            } catch (catchError) {
-                console.error('Error inesperado:', catchError);
+                if (error.message.includes('Invalid login credentials')) {
+                    errorMessage = "Credenciales incorrectas. Verifica tu email y contraseña.";
+                } else if (error.message.includes('Email not confirmed')) {
+                    errorMessage = "Por favor confirma tu email antes de iniciar sesión.";
+                } else if (error.message.includes('User not found') || error.message.includes('Email not found')) {
+                    errorMessage = "Usuario no encontrado. ¿Estás registrado?";
+                } else if (error.message.includes('too many requests')) {
+                    errorMessage = "Demasiados intentos. Por favor espera unos minutos.";
+                }
+                
                 Swal.fire({ 
-                    title: "Error inesperado", 
-                    text: "Ocurrió un error inesperado. Por favor intenta nuevamente.", 
-                    icon: "error" 
+                    title: "Error en el inicio de sesión", 
+                    text: errorMessage, 
+                    icon: "error",
+                    confirmButtonText: "Entendido"
                 });
             }
-        });
 
-        // ------------ FUNCIÓN PARA INSERTAR USUARIO EN TABLA ---------------
-        async function registrarUsuarioSiNoExiste() {
-            try {
-                const { data: { user } } = await supabase.auth.getUser();
-                
-                if (!user) {
-                    console.log('No hay usuario autenticado');
-                    return;
-                }
+            // ----------------- LOGIN NORMAL -----------------
+            document.getElementById("loginForm").addEventListener("submit", async (e) => {
+                e.preventDefault();
 
-                console.log('Verificando usuario en base de datos:', user.id, user.email);
+                const email = document.getElementById("email").value;
+                const password = document.getElementById("password").value;
 
-                const { data: existe, error: selectError } = await supabase
-                    .from("usuarios")
-                    .select("id")
-                    .eq("id_auth", user.id)
-                    .maybeSingle();
+                try {
+                    const { data, error } = await window.supabase.auth.signInWithPassword({
+                        email: email,
+                        password: password
+                    });
 
-                if (selectError) {
-                    console.error('Error al verificar usuario:', selectError);
-                    return;
-                }
-
-                if (!existe) {
-                    console.log('Usuario no existe en tabla, registrando...');
-                    const { data: insertData, error: insertError } = await supabase
-                        .from("usuarios")
-                        .insert({
-                            id_auth: user.id,
-                            email: user.email,
-                            nombre: user.user_metadata.full_name ?? null,
-                            avatar: user.user_metadata.avatar_url ?? null,
-                            proveedor: user.app_metadata.provider,
-                            creado_en: new Date()
-                        });
-
-                    if (insertError) {
-                        console.error('Error al insertar usuario:', insertError);
-                    } else {
-                        console.log('Usuario registrado exitosamente:', insertData);
+                    if (error) {
+                        mostrarErrorLogin(error);
+                        return;
                     }
-                } else {
-                    console.log('Usuario ya existe en la tabla');
-                }
-            } catch (error) {
-                console.error('Error en registrarUsuarioSiNoExiste:', error);
-            }
-        }
 
-        // ---------------- LOGIN CON GITHUB ----------------
-        async function loginWithGithub() {
-            console.log('Iniciando login con GitHub...');
-            
-            const { data, error } = await supabase.auth.signInWithOAuth({
-                provider: "github",
-                options: {
-                    redirectTo: "https://programas2024.github.io/meseguity/principal.html"
+                    // Verificar y registrar usuario en DB
+                    const usuarioDB = await window.verificarYRegistrarUsuario();
+                    
+                    Swal.fire({
+                        title: "¡Bienvenido!",
+                        text: `Inicio de sesión exitoso para ${data.user.email}`,
+                        icon: "success",
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+
+                    setTimeout(() => {
+                        window.location.href = "principal.html";
+                    }, 1500);
+
+                } catch (catchError) {
+                    console.error('Error inesperado:', catchError);
+                    Swal.fire({ 
+                        title: "Error inesperado", 
+                        text: "Ocurrió un error inesperado. Por favor intenta nuevamente.", 
+                        icon: "error" 
+                    });
                 }
             });
 
-            if (error) {
-                console.error('Error con GitHub OAuth:', error);
-                Swal.fire({
-                    title: "Error con GitHub",
-                    text: error.message,
-                    icon: "error"
-                });
-            } else {
-                console.log('Redirigiendo a GitHub OAuth...');
-                Swal.fire({
-                    title: "Redirigiendo a GitHub",
-                    text: "Serás redirigido a GitHub para autorizar la aplicación...",
-                    icon: "info",
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-            }
+            // ----------------- LOGIN CON GITHUB -----------------
+            document.getElementById("githubLogin").addEventListener("click", async () => {
+                try {
+                    const { data, error } = await window.supabase.auth.signInWithOAuth({
+                        provider: "github",
+                        options: {
+                            redirectTo: window.location.origin + "/principal.html"
+                        }
+                    });
 
-            setTimeout(registrarUsuarioSiNoExiste, 2000);
-        }
+                    if (error) {
+                        console.error('Error con GitHub OAuth:', error);
+                        Swal.fire({
+                            title: "Error con GitHub",
+                            text: error.message,
+                            icon: "error"
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error en login con GitHub:', error);
+                    Swal.fire({
+                        title: "Error",
+                        text: "No se pudo conectar con GitHub",
+                        icon: "error"
+                    });
+                }
+            });
 
-        // Activar botón GitHub
-        const githubBtn = document.getElementById("githubLogin");
-        githubBtn.addEventListener("click", loginWithGithub);
-
-        // Función para verificar si hay sesión activa al cargar la página
-        async function verificarSesionActiva() {
+            // Verificar si ya hay sesión activa
             try {
-                const { data: { session } } = await supabase.auth.getSession();
+                const session = await window.verificarSesion();
                 
                 if (session) {
-                    console.log('Sesión activa encontrada:', session.user.email);
                     Swal.fire({
                         title: "Ya estás autenticado",
                         text: `Serás redirigido a la página principal...`,
@@ -215,16 +156,11 @@
                     setTimeout(() => {
                         window.location.href = "principal.html";
                     }, 2000);
-                } else {
-                    console.log('No hay sesión activa');
                 }
             } catch (error) {
-                console.error('Error al verificar sesión:', error);
+                console.log('No hay sesión activa o error:', error);
             }
-        }
-
-        // Verificar sesión al cargar la página
-        document.addEventListener('DOMContentLoaded', verificarSesionActiva);
+        });
     </script>
 </body>
 </html>
