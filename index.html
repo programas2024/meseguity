@@ -57,56 +57,119 @@
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
 
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email: email,
-                password: password
-            });
+            // Log para depuración
+            console.log('Intentando login con:', { email, password });
 
-            if (error) {
-                Swal.fire({ title: "Error", text: error.message, icon: "error" });
-                return;
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+                if (error) {
+                    console.error('Error en login:', error);
+                    
+                    // Manejo específico de errores
+                    let errorMessage = error.message;
+                    
+                    if (error.message.includes('Invalid login credentials')) {
+                        errorMessage = "Credenciales incorrectas. Verifica tu email y contraseña.";
+                    } else if (error.message.includes('Email not confirmed')) {
+                        errorMessage = "Por favor confirma tu email antes de iniciar sesión.";
+                    } else if (error.message.includes('User not found')) {
+                        errorMessage = "Usuario no encontrado. ¿Estás registrado?";
+                    } else if (error.message.includes('Email not found')) {
+                        errorMessage = "Email no registrado. Por favor regístrate primero.";
+                    } else if (error.message.includes('too many requests')) {
+                        errorMessage = "Demasiados intentos. Por favor espera unos minutos.";
+                    }
+                    
+                    Swal.fire({ 
+                        title: "Error en el inicio de sesión", 
+                        text: errorMessage, 
+                        icon: "error",
+                        confirmButtonText: "Entendido"
+                    });
+                    return;
+                }
+
+                console.log('Login exitoso:', data.user);
+                
+                Swal.fire({
+                    title: "¡Bienvenido!",
+                    text: `Inicio de sesión exitoso para ${data.user.email}`,
+                    icon: "success",
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+
+                setTimeout(() => {
+                    window.location.href = "principal.html";
+                }, 1500);
+
+            } catch (catchError) {
+                console.error('Error inesperado:', catchError);
+                Swal.fire({ 
+                    title: "Error inesperado", 
+                    text: "Ocurrió un error inesperado. Por favor intenta nuevamente.", 
+                    icon: "error" 
+                });
             }
-
-            Swal.fire({
-                title: "Bienvenido",
-                text: "Inicio de sesión exitoso",
-                icon: "success",
-                timer: 1500,
-                showConfirmButton: false
-            });
-
-            setTimeout(() => {
-                window.location.href = "principal.html";
-            }, 1500);
         });
 
         // ------------ FUNCIÓN PARA INSERTAR USUARIO EN TABLA ---------------
         async function registrarUsuarioSiNoExiste() {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                
+                if (!user) {
+                    console.log('No hay usuario autenticado');
+                    return;
+                }
 
-            const { data: existe } = await supabase
-                .from("usuarios")
-                .select("id")
-                .eq("id_auth", user.id)
-                .maybeSingle();
+                console.log('Verificando usuario en base de datos:', user.id, user.email);
 
-            if (!existe) {
-                await supabase
+                const { data: existe, error: selectError } = await supabase
                     .from("usuarios")
-                    .insert({
-                        id_auth: user.id,
-                        email: user.email,
-                        nombre: user.user_metadata.full_name ?? null,
-                        avatar: user.user_metadata.avatar_url ?? null,
-                        proveedor: user.app_metadata.provider,
-                        creado_en: new Date()
-                    });
+                    .select("id")
+                    .eq("id_auth", user.id)
+                    .maybeSingle();
+
+                if (selectError) {
+                    console.error('Error al verificar usuario:', selectError);
+                    return;
+                }
+
+                if (!existe) {
+                    console.log('Usuario no existe en tabla, registrando...');
+                    const { data: insertData, error: insertError } = await supabase
+                        .from("usuarios")
+                        .insert({
+                            id_auth: user.id,
+                            email: user.email,
+                            nombre: user.user_metadata.full_name ?? null,
+                            avatar: user.user_metadata.avatar_url ?? null,
+                            proveedor: user.app_metadata.provider,
+                            creado_en: new Date()
+                        });
+
+                    if (insertError) {
+                        console.error('Error al insertar usuario:', insertError);
+                    } else {
+                        console.log('Usuario registrado exitosamente:', insertData);
+                    }
+                } else {
+                    console.log('Usuario ya existe en la tabla');
+                }
+            } catch (error) {
+                console.error('Error en registrarUsuarioSiNoExiste:', error);
             }
         }
 
         // ---------------- LOGIN CON GITHUB ----------------
         async function loginWithGithub() {
+            console.log('Iniciando login con GitHub...');
+            
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: "github",
                 options: {
@@ -115,10 +178,21 @@
             });
 
             if (error) {
+                console.error('Error con GitHub OAuth:', error);
                 Swal.fire({
                     title: "Error con GitHub",
                     text: error.message,
                     icon: "error"
+                });
+            } else {
+                console.log('Redirigiendo a GitHub OAuth...');
+                // Mostrar mensaje informativo mientras redirige
+                Swal.fire({
+                    title: "Redirigiendo a GitHub",
+                    text: "Serás redirigido a GitHub para autorizar la aplicación...",
+                    icon: "info",
+                    timer: 2000,
+                    showConfirmButton: false
                 });
             }
 
@@ -129,6 +203,35 @@
         // Activar botón GitHub
         const githubBtn = document.getElementById("githubLogin");
         githubBtn.addEventListener("click", loginWithGithub);
+
+        // Función para verificar si hay sesión activa al cargar la página
+        async function verificarSesionActiva() {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                
+                if (session) {
+                    console.log('Sesión activa encontrada:', session.user.email);
+                    Swal.fire({
+                        title: "Ya estás autenticado",
+                        text: `Serás redirigido a la página principal...`,
+                        icon: "info",
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    
+                    setTimeout(() => {
+                        window.location.href = "principal.html";
+                    }, 2000);
+                } else {
+                    console.log('No hay sesión activa');
+                }
+            } catch (error) {
+                console.error('Error al verificar sesión:', error);
+            }
+        }
+
+        // Verificar sesión al cargar la página
+        document.addEventListener('DOMContentLoaded', verificarSesionActiva);
     </script>
 </body>
 </html>
