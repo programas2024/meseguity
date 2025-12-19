@@ -1,4 +1,4 @@
-// ayulgin.js - Guía interactiva con iconos modernos y efectos especiales
+// ayulogin.js - Guía interactiva con iconos modernos y efectos especiales
 
 // Iconos premium de Font Awesome 6
 const PASOS_AYUDA = [
@@ -162,44 +162,6 @@ function ajustarBrillo(color, porcentaje) {
     b = Math.max(0, Math.min(255, b + porcentaje));
     
     return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
-}
-
-// Función para crear card con efecto neumórfico
-function crearCardNeumorfismo(contenido, color, destacado = false) {
-    return `
-        <div class="card-neumorfico" style="
-            background: ${destacado ? '#ffffff' : '#f8f9fa'};
-            border-radius: 20px;
-            padding: 20px;
-            margin: 15px 0;
-            box-shadow: 
-                ${destacado ? 
-                    `20px 20px 40px ${color}20, 
-                    -20px -20px 40px rgba(255,255,255,0.8)` 
-                    : 
-                    `8px 8px 16px ${color}15, 
-                    -8px -8px 16px rgba(255,255,255,0.7)`
-                };
-            border: 1px solid ${color}10;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        ">
-            ${destacado ? `
-                <div style="
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    height: 4px;
-                    background: ${color};
-                    background-size: 200% 100%;
-                    animation: gradient-flow 2s ease infinite;
-                "></div>
-            ` : ''}
-            ${contenido}
-        </div>
-    `;
 }
 
 // Función principal con diseño HERMOSO
@@ -565,7 +527,28 @@ function mostrarAyudaLogin() {
             </div>
             
             <div class="seccion-problemas">
-                ${crearCardNeumorfismo(`
+                <div style="
+                    background: white;
+                    border-radius: 20px;
+                    padding: 20px;
+                    margin: 15px 0;
+                    box-shadow: 8px 8px 16px rgba(52, 152, 219, 0.15), -8px -8px 16px rgba(255, 255, 255, 0.7);
+                    border: 1px solid rgba(52, 152, 219, 0.1);
+                    transition: all 0.3s ease;
+                    position: relative;
+                    overflow: hidden;
+                ">
+                    <div style="
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        height: 4px;
+                        background: #3498db;
+                        background-size: 200% 100%;
+                        animation: gradient-flow 2s ease infinite;
+                    "></div>
+                    
                     <div style="text-align: center; padding: 20px;">
                         ${crearIcono3D(ICONOS_DECORATIVOS.ayuda, '#3498db', '50px', false)}
                         <h4 style="color: #2C3E50; margin: 15px 0 10px;">¿Necesitas más ayuda?</h4>
@@ -577,26 +560,228 @@ function mostrarAyudaLogin() {
                             Centro de Ayuda
                         </button>
                     </div>
-                `, '#3498db', true)}
+                </div>
             </div>
         </div>
     `;
 
     Swal.fire({
-        title: '',
+        title: '<div class="modal-header"><i class="fas fa-question-circle"></i> Ayuda para Iniciar Sesión</div>',
         html: contenidoHTML,
         width: '850px',
-        padding: '30px',
+        padding: '0',
         showCloseButton: true,
         showConfirmButton: true,
-        confirmButtonText: '¡Entendido, voy a intentar!',
+        confirmButtonText: '<i class="fas fa-thumbs-up"></i> ¡Entendido!',
         confirmButtonColor: '#667eea',
-        backdrop: 'rgba(0, 0, 0, 0.4)',
+        background: '#ffffff',
+        backdrop: 'rgba(102, 126, 234, 0.1)',
         customClass: {
-            popup: 'sweet-popup-ayuda',
-            confirmButton: 'sweet-confirm-ayuda'
+            popup: 'sweet-popup-ayuda ayuda-modal',
+            title: 'modal-title-custom',
+            htmlContainer: 'modal-content-custom',
+            confirmButton: 'sweet-confirm-ayuda ayuda-confirm-btn',
+            closeButton: 'modal-close-custom'
         },
         didOpen: () => {
+            const style = document.createElement('style');
+            style.textContent = `
+                /* Título del modal */
+                .modal-title-custom {
+                    width: 100% !important;
+                    text-align: center !important;
+                    margin: 0 !important;
+                    padding: 25px 0 !important;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+                    color: white !important;
+                    font-size: 24px !important;
+                    font-weight: 700 !important;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+                    position: relative !important;
+                }
+                
+                .modal-header {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 15px;
+                }
+                
+                .modal-header i {
+                    font-size: 28px;
+                }
+                /* Contenido del modal - BARRAS OCULTAS */
+    .modal-content-custom {
+        padding: 0 !important;
+        max-height: 65vh !important;
+        overflow-y: auto !important;
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important;
+        /* Oculta las barras de desplazamiento */
+        scrollbar-width: none !important; /* Firefox */
+        -ms-overflow-style: none !important; /* IE y Edge */
+    }
+    
+    /* Para Chrome, Safari y Opera */
+    .modal-content-custom::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+    }
+    
+    /* Asegurar desplazamiento */
+    .modal-content-custom {
+        -webkit-overflow-scrolling: touch !important;
+        overflow: -moz-scrollbars-none !important;
+    }
+
+                /* BOTÓN DE CERRAR - Mismo estilo que el anterior */
+                .modal-close-custom {
+                    position: absolute !important;
+                    top: 20px !important;
+                    right: 20px !important;
+                    width: 45px !important;
+                    height: 45px !important;
+                    font-size: 28px !important;
+                    color: white !important;
+                    background: rgba(255, 107, 107, 0.9) !important;
+
+                    border-radius: 50% !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    transition: all 0.3s ease !important;
+                    cursor: pointer !important;
+                    opacity: 0.9 !important;
+                    z-index: 9999 !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    border: 2px solid rgba(255, 255, 255, 0.6) !important;
+                    box-shadow: 
+                        0 4px 15px rgba(255, 107, 107, 0.3),
+                        0 0 0 1px rgba(255, 255, 255, 0.1) inset !important;
+                    font-weight: 300 !important;
+                    line-height: 1 !important;
+                }
+                
+                .modal-close-custom:hover {
+                    background: #ff6b6b !important;
+                    color: white !important;
+                    transform: scale(1.1) rotate(90deg) !important;
+                    opacity: 1 !important;
+                    border-color: white !important;
+                    box-shadow: 
+                        0 6px 20px rgba(255, 107, 107, 0.4),
+                        0 0 0 1px rgba(255, 255, 255, 0.2) inset !important;
+                }
+                
+                .modal-close-custom:active {
+                    transform: scale(0.95) rotate(90deg) !important;
+                }
+                
+                /* Efecto sutil en hover */
+                .modal-close-custom::after {
+                    content: '';
+                    position: absolute;
+                    width: 100%;
+                    height: 100%;
+                    border-radius: 50%;
+                    border: 2px solid rgba(255, 255, 255, 0.3);
+                    animation: close-pulse 2s infinite;
+                    opacity: 0;
+                }
+                
+                @keyframes close-pulse {
+                    0% {
+                        transform: scale(1);
+                        opacity: 0.8;
+                    }
+                    100% {
+                        transform: scale(1.2);
+                        opacity: 0;
+                    }
+                }
+                
+                .modal-close-custom:hover::after {
+                    animation: close-pulse 1s infinite;
+                }
+                
+                /* Animación de entrada suave */
+                @keyframes closeButtonEntrance {
+                    0% {
+                        transform: scale(0) rotate(-180deg);
+                        opacity: 0;
+                    }
+                    100% {
+                        transform: scale(1) rotate(0deg);
+                        opacity: 0.9;
+                    }
+                }
+                
+                .modal-close-custom {
+                    animation: closeButtonEntrance 0.4s ease-out forwards;
+                }
+                
+                /* Contenido del modal */
+                .modal-content-custom {
+                    padding: 0 !important;
+                    max-height: 65vh !important;
+                    overflow-y: auto !important;
+                    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important;
+                }
+                
+                /* Botón de confirmación personalizado */
+                .ayuda-confirm-btn {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+                    border: none !important;
+                    border-radius: 12px !important;
+                    padding: 14px 35px !important;
+                    font-weight: 600 !important;
+                    font-size: 16px !important;
+                    transition: all 0.3s ease !important;
+                    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3) !important;
+                    margin-top: 20px !important;
+                }
+                
+                .ayuda-confirm-btn:hover {
+                    transform: translateY(-3px) !important;
+                    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4) !important;
+                    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
+                }
+                
+                /* Responsive para el botón de cerrar */
+                @media (max-width: 768px) {
+                    .modal-close-custom {
+                        top: 15px !important;
+                        right: 15px !important;
+                        width: 40px !important;
+                        height: 40px !important;
+                        font-size: 24px !important;
+                        border-width: 2px !important;
+                    }
+                }
+                
+                @media (max-width: 480px) {
+                    .modal-close-custom {
+                        top: 12px !important;
+                        right: 12px !important;
+                        width: 36px !important;
+                        height: 36px !important;
+                        font-size: 22px !important;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // Asegurar que el botón tenga la X correcta
+            setTimeout(() => {
+                const closeBtn = document.querySelector('.swal2-close');
+                if (closeBtn) {
+                    closeBtn.innerHTML = '×';
+                    closeBtn.style.fontSize = '28px';
+                    closeBtn.style.lineHeight = '1';
+                }
+            }, 50);
+            
             // Añadir efecto hover a las cards
             const cards = document.querySelectorAll('.card-icono');
             cards.forEach(card => {
@@ -626,20 +811,27 @@ function mostrarAyudaLogin() {
 
 // Función para crear botón de ayuda en la página
 function crearBotonAyuda() {
+    // Verificar si ya existe el botón
+    if (document.getElementById('floatingHelpBtn')) {
+        return;
+    }
+
     // Crear botón flotante
     const botonAyuda = document.createElement('button');
     botonAyuda.id = 'floatingHelpBtn';
+    botonAyuda.className = 'floating-help-button';
     botonAyuda.innerHTML = `
         <i class="fas fa-question-circle"></i>
         <span>¿Cómo entro?</span>
     `;
     botonAyuda.title = 'Ayuda para iniciar sesión';
     
-    // Estilos del botón
+    // Estilos del botón (usando el mismo estilo que ayuda.css)
     botonAyuda.style.cssText = `
         position: fixed;
         bottom: 30px;
         right: 30px;
+        z-index: 1000;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         border: none;
@@ -651,22 +843,51 @@ function crearBotonAyuda() {
         display: flex;
         align-items: center;
         gap: 10px;
-        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-        z-index: 1000;
+        box-shadow: 
+            0 10px 30px rgba(102, 126, 234, 0.4),
+            0 0 0 2px rgba(255, 255, 255, 0.1) inset;
         transition: all 0.3s ease;
-        animation: pulse 2s infinite;
+        animation: help-pulse 2s infinite;
     `;
     
-    // Estilos para el hover
-    const estiloHover = `
-        #floatingHelpBtn:hover {
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+    // Añadir estilos adicionales
+    const styleSheet = document.createElement('style');
+    styleSheet.textContent = `
+        @keyframes help-pulse {
+            0%, 100% { 
+                transform: scale(1);
+                box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            }
+            50% { 
+                transform: scale(1.05);
+                box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+            }
         }
         
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+        #floatingHelpBtn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 
+                0 15px 40px rgba(102, 126, 234, 0.6),
+                0 0 0 2px rgba(255, 255, 255, 0.2) inset;
+        }
+        
+        #floatingHelpBtn:active {
+            transform: scale(0.95);
+        }
+        
+        @keyframes slide-in-right {
+            from {
+                transform: translateX(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .floating-help-button {
+            animation: slide-in-right 0.5s ease-out 1s both;
         }
         
         @media (max-width: 768px) {
@@ -685,11 +906,21 @@ function crearBotonAyuda() {
                 font-size: 20px;
             }
         }
+        
+        @media (max-width: 480px) {
+            #floatingHelpBtn {
+                bottom: 15px;
+                right: 15px;
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                padding: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+        }
     `;
-    
-    // Añadir estilos
-    const styleSheet = document.createElement('style');
-    styleSheet.textContent = estiloHover;
     document.head.appendChild(styleSheet);
     
     // Añadir evento
