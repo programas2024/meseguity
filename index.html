@@ -15,7 +15,6 @@
     <div class="login-container">
         <h2>Iniciar Sesión</h2>
         
-
         <form id="loginForm">
             <label>Email</label>
             <input type="email" id="email" placeholder="Ingresa tu correo" required />
@@ -44,6 +43,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
     <script>
+        // SOLO UNA DECLARACIÓN DE SUPABASE
         const supabaseUrl = 'https://enmiomqkkdlmodrjmfak.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVubWlvbXFra2RsbW9kcmptZmFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MDA0OTEsImV4cCI6MjA4MDk3NjQ5MX0.HeiJGnnkUjutlZkMTopFK7AIRZzRLxBTXvWk96OcAxg';
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -57,7 +57,6 @@
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
 
-            // Log para depuración
             console.log('Intentando login con:', { email, password });
 
             try {
@@ -69,7 +68,6 @@
                 if (error) {
                     console.error('Error en login:', error);
                     
-                    // Manejo específico de errores
                     let errorMessage = error.message;
                     
                     if (error.message.includes('Invalid login credentials')) {
@@ -186,7 +184,6 @@
                 });
             } else {
                 console.log('Redirigiendo a GitHub OAuth...');
-                // Mostrar mensaje informativo mientras redirige
                 Swal.fire({
                     title: "Redirigiendo a GitHub",
                     text: "Serás redirigido a GitHub para autorizar la aplicación...",
@@ -196,7 +193,6 @@
                 });
             }
 
-            // 👇 Importante: al volver desde GitHub, ejecutamos esto
             setTimeout(registrarUsuarioSiNoExiste, 2000);
         }
 
