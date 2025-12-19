@@ -8,6 +8,7 @@
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="assets/estilos.css" />
+    <link rel="stylesheet" href="assets/inforlogin.css" />
 </head>
 
 <body>
@@ -43,6 +44,7 @@
 
     <!-- Mi módulo de conexión -->
     <script src="modulos/conexion-supabase2.js"></script>
+    <script src="modulos/informlogin.js"></script>
 
     <script>
         // Esperar a que TODO esté cargado
@@ -59,7 +61,10 @@
                 });
                 return;
             }
-
+// Inicializar botón de información
+            if (window.inicializarBotonInformacion) {
+                window.inicializarBotonInformacion();
+            }
             // Usar el cliente correcto
             const supabase = window.supabaseClient || window.supabase;
             
@@ -200,6 +205,8 @@
                 }
             });
         });
+
+
     </script>
 </body>
 </html>
