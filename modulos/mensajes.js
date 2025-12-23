@@ -126,7 +126,7 @@ const Mensajes = {
             if (mensaje.remitente_id) {
                 const { data: remitente } = await window.supabase
                     .from('usuarios')
-                    .select('nombre, apellidos, email')
+                    .select('nombre, apellidos, email, avatar_url')
                     .eq('id', mensaje.remitente_id)
                     .single();
                 
@@ -137,10 +137,10 @@ const Mensajes = {
                 await this.marcarComoLeido(mensajeId);
             }
             
-            this.mostrarModalDetalle(mensaje, datosRemitente);
+            this.mostrarModalDetalleElegante(mensaje, datosRemitente);
         } catch (error) {
             console.error('Error al cargar detalle:', error);
-            window.Utilidades.mostrarAlerta('Error', 'No se pudo cargar el mensaje', 'error');
+            this.mostrarAlertaElegante('Error', 'No se pudo cargar el mensaje', 'error');
         }
     },
 
@@ -160,92 +160,158 @@ const Mensajes = {
         }
     },
 
-    mostrarModalDetalle(mensaje, remitente = null) {
+    mostrarModalDetalleElegante(mensaje, remitente = null) {
         const nombreRemitente = remitente 
             ? `${remitente.nombre || ''} ${remitente.apellidos || ''}`.trim() || 'Usuario'
             : 'Sistema Messery';
         const emailRemitente = remitente?.email || 'sistema@messery.com';
+        const avatarUrl = remitente?.avatar_url;
         const iniciales = window.Utilidades.obtenerIniciales(nombreRemitente);
-        const fechaFormateada = window.Utilidades.formatearFecha(mensaje.created_at);
+        const fechaFormateada = window.Utilidades.formatearFecha(mensaje.created_at, true);
         const asunto = mensaje.asunto || 'Sin asunto';
         const contenido = mensaje.contenido || '';
         const esRespuesta = asunto.toLowerCase().startsWith('re:');
         
-        let modal = document.getElementById('modalDetalleMensaje');
-        if (!modal) {
-            this.crearModal();
-            modal = document.getElementById('modalDetalleMensaje');
-        }
+        const avatarHTML = avatarUrl 
+            ? `<img src="${avatarUrl}" alt="${nombreRemitente}" onerror="this.onerror=null; this.parentElement.innerHTML='<span>${iniciales}</span>';">`
+            : `<span>${iniciales}</span>`;
         
-        const cuerpo = document.getElementById('modalDetalleCuerpo');
-        cuerpo.innerHTML = `
-            <div class="message-detail-header">
-                <div class="detail-avatar" style="background: ${esRespuesta ? 'linear-gradient(135deg, #4CAF50, #2E7D32)' : 'linear-gradient(135deg, #1a73e8, #0d47a1)'}">
-                    ${iniciales}
-                </div>
-                <div class="detail-info">
-                    <div class="detail-sender-info">
-                        <div class="detail-sender">${nombreRemitente}</div>
-                        ${esRespuesta ? '<span class="detail-tag reply-tag">Respuesta</span>' : ''}
+        const profileHTML = `
+            <div class="message-detail-modal-content">
+                <div class="message-detail-header">
+                    <div class="detail-avatar ${avatarUrl ? 'has-image' : ''}" 
+                         style="${!avatarUrl ? 'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : ''}">
+                        ${avatarHTML}
                     </div>
-                    <div class="detail-email">${emailRemitente}</div>
-                    <div class="detail-subject">${asunto}</div>
-                    <div class="detail-meta">
-                        <span><i class="far fa-clock"></i> ${fechaFormateada}</span>
-                        <span><i class="far fa-envelope"></i> ${mensaje.leido ? 'Leído' : 'No leído'}</span>
+                    <div class="detail-info">
+                        <div class="detail-sender-info">
+                            <h3 class="detail-sender">${nombreRemitente}</h3>
+                            ${esRespuesta ? '<span class="detail-tag reply-tag"><i class="fas fa-reply"></i> Respuesta</span>' : ''}
+                        </div>
+                        <div class="detail-email">
+                            <i class="fas fa-envelope"></i>
+                            <span>${emailRemitente}</span>
+                        </div>
+                        <div class="detail-subject">
+                            <i class="fas fa-tag"></i>
+                            <span>${asunto}</span>
+                        </div>
+                        <div class="detail-meta">
+                            <div class="meta-item">
+                                <i class="far fa-clock"></i>
+                                <span>${fechaFormateada}</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="far fa-envelope"></i>
+                                <span class="${mensaje.leido ? 'status-read' : 'status-unread'}">
+                                    ${mensaje.leido ? 'Leído' : 'No leído'}
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="detail-content">
-                ${contenido.replace(/\n/g, '<br>')}
+                
+                <div class="detail-content-section">
+                    <div class="content-header">
+                        <i class="fas fa-align-left"></i>
+                        <span>Contenido del mensaje</span>
+                    </div>
+                    <div class="detail-content">
+                        ${contenido.replace(/\n/g, '<br>')}
+                    </div>
+                </div>
             </div>
         `;
         
-        // Guardar información para respuesta
-        modal.dataset.mensajeId = mensaje.id;
-        modal.dataset.remitenteEmail = emailRemitente;
-        modal.dataset.asuntoOriginal = asunto;
-        modal.dataset.contenidoOriginal = contenido;
-        
-        modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
+        Swal.fire({
+            html: profileHTML,
+            showCloseButton: true,
+            showConfirmButton: true,
+            confirmButtonText: '<i class="fas fa-reply"></i> Responder',
+            showCancelButton: true,
+            cancelButtonText: '<i class="fas fa-times"></i> Cerrar',
+            showDenyButton: true,
+            denyButtonText: '<i class="fas fa-trash"></i> Eliminar',
+            width: '800px',
+            customClass: {
+                popup: 'message-detail-modal',
+                confirmButton: 'btn-sweet-reply',
+                cancelButton: 'btn-sweet-close',
+                denyButton: 'btn-sweet-delete',
+                closeButton: 'btn-sweet-close-icon'
+            },
+            didOpen: () => {
+                // Guardar información para respuesta
+                Swal.getPopup().dataset.mensajeId = mensaje.id;
+                Swal.getPopup().dataset.remitenteEmail = emailRemitente;
+                Swal.getPopup().dataset.asuntoOriginal = asunto;
+                Swal.getPopup().dataset.contenidoOriginal = contenido;
+            }
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                // Responder
+                this.mensajeRespondiendo = {
+                    id: mensaje.id,
+                    remitenteEmail: emailRemitente,
+                    asuntoOriginal: asunto,
+                    contenidoOriginal: contenido,
+                    fechaOriginal: new Date().toISOString()
+                };
+                
+                if (window.Interfaz && window.Interfaz.mostrarSeccion) {
+                    window.Interfaz.mostrarSeccion('seccionNuevoMensaje');
+                }
+                
+                setTimeout(() => {
+                    this.rellenarFormularioRespuesta();
+                }, 100);
+                
+            } else if (result.isDenied) {
+                // Eliminar
+                await this.eliminarMensajeConConfirmacion(mensaje.id);
+            }
+        });
     },
 
-    crearModal() {
-        const modal = document.createElement('div');
-        modal.id = 'modalDetalleMensaje';
-        modal.className = 'message-modal';
-        modal.innerHTML = `
-            <div class="message-modal-content">
-                <div class="modal-header">
-                    <h3><i class="fas fa-envelope"></i> Detalle del Mensaje</h3>
-                    <button class="modal-close" onclick="Mensajes.cerrarModal()">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="modal-body" id="modalDetalleCuerpo"></div>
-                <div class="modal-actions">
-                    <button class="btn-action btn-reply" onclick="Mensajes.responderDesdeModal()">
-                        <i class="fas fa-reply"></i> Responder
-                    </button>
-                    <button class="btn-action btn-delete" onclick="Mensajes.eliminarMensajeDesdeModal()">
-                        <i class="fas fa-trash"></i> Eliminar
-                    </button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-    },
+    async eliminarMensajeConConfirmacion(mensajeId) {
+        const { value: confirmar } = await Swal.fire({
+            title: '<div class="delete-header"><i class="fas fa-exclamation-triangle"></i></div>',
+            html: `<div class="delete-confirm-content">
+                      <h3>¿Eliminar mensaje?</h3>
+                      <p>Esta acción no se puede deshacer. El mensaje será eliminado permanentemente.</p>
+                  </div>`,
+            showCancelButton: true,
+            confirmButtonText: '<i class="fas fa-trash"></i> Sí, eliminar',
+            cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+            reverseButtons: true,
+            customClass: {
+                popup: 'delete-confirm-modal',
+                confirmButton: 'btn-delete-confirm',
+                cancelButton: 'btn-delete-cancel'
+            }
+        });
 
-    cerrarModal() {
-        const modal = document.getElementById('modalDetalleMensaje');
-        if (modal) {
-            modal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-            delete modal.dataset.mensajeId;
-            delete modal.dataset.remitenteEmail;
-            delete modal.dataset.asuntoOriginal;
-            delete modal.dataset.contenidoOriginal;
+        if (confirmar) {
+            try {
+                const { error } = await window.supabase
+                    .from('mensajes')
+                    .delete()
+                    .eq('id', mensajeId);
+                
+                if (error) throw error;
+                
+                this.mostrarAlertaElegante(
+                    '¡Eliminado!',
+                    'El mensaje ha sido eliminado correctamente',
+                    'success'
+                );
+                
+                await this.cargarBandejaEntrada();
+                
+            } catch (error) {
+                console.error('Error al eliminar mensaje:', error);
+                this.mostrarAlertaElegante('Error', 'No se pudo eliminar el mensaje', 'error');
+            }
         }
     },
 
@@ -297,7 +363,7 @@ const Mensajes = {
             
         } catch (error) {
             console.error('Error al preparar respuesta:', error);
-            window.Utilidades.mostrarAlerta('Error', 'No se pudo cargar el mensaje para responder', 'error');
+            this.mostrarAlertaElegante('Error', 'No se pudo cargar el mensaje para responder', 'error');
         }
     },
 
@@ -326,7 +392,7 @@ const Mensajes = {
         
         // 3. Preparar contenido con cita del mensaje original
         if (this.mensajeRespondiendo.contenidoOriginal) {
-            const fechaOriginal = window.Utilidades.formatearFecha(this.mensajeRespondiendo.fechaOriginal);
+            const fechaOriginal = window.Utilidades.formatearFecha(this.mensajeRespondiendo.fechaOriginal, true);
             const cita = `\n\n---\n*El ${fechaOriginal}, ${this.mensajeRespondiendo.remitenteEmail} escribió:*\n`;
             
             // Formatear contenido original con sangría
@@ -343,37 +409,12 @@ const Mensajes = {
             contenidoInput.style.height = (contenidoInput.scrollHeight) + 'px';
         }
         
-        // Mostrar notificación
-        window.Utilidades.mostrarNotificacion(
+        // Mostrar notificación elegante
+        this.mostrarNotificacionElegante(
             'Respondiendo mensaje',
             'Preparando respuesta...',
-            'info',
-            2000
+            'info'
         );
-    },
-
-    // FUNCIÓN NUEVA: Responder desde modal
-    responderDesdeModal() {
-        const modal = document.getElementById('modalDetalleMensaje');
-        if (!modal) return;
-        
-        this.mensajeRespondiendo = {
-            id: modal.dataset.mensajeId,
-            remitenteEmail: modal.dataset.remitenteEmail,
-            asuntoOriginal: modal.dataset.asuntoOriginal,
-            contenidoOriginal: modal.dataset.contenidoOriginal,
-            fechaOriginal: new Date().toISOString()
-        };
-        
-        this.cerrarModal();
-        
-        if (window.Interfaz && window.Interfaz.mostrarSeccion) {
-            window.Interfaz.mostrarSeccion('seccionNuevoMensaje');
-        }
-        
-        setTimeout(() => {
-            this.rellenarFormularioRespuesta();
-        }, 100);
     },
 
     // FUNCIÓN NUEVA: Enviar mensaje de respuesta
@@ -393,10 +434,7 @@ const Mensajes = {
                     destinatario_email: destinatarioEmail,
                     asunto: asunto,
                     contenido: contenido,
-                    leido: false,
-                    created_at: new Date().toISOString(),
-                    es_respuesta: true,
-                    mensaje_respondido_id: this.mensajeRespondiendo?.id || null
+                    leido: false
                 })
                 .select()
                 .single();
@@ -406,8 +444,8 @@ const Mensajes = {
             // Limpiar datos de respuesta
             this.mensajeRespondiendo = null;
             
-            // Mostrar confirmación
-            window.Utilidades.mostrarAlerta(
+            // Mostrar confirmación elegante
+            this.mostrarAlertaElegante(
                 '¡Respuesta enviada!',
                 'Tu respuesta ha sido enviada correctamente y aparecerá en "Enviados"',
                 'success'
@@ -420,7 +458,7 @@ const Mensajes = {
 
         } catch (error) {
             console.error('Error al enviar respuesta:', error);
-            window.Utilidades.mostrarAlerta('Error', 'No se pudo enviar la respuesta', 'error');
+            this.mostrarAlertaElegante('Error', 'No se pudo enviar la respuesta', 'error');
             return { success: false, error };
         }
     },
@@ -448,16 +486,14 @@ const Mensajes = {
                     destinatario_email: destinatarioEmail,
                     asunto: asunto,
                     contenido: contenido,
-                    leido: false,
-                    created_at: new Date().toISOString(),
-                    es_respuesta: false
+                    leido: false
                 })
                 .select()
                 .single();
 
             if (error) throw error;
 
-            window.Utilidades.mostrarAlerta('¡Mensaje enviado!', 'Tu mensaje ha sido enviado correctamente', 'success');
+            this.mostrarAlertaElegante('¡Mensaje enviado!', 'Tu mensaje ha sido enviado correctamente', 'success');
             
             // Cargar mensajes enviados
             await this.cargarMensajesEnviados();
@@ -466,7 +502,7 @@ const Mensajes = {
 
         } catch (error) {
             console.error('Error al enviar mensaje:', error);
-            window.Utilidades.mostrarAlerta('Error', 'No se pudo enviar el mensaje', 'error');
+            this.mostrarAlertaElegante('Error', 'No se pudo enviar el mensaje', 'error');
             return { success: false, error };
         }
     },
@@ -508,7 +544,7 @@ const Mensajes = {
             const asunto = msg.asunto || 'Sin asunto';
             const contenido = msg.contenido || '';
             const destinatario = msg.destinatario_email || 'Desconocido';
-            const esRespuesta = msg.asunto?.toLowerCase().startsWith('re:') || msg.es_respuesta;
+            const esRespuesta = msg.asunto?.toLowerCase().startsWith('re:');
             
             html += `
                 <div class="message-item sent-item" data-msg-id="${msg.id}">
@@ -537,54 +573,6 @@ const Mensajes = {
         });
         
         lista.innerHTML = html;
-    },
-
-    // FUNCIÓN NUEVA: Eliminar mensaje desde modal
-    eliminarMensajeDesdeModal() {
-        const modal = document.getElementById('modalDetalleMensaje');
-        if (!modal) return;
-        
-        const mensajeId = modal.dataset.mensajeId;
-        
-        window.Utilidades.mostrarConfirmacion(
-            'Eliminar mensaje',
-            '¿Estás seguro de que quieres eliminar este mensaje?',
-            'warning'
-        ).then(async (result) => {
-            if (result.isConfirmed) {
-                try {
-                    await this.eliminarMensaje(mensajeId);
-                    this.cerrarModal();
-                    await this.cargarBandejaEntrada();
-                } catch (error) {
-                    console.error('Error al eliminar mensaje:', error);
-                }
-            }
-        });
-    },
-
-    // FUNCIÓN NUEVA: Eliminar mensaje
-    async eliminarMensaje(mensajeId) {
-        try {
-            const { error } = await window.supabase
-                .from('mensajes')
-                .delete()
-                .eq('id', mensajeId);
-            
-            if (error) throw error;
-            
-            window.Utilidades.mostrarNotificacion(
-                'Mensaje eliminado',
-                'El mensaje ha sido eliminado correctamente',
-                'success',
-                2000
-            );
-            
-        } catch (error) {
-            console.error('Error al eliminar mensaje:', error);
-            window.Utilidades.mostrarAlerta('Error', 'No se pudo eliminar el mensaje', 'error');
-            throw error;
-        }
     },
 
     async actualizarContadorNoLeidos() {
@@ -619,6 +607,65 @@ const Mensajes = {
         }
     },
 
+    // Funciones elegantes de SweetAlert
+    mostrarAlertaElegante(titulo, mensaje, tipo = 'info') {
+        const iconos = {
+            success: 'fas fa-check-circle',
+            error: 'fas fa-exclamation-circle',
+            warning: 'fas fa-exclamation-triangle',
+            info: 'fas fa-info-circle'
+        };
+        
+        const colores = {
+            success: '#2ecc71',
+            error: '#e74c3c',
+            warning: '#f39c12',
+            info: '#3498db'
+        };
+        
+        Swal.fire({
+            title: `<div class="sweet-header">
+                        <div class="sweet-icon" style="color: ${colores[tipo]}">
+                            <i class="${iconos[tipo]}"></i>
+                        </div>
+                        <h3>${titulo}</h3>
+                    </div>`,
+            html: `<div class="sweet-content">
+                      <p>${mensaje}</p>
+                   </div>`,
+            confirmButtonText: '<i class="fas fa-check"></i> Aceptar',
+            customClass: {
+                popup: 'sweet-alert-elegant',
+                confirmButton: 'btn-sweet-confirm'
+            }
+        });
+    },
+
+    mostrarNotificacionElegante(titulo, mensaje, tipo = 'info', timer = 3000) {
+        const iconos = {
+            success: 'fas fa-check-circle',
+            error: 'fas fa-exclamation-circle',
+            warning: 'fas fa-exclamation-triangle',
+            info: 'fas fa-info-circle'
+        };
+        
+        Swal.fire({
+            title: `<div class="sweet-notification-header">
+                        <i class="${iconos[tipo]}"></i>
+                        <span>${titulo}</span>
+                    </div>`,
+            text: mensaje,
+            timer: timer,
+            timerProgressBar: true,
+            showConfirmButton: false,
+            position: 'top-end',
+            toast: true,
+            customClass: {
+                popup: 'sweet-notification-elegant'
+            }
+        });
+    },
+
     // Inicialización
     inicializar() {
         console.log("🔄 Inicializando módulo de mensajes...");
@@ -634,13 +681,13 @@ const Mensajes = {
                 const contenido = document.getElementById('contenido').value.trim();
                 
                 if (!destinatario || !asunto || !contenido) {
-                    window.Utilidades.mostrarAlerta('Campos requeridos', 'Por favor completa todos los campos', 'warning');
+                    this.mostrarAlertaElegante('Campos requeridos', 'Por favor completa todos los campos', 'warning');
                     return;
                 }
                 
                 // Validar email
                 if (!window.Utilidades.validarEmail(destinatario)) {
-                    window.Utilidades.mostrarAlerta('Email inválido', 'Por favor ingresa un email válido', 'error');
+                    this.mostrarAlertaElegante('Email inválido', 'Por favor ingresa un email válido', 'error');
                     return;
                 }
                 
@@ -673,7 +720,314 @@ const Mensajes = {
             });
         }
         
+        // Agregar estilos CSS
+        this.agregarEstilosElegantes();
+        
         console.log("✅ Módulo de mensajes inicializado");
+    },
+
+    agregarEstilosElegantes() {
+        const estilos = document.createElement('style');
+        estilos.textContent = `
+            /* SweetAlert Elegante */
+            .sweet-alert-elegant {
+                border-radius: 20px !important;
+                padding: 30px !important;
+                border: none !important;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+            }
+            
+            .sweet-header {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                margin-bottom: 20px;
+            }
+            
+            .sweet-icon {
+                font-size: 40px;
+            }
+            
+            .sweet-header h3 {
+                margin: 0;
+                color: #2C3E50;
+                font-size: 24px;
+                font-weight: 700;
+            }
+            
+            .sweet-content {
+                color: #5d6d7e;
+                font-size: 16px;
+                line-height: 1.6;
+                padding: 0 10px;
+            }
+            
+            .btn-sweet-confirm {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+                border: none !important;
+                padding: 12px 30px !important;
+                border-radius: 12px !important;
+                font-weight: 600 !important;
+                font-size: 15px !important;
+                margin-top: 20px !important;
+                transition: all 0.3s ease !important;
+            }
+            
+            .btn-sweet-confirm:hover {
+                transform: translateY(-2px) !important;
+                box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3) !important;
+            }
+            
+            /* Notificaciones Toast */
+            .sweet-notification-elegant {
+                border-radius: 15px !important;
+                padding: 15px 20px !important;
+                border-left: 4px solid #667eea;
+                background: white !important;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+            }
+            
+            .sweet-notification-header {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-bottom: 5px;
+                color: #2C3E50;
+                font-weight: 600;
+            }
+            
+            /* Modal de Detalle de Mensaje */
+            .message-detail-modal {
+                border-radius: 20px !important;
+                padding: 0 !important;
+                overflow: hidden !important;
+                border: none !important;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+            }
+            
+            .message-detail-modal-content {
+                padding: 30px;
+            }
+            
+            .message-detail-header {
+                display: flex;
+                gap: 25px;
+                margin-bottom: 30px;
+                padding-bottom: 25px;
+                border-bottom: 1px solid #e8edf2;
+            }
+            
+            .detail-avatar {
+                width: 80px;
+                height: 80px;
+                border-radius: 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+                flex-shrink: 0;
+                color: white;
+                font-size: 28px;
+                font-weight: bold;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            }
+            
+            .detail-avatar.has-image img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+            
+            .detail-info {
+                flex: 1;
+            }
+            
+            .detail-sender-info {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                margin-bottom: 10px;
+            }
+            
+            .detail-sender {
+                margin: 0;
+                color: #2C3E50;
+                font-size: 22px;
+                font-weight: 700;
+            }
+            
+            .detail-tag {
+                padding: 5px 12px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+            
+            .reply-tag {
+                background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+                color: white;
+            }
+            
+            .detail-email, .detail-subject {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                color: #667eea;
+                font-size: 14px;
+                margin-bottom: 8px;
+            }
+            
+            .detail-meta {
+                display: flex;
+                gap: 20px;
+                margin-top: 15px;
+            }
+            
+            .meta-item {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                color: #7f8c8d;
+                font-size: 13px;
+            }
+            
+            .status-read {
+                color: #2ecc71;
+                font-weight: 600;
+            }
+            
+            .status-unread {
+                color: #e74c3c;
+                font-weight: 600;
+            }
+            
+            .content-header {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                color: #667eea;
+                font-size: 16px;
+                font-weight: 600;
+                margin-bottom: 15px;
+            }
+            
+            .detail-content-section {
+                background: #f8f9fa;
+                border-radius: 15px;
+                padding: 25px;
+                border-left: 4px solid #667eea;
+            }
+            
+            .detail-content {
+                color: #2C3E50;
+                font-size: 15px;
+                line-height: 1.8;
+                white-space: pre-wrap;
+            }
+            
+            /* Botones del modal de detalle */
+            .btn-sweet-reply {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+                border: none !important;
+                padding: 12px 25px !important;
+                border-radius: 12px !important;
+                font-weight: 600 !important;
+                font-size: 14px !important;
+            }
+            
+            .btn-sweet-close {
+                background: white !important;
+                color: #5d6d7e !important;
+                border: 2px solid #e8edf2 !important;
+                padding: 12px 25px !important;
+                border-radius: 12px !important;
+                font-weight: 600 !important;
+                font-size: 14px !important;
+            }
+            
+            .btn-sweet-delete {
+                background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%) !important;
+                border: none !important;
+                padding: 12px 25px !important;
+                border-radius: 12px !important;
+                font-weight: 600 !important;
+                font-size: 14px !important;
+            }
+            
+            .btn-sweet-close-icon {
+                color: #95a5a6 !important;
+            }
+            
+            /* Modal de confirmación de eliminación */
+            .delete-confirm-modal {
+                border-radius: 20px !important;
+                padding: 30px !important;
+            }
+            
+            .delete-header {
+                font-size: 60px;
+                color: #e74c3c;
+                text-align: center;
+                margin-bottom: 20px;
+            }
+            
+            .delete-confirm-content h3 {
+                margin: 0 0 15px 0;
+                color: #2C3E50;
+                font-size: 22px;
+                text-align: center;
+            }
+            
+            .delete-confirm-content p {
+                color: #7f8c8d;
+                text-align: center;
+                line-height: 1.6;
+                margin-bottom: 0;
+            }
+            
+            .btn-delete-confirm {
+                background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%) !important;
+                border: none !important;
+                padding: 12px 30px !important;
+                border-radius: 12px !important;
+                font-weight: 600 !important;
+            }
+            
+            .btn-delete-cancel {
+                background: white !important;
+                color: #5d6d7e !important;
+                border: 2px solid #e8edf2 !important;
+                padding: 12px 30px !important;
+                border-radius: 12px !important;
+                font-weight: 600 !important;
+            }
+            
+            /* Responsive */
+            @media (max-width: 768px) {
+                .message-detail-modal {
+                    width: 95% !important;
+                    margin: 10px !important;
+                }
+                
+                .message-detail-header {
+                    flex-direction: column;
+                    text-align: center;
+                }
+                
+                .detail-avatar {
+                    margin: 0 auto;
+                }
+                
+                .detail-meta {
+                    flex-direction: column;
+                    gap: 10px;
+                }
+            }
+        `;
+        document.head.appendChild(estilos);
     }
 };
 

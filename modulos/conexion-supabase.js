@@ -1,4 +1,4 @@
-// conexion-supabase.js
+
 // Configuración y funciones de Supabase
 
 // Configuración Supabase (NO SEPARAR ESTO - queda en el HTML principal)
