@@ -9,7 +9,203 @@
     <style>
         /* ESTILOS CSS AQUÍ (mantén los mismos estilos que ya tienes) */
        
+/* Estilos para el Centro de Ayuda */
+.help-center {
+    display: flex;
+    gap: 30px;
+    min-height: 500px;
+}
 
+.help-sidebar {
+    width: 250px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 15px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.help-nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px;
+    border: none;
+    background: white;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: #2C3E50;
+    transition: all 0.3s ease;
+    text-align: left;
+}
+
+.help-nav-btn:hover {
+    background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
+    transform: translateX(5px);
+}
+
+.help-nav-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+}
+
+.help-content {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 500px;
+}
+
+.help-section {
+    display: none;
+    animation: fadeIn 0.5s ease;
+}
+
+.help-section.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.help-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid rgba(102, 126, 234, 0.1);
+}
+
+.help-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+}
+
+.help-header h4 {
+    margin: 0;
+    color: #2C3E50;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.help-header p {
+    margin: 5px 0 0 0;
+    color: #666;
+}
+
+.help-card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(102, 126, 234, 0.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.help-card h5 {
+    margin: 0 0 15px 0;
+    color: #2C3E50;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.help-card p {
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.help-card ul, .help-card ol {
+    padding-left: 20px;
+    color: #555;
+    line-height: 1.6;
+}
+
+.help-card li {
+    margin-bottom: 8px;
+}
+
+/* Estilos para el modal de soporte */
+.support-content {
+    padding: 10px 0;
+}
+
+.support-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.support-card h5 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 15px 0;
+}
+
+.contact-card {
+    margin: 25px 0;
+}
+
+.email-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+
+.response-time {
+    text-align: center;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.premium-title {
+    color: #2C3E50;
+    font-weight: 700;
+    margin: 0;
+}
+
+.help-modal-container,
+.support-modal-container {
+    max-height: 600px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+/* Scrollbar personalizado */
+.help-modal-container::-webkit-scrollbar,
+.support-modal-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.help-modal-container::-webkit-scrollbar-track,
+.support-modal-container::-webkit-scrollbar-track {
+    background: rgba(102, 126, 234, 0.1);
+    border-radius: 4px;
+}
+
+.help-modal-container::-webkit-scrollbar-thumb,
+.support-modal-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 4px;
+}
         /* ... (mantén todos los estilos CSS que ya tenías) ... */
     </style>
 </head>
@@ -849,17 +1045,16 @@
         if (formConfiguracion) {
             formConfiguracion.addEventListener('submit', (e) => guardarPerfil(e, usuario));
         }
+         // Botones de ayuda y soporte - ahora usando SweetAlert2
+        const btnAyuda = document.getElementById('btnAyuda');
+        const btnSoporte = document.getElementById('btnSoporte');
         
-        // Botón de eliminar cuenta (dos ubicaciones)
-        const btnEliminarCuenta = document.getElementById('btnEliminarCuenta');
-        const btnEliminarCuentaSeguridad = document.getElementById('btnEliminarCuentaSeguridad');
-        
-        if (btnEliminarCuenta) {
-            btnEliminarCuenta.addEventListener('click', () => confirmarEliminarCuenta(usuario));
+        if (btnAyuda) {
+            btnAyuda.addEventListener('click', () => mostrarAyudaCompleta());
         }
         
-        if (btnEliminarCuentaSeguridad) {
-            btnEliminarCuentaSeguridad.addEventListener('click', () => confirmarEliminarCuenta(usuario));
+        if (btnSoporte) {
+            btnSoporte.addEventListener('click', () => mostrarModalSoporte());
         }
         
         // Botón de cerrar sesión
@@ -868,17 +1063,6 @@
             btnLogout.addEventListener('click', cerrarSesion);
         }
         
-        // Botones de ayuda y soporte
-        const btnAyuda = document.getElementById('btnAyuda');
-        const btnSoporte = document.getElementById('btnSoporte');
-        
-        if (btnAyuda) {
-            btnAyuda.addEventListener('click', () => window.open('ayuda.html', '_blank'));
-        }
-        
-        if (btnSoporte) {
-            btnSoporte.addEventListener('click', () => window.open('mailto:soporte@messery.com', '_blank'));
-        }
         
         // Formulario de redes sociales
         const formRedes = document.getElementById('formRedesSociales');
@@ -898,6 +1082,213 @@
         document.getElementById('btnVerSesiones')?.addEventListener('click', verSesiones);
         document.getElementById('btnConfigurarPrivacidad')?.addEventListener('click', configurarPrivacidad);
     }
+
+
+
+    // Función para mostrar ayuda completa
+function mostrarAyudaCompleta() {
+    Swal.fire({
+        title: '<h3 class="premium-title">Centro de Ayuda</h3>',
+        html: `
+            <div class="help-center">
+                <!-- Barra lateral de navegación -->
+                <div class="help-sidebar">
+                    <button class="help-nav-btn active" onclick="mostrarSeccionAyuda('configuracion')">
+                        <i class="fas fa-cog"></i> Configuración
+                    </button>
+                    <button class="help-nav-btn" onclick="mostrarSeccionAyuda('perfil')">
+                        <i class="fas fa-user"></i> Perfil
+                    </button>
+                    <button class="help-nav-btn" onclick="mostrarSeccionAyuda('redes')">
+                        <i class="fas fa-share-alt"></i> Redes Sociales
+                    </button>
+                    <button class="help-nav-btn" onclick="mostrarSeccionAyuda('seguridad')">
+                        <i class="fas fa-shield-alt"></i> Seguridad
+                    </button>
+                    <button class="help-nav-btn" onclick="mostrarSeccionAyuda('mensajes')">
+                        <i class="fas fa-envelope"></i> Mensajes
+                    </button>
+                </div>
+                
+                <!-- Contenido principal de ayuda -->
+                <div class="help-content">
+                    <!-- Sección Configuración -->
+                    <div id="seccion-configuracion" class="help-section active">
+                        <div class="help-header">
+                            <div class="help-icon">
+                                <i class="fas fa-cog"></i>
+                            </div>
+                            <div>
+                                <h4>Configuración de la Cuenta</h4>
+                                <p>Gestiona todas las opciones de tu cuenta Messery</p>
+                            </div>
+                        </div>
+                        
+                        <div class="help-card">
+                            <h5><i class="fas fa-sliders-h"></i> Panel de Configuración</h5>
+                            <p>Desde aquí puedes acceder a todas las configuraciones de tu cuenta:</p>
+                            <ul>
+                                <li><strong>Perfil:</strong> Edita tu información personal</li>
+                                <li><strong>Redes Sociales:</strong> Conecta tus perfiles sociales</li>
+                                <li><strong>Seguridad:</strong> Protege tu cuenta</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="help-card">
+                            <h5><i class="fas fa-edit"></i> Cómo Editar Tu Perfil</h5>
+                            <p>Para actualizar tu información:</p>
+                            <ol>
+                                <li>Haz clic en "Perfil" en la barra lateral</li>
+                                <li>Completa los campos requeridos (*)</li>
+                                <li>Haz clic en "Guardar Cambios"</li>
+                            </ol>
+                        </div>
+                    </div>
+                    
+                    <!-- Sección Perfil -->
+                    <div id="seccion-perfil" class="help-section">
+                        <!-- Contenido similar para perfil -->
+                        <div class="help-header">
+                            <div class="help-icon">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div>
+                                <h4>Gestión de Perfil</h4>
+                                <p>Personaliza tu presencia en Messery</p>
+                            </div>
+                        </div>
+                        
+                        <div class="help-card">
+                            <h5><i class="fas fa-id-card"></i> Información Personal</h5>
+                            <p>Tu perfil contiene tres secciones principales:</p>
+                            <ul>
+                                <li><strong>Información Personal:</strong> Nombre, email, teléfono</li>
+                                <li><strong>Datos Demográficos:</strong> Ubicación, género, fecha de nacimiento</li>
+                                <li><strong>Configuración de Cuenta:</strong> Tipo de cuenta, biografía, preferencias</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Agrega más secciones según sea necesario -->
+                </div>
+            </div>
+        `,
+        width: 900,
+        heightAuto: false,
+        customClass: {
+            popup: 'premium-message-modal',
+            title: 'premium-title',
+            htmlContainer: 'help-modal-container'
+        },
+        showCloseButton: true,
+        showConfirmButton: false,
+        showDenyButton: false,
+        showCancelButton: false
+    });
+}
+
+// Función para mostrar soporte
+function mostrarModalSoporte() {
+    Swal.fire({
+        title: '<div class="message-modal-header">' +
+               '<div class="message-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">' +
+               '<i class="fas fa-headset"></i>' +
+               '</div>' +
+               '<h3>Soporte Messery</h3>' +
+               '</div>',
+        html: `
+            <div class="message-modal-body">
+                <div class="recipient-card">
+                    <div class="recipient-avatar">
+                        <i class="fas fa-hands-helping"></i>
+                    </div>
+                    <div>
+                        <h4 style="margin: 0 0 5px 0; color: #2C3E50;">Equipo de Soporte</h4>
+                        <p style="margin: 0; color: #666;">Estamos aquí para ayudarte</p>
+                    </div>
+                </div>
+                
+                <div class="support-content">
+                    <div class="support-card">
+                        <h5><i class="fas fa-info-circle" style="color: #667eea;"></i> ¿Cómo podemos ayudarte?</h5>
+                        <p>Nuestro equipo está disponible para asistirte con:</p>
+                        <ul>
+                            <li>Problemas técnicos</li>
+                            <li>Configuración de cuenta</li>
+                            <li>Preguntas sobre funcionalidades</li>
+                            <li>Sugerencias y comentarios</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="contact-card">
+                        <h5><i class="fas fa-envelope" style="color: #764ba2;"></i> Contáctanos</h5>
+                        <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); 
+                                   padding: 20px; 
+                                   border-radius: 12px; 
+                                   margin-top: 15px;">
+                            <p style="margin-bottom: 10px;"><strong>Correo de soporte:</strong></p>
+                            <a href="mailto:messegy@gmail.com?subject=Soporte Messery&body=Hola equipo de Messery,%0D%0A%0D%0AMe comunico porque tengo la siguiente consulta o problema:%0D%0A%0D%0A[Describe tu situación aquí]%0D%0A%0D%0A%0D%0ADetalles adicionales:%0D%0A- Usuario: " 
+                               class="email-link" 
+                               style="display: inline-block; 
+                                      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                                      color: white; 
+                                      padding: 10px 20px; 
+                                      border-radius: 8px; 
+                                      text-decoration: none; 
+                                      font-weight: 600; 
+                                      transition: transform 0.3s;">
+                               <i class="fas fa-paper-plane" style="margin-right: 8px;"></i>
+                               messegy@gmail.com
+                            </a>
+                            <p style="margin-top: 15px; color: #666; font-size: 14px;">
+                                Haz clic en el enlace para redactar un correo con el asunto predefinido
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="response-time">
+                        <h6><i class="fas fa-clock" style="color: #4CAF50;"></i> Tiempo de Respuesta</h6>
+                        <p style="color: #666;">Normalmente respondemos en menos de 24 horas</p>
+                    </div>
+                </div>
+            </div>
+        `,
+        width: 700,
+        customClass: {
+            popup: 'premium-message-modal',
+            title: 'premium-title',
+            htmlContainer: 'support-modal-container'
+        },
+        showCloseButton: true,
+        showConfirmButton: true,
+        confirmButtonText: 'Cerrar',
+        confirmButtonColor: '#667eea',
+        showDenyButton: false,
+        showCancelButton: false
+    });
+}
+
+// Función para cambiar entre secciones de ayuda
+function mostrarSeccionAyuda(seccion) {
+    // Remover clase active de todos los botones
+    document.querySelectorAll('.help-nav-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Agregar clase active al botón clickeado
+    event.target.classList.add('active');
+    
+    // Ocultar todas las secciones
+    document.querySelectorAll('.help-section').forEach(section => {
+        section.classList.remove('active');
+    });
+    
+    // Mostrar la sección seleccionada
+    const seccionElement = document.getElementById(`seccion-${seccion}`);
+    if (seccionElement) {
+        seccionElement.classList.add('active');
+    }
+}
     
     // ============================================
     // FUNCIONES DE PERFIL (GUARDAR)
