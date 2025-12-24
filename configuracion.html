@@ -962,636 +962,408 @@
             }
         }
     }
-    
-    // ============================================
-// FUNCIONES DE AVATAR (SISTEMA COMPLETO CON EMOJIS)
 // ============================================
-
-// Lista de emojis organizada globalmente
-const emojisPorCategoria = {
-    faces: ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🥸', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️'],
-    animals: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🐧', '🐦', '🐤', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🐛', '🦋'],
-    food: ['🍏', '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🍆', '🥑', '🥦', '🥬', '🥒', '🌶️', '🫑', '🌽', '🥕', '🫒', '🧄', '🧅', '🥔', '🍠'],
-    objects: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🪃', '🥅', '⛳', '🪁', '🏹', '🎣', '🤿', '🥊', '🥋', '🎽', '🛹', '🛼', '🛷'],
-    symbols: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐']
-};
-
-// Variables globales para el selector de emojis
-let emojiSeleccionadoGlobal = null;
-let categoriaActualGlobal = 'all';
-let todosEmojisGlobal = [];
-let emojisFiltradosGlobal = [];
-
-// Función para inicializar todos los emojis
-function inicializarEmojisGlobal() {
-    todosEmojisGlobal = [
-        ...emojisPorCategoria.faces.map(emoji => ({ emoji, categoria: 'faces' })),
-        ...emojisPorCategoria.animals.map(emoji => ({ emoji, categoria: 'animals' })),
-        ...emojisPorCategoria.food.map(emoji => ({ emoji, categoria: 'food' })),
-        ...emojisPorCategoria.objects.map(emoji => ({ emoji, categoria: 'objects' })),
-        ...emojisPorCategoria.symbols.map(emoji => ({ emoji, categoria: 'symbols' }))
-    ];
-    emojisFiltradosGlobal = [...todosEmojisGlobal];
-}
+// FUNCIONES DE AVATAR (VERSIÓN CORREGIDA)
+// ============================================
 
 async function cambiarAvatar() {
     try {
         const { data: { user } } = await supabaseClient.auth.getUser();
         
-        Swal.fire({
-            html: `
-                <div class="avatar-premium-modal">
-                    <!-- Encabezado con gradiente -->
-                    <div class="avatar-modal-header">
-                        <div class="avatar-header-icon">
-                            <i class="fas fa-camera"></i>
-                        </div>
-                        <div class="avatar-header-text">
-                            <h3>Cambiar Avatar</h3>
-                            <p>Personaliza tu identidad en la aplicación</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Cuerpo del modal -->
-                    <div class="avatar-modal-body">
-                        <!-- Tarjeta de opciones -->
-                        <div class="avatar-options-grid">
-                            <!-- Opción 1: Emojis -->
-                            <div class="avatar-option-card" id="emojiOption">
-                                <div class="option-icon emoji-icon">
-                                    <span>😎</span>
-                                </div>
-                                <div class="option-content">
-                                    <h4>Emoji Creativo</h4>
-                                    <p>Elige entre cientos de emojis únicos</p>
-                                    <div class="option-tags">
-                                        <span class="tag">🎨 Creativo</span>
-                                        <span class="tag">⚡ Rápido</span>
-                                    </div>
-                                </div>
-                                <div class="option-arrow">
-                                    <i class="fas fa-chevron-right"></i>
-                                </div>
-                            </div>
-                            
-                            <!-- Opción 2: Subir Imagen -->
-                            <div class="avatar-option-card" id="imageOption">
-                                <div class="option-icon image-icon">
-                                    <i class="fas fa-image"></i>
-                                </div>
-                                <div class="option-content">
-                                    <h4>Subir Foto</h4>
-                                    <p>Usa tu propia imagen o fotografía</p>
-                                    <div class="option-tags">
-                                        <span class="tag">📸 Personal</span>
-                                        <span class="tag">🎭 Único</span>
-                                    </div>
-                                </div>
-                                <div class="option-arrow">
-                                    <i class="fas fa-chevron-right"></i>
-                                </div>
-                            </div>
-                            
-                            <!-- Opción 3: Avatar por defecto -->
-                            <div class="avatar-option-card" id="defaultOption">
-                                <div class="option-icon default-icon">
-                                    <i class="fas fa-user-circle"></i>
-                                </div>
-                                <div class="option-content">
-                                    <h4>Avatar Predeterminado</h4>
-                                    <p>Vuelve al avatar por defecto</p>
-                                    <div class="option-tags">
-                                        <span class="tag">🔄 Reset</span>
-                                        <span class="tag">👤 Simple</span>
-                                    </div>
-                                </div>
-                                <div class="option-arrow">
-                                    <i class="fas fa-chevron-right"></i>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Vista previa actual -->
-                        <div class="current-avatar-preview">
-                            <h4><i class="fas fa-eye"></i> Vista Previa Actual</h4>
-                            <div class="preview-container">
-                                <div id="currentAvatarPreview" class="avatar-preview-circle">
-                                    <!-- Se llenará dinámicamente -->
-                                </div>
-                                <div class="preview-info">
-                                    <p class="preview-name">${user.email}</p>
-                                    <p class="preview-status"><i class="fas fa-circle" style="color: #4CAF50; font-size: 10px;"></i> En línea</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Nota informativa -->
-                        <div class="avatar-info-note">
-                            <i class="fas fa-info-circle"></i>
-                            <p>Tu avatar será visible para todos tus amigos y contactos</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Pie del modal -->
-                    <div class="avatar-modal-footer">
-                        <button class="btn-cancel-avatar">
-                            <i class="fas fa-times"></i> Cancelar
-                        </button>
-                    </div>
-                </div>
-            `,
-            width: '500px',
-            showConfirmButton: false,
-            showCloseButton: true,
-            customClass: {
-                popup: 'avatar-premium-popup',
-                closeButton: 'avatar-close-btn'
-            },
-            didOpen: () => {
-                // Cargar vista previa actual
-                cargarVistaPreviaActual();
-                
-                // Configurar eventos de las tarjetas
-                document.getElementById('emojiOption').onclick = () => {
-                    Swal.close();
-                    mostrarSelectorEmojisPremium(user.id);
-                };
-                
-                document.getElementById('imageOption').onclick = () => {
-                    Swal.close();
-                    subirImagenAvatar(user);
-                };
-                
-                document.getElementById('defaultOption').onclick = () => {
-                    Swal.close();
-                    seleccionarAvatarPorDefecto(user);
-                };
-                
-                // Botón cancelar
-                document.querySelector('.btn-cancel-avatar').onclick = () => {
-                    Swal.close();
-                };
-            }
-        });
-        
-    } catch (error) {
-        console.error('Error:', error);
-        mostrarAlerta('error', 'Error al abrir el selector de avatar');
-    }
-}
-
-// Función para cargar la vista previa actual
-function cargarVistaPreviaActual() {
-    const previewElement = document.getElementById('currentAvatarPreview');
-    const avatarUrl = localStorage.getItem('current_avatar_url') || '';
-    
-    if (avatarUrl && avatarUrl.startsWith('http')) {
-        previewElement.innerHTML = `<img src="${avatarUrl}" alt="Avatar actual">`;
-    } else if (avatarUrl && avatarUrl.startsWith('EMOJI:')) {
-        const emoji = avatarUrl.replace('EMOJI:', '');
-        previewElement.innerHTML = `<div class="emoji-preview">${emoji}</div>`;
-    } else {
-        previewElement.innerHTML = '<i class="fas fa-user-circle"></i>';
-    }
-}
-
-// Función para renderizar emojis en el grid premium
-function renderizarEmojisPremium(emojis) {
-    const emojiGrid = document.getElementById('emojiGridPremium');
-    if (!emojiGrid) return;
-    
-    emojiGrid.innerHTML = '';
-    
-    if (emojis.length === 0) {
-        emojiGrid.innerHTML = `
-            <div class="no-results" style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #6c757d;">
-                <i class="fas fa-search" style="font-size: 2rem; margin-bottom: 10px; color: #adb5bd;"></i>
-                <p>No se encontraron emojis</p>
-            </div>
-        `;
-        return;
-    }
-    
-    emojis.forEach(item => {
-        const emojiButton = document.createElement('div');
-        emojiButton.className = 'emoji-item';
-        emojiButton.textContent = item.emoji;
-        emojiButton.dataset.emoji = item.emoji;
-        emojiButton.dataset.category = item.categoria;
-        
-        // Resaltar si está seleccionado
-        if (emojiSeleccionadoGlobal === item.emoji) {
-            emojiButton.classList.add('selected');
+        // Asegurarnos de que el usuario existe
+        if (!user) {
+            mostrarAlerta('error', 'No se pudo obtener la información del usuario');
+            return;
         }
         
-        emojiButton.onclick = () => {
-            // Quitar selección anterior
-            document.querySelectorAll('.emoji-item').forEach(item => {
-                item.classList.remove('selected');
-            });
-            
-            // Seleccionar nuevo
-            emojiButton.classList.add('selected');
-            emojiSeleccionadoGlobal = item.emoji;
-            
-            // Mostrar vista previa
-            mostrarVistaPreviaEmojiPremium(item.emoji);
-        };
+        // Forzar que se abra el modal incluso si el avatar es null
+        await mostrarModalAvatar(user);
         
-        emojiGrid.appendChild(emojiButton);
-    });
-}
-
-// Función para mostrar vista previa del emoji seleccionado
-function mostrarVistaPreviaEmojiPremium(emoji) {
-    const previewSection = document.querySelector('.emoji-preview-section');
-    const previewElement = document.getElementById('selectedEmojiPreview');
-    
-    if (previewElement) {
-        previewElement.textContent = emoji;
-    }
-    if (previewSection) {
-        previewSection.style.display = 'flex';
-        previewSection.style.flexDirection = 'column';
-        previewSection.style.alignItems = 'center';
-        previewSection.style.gap = '15px';
+    } catch (error) {
+        console.error('Error al abrir selector de avatar:', error);
+        // Intentar de nuevo sin depender de la información del usuario
+        mostrarModalAvatarBasico();
     }
 }
 
-// Función para filtrar emojis por búsqueda
-function filtrarEmojisPremium(searchTerm) {
-    if (!searchTerm.trim()) {
-        // Si no hay término de búsqueda, mostrar según categoría
-        filtrarPorCategoriaPremium(categoriaActualGlobal);
-        return;
-    }
-    
-    const termino = searchTerm.toLowerCase().trim();
-    
-    // Diccionario de palabras clave por categoría
-    const palabrasClave = {
-        'faces': ['caras', 'caritas', 'rostros', 'expresiones', 'cara', 'face', 'smile', 'emoji', 'feliz', 'triste', 'risa'],
-        'animals': ['animales', 'animal', 'mascotas', 'pets', 'fauna', 'perro', 'gato', 'pájaro', 'insecto'],
-        'food': ['comida', 'alimentos', 'frutas', 'verduras', 'food', 'meal', 'fruta', 'verdura', 'bebida', 'hamburguesa'],
-        'objects': ['objetos', 'deportes', 'sports', 'things', 'object', 'pelota', 'balón', 'juego', 'instrumento'],
-        'symbols': ['símbolos', 'corazones', 'símbolo', 'symbol', 'heart', 'corazón', 'estrella', 'signo']
-    };
-    
-    emojisFiltradosGlobal = todosEmojisGlobal.filter(item => {
-        const categoria = item.categoria;
-        const claves = palabrasClave[categoria] || [];
-        
-        // Buscar en palabras clave
-        const matchClaves = claves.some(palabra => 
-            palabra.includes(termino) || termino.includes(palabra)
-        );
-        
-        return matchClaves;
-    });
-    
-    renderizarEmojisPremium(emojisFiltradosGlobal);
-}
-
-// Función para filtrar por categoría
-function filtrarPorCategoriaPremium(categoria) {
-    categoriaActualGlobal = categoria;
-    
-    if (categoria === 'all') {
-        emojisFiltradosGlobal = [...todosEmojisGlobal];
-    } else {
-        emojisFiltradosGlobal = todosEmojisGlobal.filter(item => item.categoria === categoria);
-    }
-    
-    renderizarEmojisPremium(emojisFiltradosGlobal);
-}
-
-// Selector de emojis premium actualizado con tamaño corregido
-async function mostrarSelectorEmojisPremium(userId) {
+// Función mejorada para mostrar el modal
+async function mostrarModalAvatar(user) {
     Swal.fire({
         html: `
-            <div class="emoji-premium-modal">
-                <!-- Encabezado -->
-                <div class="emoji-modal-header">
-                    <button class="btn-back-emoji">
-                        <i class="fas fa-arrow-left"></i>
-                    </button>
-                    <div class="emoji-header-text">
-                        <h3><i class="fas fa-smile"></i> Seleccionar Emoji</h3>
-                        <p>Elige tu emoji favorito como avatar</p>
+            <div class="avatar-premium-modal">
+                <!-- Encabezado con gradiente -->
+                <div class="avatar-modal-header">
+                    <div class="avatar-header-icon">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                    <div class="avatar-header-text">
+                        <h3>Cambiar Avatar</h3>
+                        <p>Personaliza tu identidad en la aplicación</p>
                     </div>
                 </div>
                 
-                <!-- Barra de búsqueda -->
-                <div class="emoji-search-container">
-                    <div class="search-icon">
-                        <i class="fas fa-search"></i>
-                    </div>
-                    <input type="text" 
-                           id="emojiSearchPremium" 
-                           class="emoji-search-input" 
-                           placeholder="Buscar emojis por categoría (caritas, animales, comida)..."
-                           autocomplete="off">
-                    <div class="search-clear" id="clearSearch">
-                        <i class="fas fa-times"></i>
-                    </div>
-                </div>
-                
-                <!-- Categorías de emojis -->
-                <div class="emoji-categories">
-                    <button class="emoji-category-btn active" data-category="all">
-                        <i class="fas fa-th"></i> Todos
-                    </button>
-                    <button class="emoji-category-btn" data-category="faces">
-                        <span>😀</span> Caritas
-                    </button>
-                    <button class="emoji-category-btn" data-category="animals">
-                        <span>🐶</span> Animales
-                    </button>
-                    <button class="emoji-category-btn" data-category="food">
-                        <span>🍕</span> Comida
-                    </button>
-                    <button class="emoji-category-btn" data-category="objects">
-                        <span>⚽</span> Objetos
-                    </button>
-                    <button class="emoji-category-btn" data-category="symbols">
-                        <span>❤️</span> Símbolos
-                    </button>
-                </div>
-                
-                <!-- Grid de emojis -->
-                <div class="emoji-grid-container">
-                    <div id="emojiGridPremium" class="emoji-grid-premium">
-                        <!-- Emojis se cargarán aquí -->
-                    </div>
-                    <div id="emojiLoading" class="emoji-loading">
-                        <div class="loading-spinner"></div>
-                        <p>Cargando emojis...</p>
-                    </div>
-                </div>
-                
-                <!-- Vista previa seleccionada (CORREGIDO: más grande) -->
-                <div class="emoji-preview-section" style="display: none; padding: 25px 30px;">
-                    <div class="emoji-selected-preview" style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 15px;">
-                        <div id="selectedEmojiPreview" class="selected-emoji" style="width: 100px; height: 100px; background: linear-gradient(135deg, #FFD93D 0%, #FF6B6B 100%); border-radius: 25px; display: flex; align-items: center; justify-content: center; font-size: 60px; color: white; box-shadow: 0 10px 30px rgba(255, 107, 107, 0.3);"></div>
-                        <div class="selected-info" style="flex: 1;">
-                            <h4 style="margin: 0 0 8px 0; color: #2C3E50; font-size: 18px; font-weight: 600;">Vista previa</h4>
-                            <p style="margin: 0; color: #64748B; font-size: 14px;">Así se verá tu avatar de perfil</p>
+                <!-- Cuerpo del modal -->
+                <div class="avatar-modal-body">
+                    <!-- Tarjeta de opciones -->
+                    <div class="avatar-options-grid">
+                        <!-- Opción 1: Emojis -->
+                        <div class="avatar-option-card" id="emojiOption">
+                            <div class="option-icon emoji-icon">
+                                <span>😎</span>
+                            </div>
+                            <div class="option-content">
+                                <h4>Emoji Creativo</h4>
+                                <p>Elige entre cientos de emojis únicos</p>
+                                <div class="option-tags">
+                                    <span class="tag">🎨 Creativo</span>
+                                    <span class="tag">⚡ Rápido</span>
+                                </div>
+                            </div>
+                            <div class="option-arrow">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- Opción 2: Subir Imagen -->
+                        <div class="avatar-option-card" id="imageOption">
+                            <div class="option-icon image-icon">
+                                <i class="fas fa-image"></i>
+                            </div>
+                            <div class="option-content">
+                                <h4>Subir Foto</h4>
+                                <p>Usa tu propia imagen o fotografía</p>
+                                <div class="option-tags">
+                                    <span class="tag">📸 Personal</span>
+                                    <span class="tag">🎭 Único</span>
+                                </div>
+                            </div>
+                            <div class="option-arrow">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- Opción 3: Avatar por defecto -->
+                        <div class="avatar-option-card" id="defaultOption">
+                            <div class="option-icon default-icon">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                            <div class="option-content">
+                                <h4>Avatar Predeterminado</h4>
+                                <p>Vuelve al avatar por defecto</p>
+                                <div class="option-tags">
+                                    <span class="tag">🔄 Reset</span>
+                                    <span class="tag">👤 Simple</span>
+                                </div>
+                            </div>
+                            <div class="option-arrow">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
                         </div>
                     </div>
-                    <!-- Botón más pequeño -->
-                    <button id="confirmEmojiBtn" class="btn-confirm-emoji" style="width: auto; padding: 12px 30px; font-size: 15px; border-radius: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
-                        <i class="fas fa-check"></i> Usar este emoji
+                    
+                    <!-- Vista previa actual -->
+                    <div class="current-avatar-preview">
+                        <h4><i class="fas fa-eye"></i> Vista Previa Actual</h4>
+                        <div class="preview-container">
+                            <div id="currentAvatarPreview" class="avatar-preview-circle">
+                                <!-- Se llenará dinámicamente -->
+                            </div>
+                            <div class="preview-info">
+                                <p class="preview-name">${user.email}</p>
+                                <p class="preview-status"><i class="fas fa-circle" style="color: #4CAF50; font-size: 10px;"></i> En línea</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Nota informativa -->
+                    <div class="avatar-info-note">
+                        <i class="fas fa-info-circle"></i>
+                        <p>Tu avatar será visible para todos tus amigos y contactos</p>
+                    </div>
+                </div>
+                
+                <!-- Pie del modal -->
+                <div class="avatar-modal-footer">
+                    <button class="btn-cancel-avatar">
+                        <i class="fas fa-times"></i> Cancelar
                     </button>
                 </div>
             </div>
         `,
-        width: '550px',
-        height: '650px',
+        width: '500px',
         showConfirmButton: false,
-        showCloseButton: false,
+        showCloseButton: true,
         customClass: {
-            popup: 'emoji-premium-popup'
+            popup: 'avatar-premium-popup',
+            closeButton: 'avatar-close-btn'
         },
         didOpen: () => {
-            // Cargar emojis
-            cargarEmojisPremium(userId);
+            // Cargar vista previa actual
+            cargarVistaPreviaActual(user);
             
-            // Configurar botón de regreso
-            document.querySelector('.btn-back-emoji').onclick = () => {
+            // Configurar eventos de las tarjetas
+            document.getElementById('emojiOption').onclick = () => {
                 Swal.close();
-                cambiarAvatar();
+                mostrarSelectorEmojisPremium(user.id);
             };
             
-            // Configurar búsqueda
-            const searchInput = document.getElementById('emojiSearchPremium');
-            const clearBtn = document.getElementById('clearSearch');
-            
-            searchInput.oninput = (e) => {
-                filtrarEmojisPremium(e.target.value);
-                clearBtn.style.display = e.target.value ? 'flex' : 'none';
+            document.getElementById('imageOption').onclick = () => {
+                Swal.close();
+                subirImagenAvatar(user);
             };
             
-            clearBtn.onclick = () => {
-                searchInput.value = '';
-                clearBtn.style.display = 'none';
-                filtrarEmojisPremium('');
-                filtrarPorCategoriaPremium(categoriaActualGlobal);
-                searchInput.focus();
+            document.getElementById('defaultOption').onclick = async () => {
+                Swal.close();
+                // Si ya es null, mostrar mensaje diferente
+                await verificarYRestaurarAvatar(user);
             };
             
-            // Configurar categorías
-            document.querySelectorAll('.emoji-category-btn').forEach(btn => {
-                btn.onclick = () => {
-                    document.querySelectorAll('.emoji-category-btn').forEach(b => {
-                        b.classList.remove('active');
-                    });
-                    btn.classList.add('active');
-                    
-                    // Limpiar búsqueda
-                    searchInput.value = '';
-                    clearBtn.style.display = 'none';
-                    
-                    // Filtrar por categoría
-                    const categoria = btn.dataset.category;
-                    filtrarPorCategoriaPremium(categoria);
-                };
+            // Botón cancelar
+            document.querySelector('.btn-cancel-avatar').onclick = () => {
+                Swal.close();
+            };
+        }
+    });
+}
+
+// Función para cargar la vista previa actual - CORREGIDA
+async function cargarVistaPreviaActual(user) {
+    const previewElement = document.getElementById('currentAvatarPreview');
+    if (!previewElement) return;
+    
+    try {
+        // Obtener avatar actual de la base de datos
+        const { data, error } = await supabaseClient
+            .from('usuarios')
+            .select('avatar_url')
+            .eq('id', user.id)
+            .single();
+        
+        let avatarUrl = null;
+        
+        if (!error && data && data.avatar_url) {
+            avatarUrl = data.avatar_url;
+            // Guardar en localStorage para uso rápido
+            localStorage.setItem('current_avatar_url', avatarUrl);
+        } else {
+            // Si hay error o es null, usar localStorage como respaldo
+            avatarUrl = localStorage.getItem('current_avatar_url');
+        }
+        
+        // Mostrar el avatar
+        if (avatarUrl && avatarUrl.startsWith('http')) {
+            previewElement.innerHTML = `<img src="${avatarUrl}" alt="Avatar actual" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fas fa-user-circle\\'></i>';">`;
+        } else if (avatarUrl && avatarUrl.startsWith('EMOJI:')) {
+            const emoji = avatarUrl.replace('EMOJI:', '');
+            previewElement.innerHTML = `<div class="emoji-preview">${emoji}</div>`;
+        } else if (avatarUrl && /\p{Emoji}/u.test(avatarUrl)) {
+            // Si es solo un emoji sin prefijo
+            previewElement.innerHTML = `<div class="emoji-preview">${avatarUrl}</div>`;
+        } else {
+            // Avatar por defecto
+            previewElement.innerHTML = '<i class="fas fa-user-circle"></i>';
+        }
+    } catch (error) {
+        console.error('Error cargando vista previa:', error);
+        // Avatar por defecto en caso de error
+        previewElement.innerHTML = '<i class="fas fa-user-circle"></i>';
+    }
+}
+
+// Función para verificar y restaurar avatar - NUEVA
+async function verificarYRestaurarAvatar(user) {
+    try {
+        // Primero verificar el estado actual
+        const { data, error } = await supabaseClient
+            .from('usuarios')
+            .select('avatar_url')
+            .eq('id', user.id)
+            .single();
+        
+        if (error) throw error;
+        
+        // Si ya es null o está vacío, mostrar mensaje diferente
+        if (!data.avatar_url || data.avatar_url === null) {
+            Swal.fire({
+                icon: 'info',
+                title: 'Ya tienes avatar predeterminado',
+                text: 'Tu avatar ya está configurado como predeterminado.',
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#4CAF50'
             });
-        }
-    });
-}
-
-// Función principal para cargar emojis premium
-async function cargarEmojisPremium(userId) {
-    const emojiGrid = document.getElementById('emojiGridPremium');
-    const loadingElement = document.getElementById('emojiLoading');
-    
-    if (!emojiGrid || !loadingElement) return;
-    
-    // Mostrar loading
-    emojiGrid.style.display = 'none';
-    loadingElement.style.display = 'flex';
-    
-    // Esperar un momento para la animación
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    // Inicializar emojis
-    inicializarEmojisGlobal();
-    emojiSeleccionadoGlobal = null;
-    
-    // Renderizar todos los emojis inicialmente
-    renderizarEmojisPremium(todosEmojisGlobal);
-    
-    // Ocultar loading y mostrar grid
-    loadingElement.style.display = 'none';
-    emojiGrid.style.display = 'grid';
-    
-    // Configurar botón de confirmación
-    const confirmBtn = document.getElementById('confirmEmojiBtn');
-    const previewSection = document.querySelector('.emoji-preview-section');
-    
-    confirmBtn.onclick = async () => {
-        if (!emojiSeleccionadoGlobal) {
-            mostrarAlerta('warning', 'Por favor selecciona un emoji primero');
             return;
         }
         
-        Swal.close();
-        await guardarEmojiComoAvatar(emojiSeleccionadoGlobal, userId);
-    };
-    
-    // Agregar efecto hover al botón
-    confirmBtn.addEventListener('mouseover', () => {
-        confirmBtn.style.transform = 'translateY(-2px)';
-        confirmBtn.style.boxShadow = '0 8px 25px rgba(102, 126, 234, 0.4)';
-    });
-    
-    confirmBtn.addEventListener('mouseout', () => {
-        confirmBtn.style.transform = 'translateY(0)';
-        confirmBtn.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.3)';
-    });
-}
-
-// Función para subir imagen como avatar
-async function subirImagenAvatar(user) {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    
-    input.onchange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        
-        // Validar tipo de archivo
-        if (!file.type.startsWith('image/')) {
-            mostrarAlerta('error', 'Por favor selecciona una imagen válida');
-            return;
-        }
-        
-        // Validar tamaño (máximo 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            mostrarAlerta('error', 'La imagen debe ser menor a 5MB');
-            return;
-        }
-        
+        // Si tiene avatar, preguntar para restaurar
         Swal.fire({
-            title: 'Procesando imagen...',
-            text: 'Por favor espera',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
+            title: '¿Restaurar avatar por defecto?',
+            text: 'Se eliminará tu avatar personalizado',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, restaurar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#4CAF50',
+            cancelButtonColor: '#f44336'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const { error } = await supabaseClient
+                        .from('usuarios')
+                        .update({ avatar_url: null })
+                        .eq('id', user.id);
+                    
+                    if (error) throw error;
+                    
+                    // Limpiar localStorage
+                    localStorage.removeItem('current_avatar_url');
+                    
+                    // Actualizar visualmente
+                    configurarAvatar(null);
+                    
+                    mostrarAlerta('success', '✅ Avatar restaurado al valor por defecto');
+                    
+                } catch (error) {
+                    console.error('Error eliminando avatar:', error);
+                    mostrarAlerta('error', 'Error al restaurar avatar');
+                }
             }
         });
         
-        try {
-            // Crear nombre único para el archivo
-            const fileExt = file.name.split('.').pop().toLowerCase();
-            const validExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-            
-            if (!validExtensions.includes(fileExt)) {
-                throw new Error('Formato de imagen no soportado. Usa JPG, PNG o GIF');
-            }
-            
-            const fileName = `imagen-avatar-${Date.now()}.${fileExt}`;
-            const filePath = `avatars/${user.id}/${fileName}`;
-            
-            // Subir a Supabase Storage
-            const { data, error: uploadError } = await supabaseClient.storage
-                .from('usuarios')
-                .upload(filePath, file, {
-                    cacheControl: '3600',
-                    upsert: true,
-                    contentType: file.type
-                });
-            
-            if (uploadError) {
-                console.error('Error subiendo imagen:', uploadError);
-                
-                // Intentar método alternativo
-                const filePathAlt = `avatars/${fileName}`;
-                const { error: altError } = await supabaseClient.storage
-                    .from('usuarios')
-                    .upload(filePathAlt, file, {
-                        cacheControl: '3600',
-                        upsert: true,
-                        contentType: file.type
-                    });
-                
-                if (altError) throw altError;
-                
-                // Obtener URL pública (método alternativo)
-                const { data: { publicUrl } } = supabaseClient.storage
-                    .from('usuarios')
-                    .getPublicUrl(filePathAlt);
-                
-                await actualizarAvatarEnDB(publicUrl, user.id);
-                
-            } else {
-                // Obtener URL pública (método normal)
-                const { data: { publicUrl } } = supabaseClient.storage
-                    .from('usuarios')
-                    .getPublicUrl(filePath);
-                
-                await actualizarAvatarEnDB(publicUrl, user.id);
-            }
-            
-        } catch (error) {
-            Swal.close();
-            console.error('Error subiendo imagen:', error);
-            mostrarAlerta('error', 'Error al subir la imagen: ' + error.message);
-        }
-    };
-    
-    input.click();
+    } catch (error) {
+        console.error('Error verificando avatar:', error);
+        mostrarAlerta('error', 'No se pudo verificar el estado del avatar');
+    }
 }
 
-// Función auxiliar para actualizar en la base de datos
-async function actualizarAvatarEnDB(avatarUrl, userId) {
-    const { error: updateError } = await supabaseClient
-        .from('usuarios')
-        .update({ avatar_url: avatarUrl })
-        .eq('id', userId);
-    
-    if (updateError) throw updateError;
-    
-    Swal.close();
-    
-    // Actualizar visualmente
-    configurarAvatar(avatarUrl);
-    
-    mostrarAlerta('success', '¡Avatar actualizado con imagen! 📸');
-}
-
-// Función para seleccionar avatar por defecto
-async function seleccionarAvatarPorDefecto(user) {
+// Función para mostrar modal básico si hay errores - NUEVA
+function mostrarModalAvatarBasico() {
     Swal.fire({
-        title: '¿Restaurar avatar por defecto?',
-        text: 'Se eliminará tu avatar personalizado',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Sí, restaurar',
-        cancelButtonText: 'Cancelar'
-    }).then(async (result) => {
-        if (result.isConfirmed) {
-            try {
-                const { error } = await supabaseClient
-                    .from('usuarios')
-                    .update({ avatar_url: null })
-                    .eq('id', user.id);
+        html: `
+            <div style="padding: 20px; text-align: center;">
+                <div style="font-size: 48px; color: #4CAF50; margin-bottom: 20px;">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <h3 style="color: #333; margin-bottom: 10px;">Personalizar Avatar</h3>
+                <p style="color: #666; margin-bottom: 30px;">Elige cómo quieres personalizar tu avatar</p>
                 
-                if (error) throw error;
+                <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px;">
+                    <button id="basicEmojiOption" style="background: #4CAF50; color: white; border: none; padding: 15px; border-radius: 10px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                        <span>😊</span> Usar Emoji
+                    </button>
+                    
+                    <button id="basicImageOption" style="background: #2196F3; color: white; border: none; padding: 15px; border-radius: 10px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                        <i class="fas fa-image"></i> Subir Imagen
+                    </button>
+                </div>
                 
-                configurarAvatar(null);
-                mostrarAlerta('success', 'Avatar restaurado al valor por defecto');
-                
-            } catch (error) {
-                console.error('Error eliminando avatar:', error);
-                mostrarAlerta('error', 'Error al restaurar avatar');
+                <button id="basicCancel" style="background: transparent; color: #666; border: 1px solid #ddd; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
+                    Cancelar
+                </button>
+            </div>
+        `,
+        width: '400px',
+        showConfirmButton: false,
+        showCloseButton: true
+    }).then(() => {
+        // Configurar eventos después de que se abra
+        setTimeout(() => {
+            const emojiBtn = document.getElementById('basicEmojiOption');
+            const imageBtn = document.getElementById('basicImageOption');
+            const cancelBtn = document.getElementById('basicCancel');
+            
+            if (emojiBtn) {
+                emojiBtn.onclick = () => {
+                    Swal.close();
+                    // Intentar obtener el usuario nuevamente para emoji
+                    obtenerUsuarioParaEmoji();
+                };
             }
-        }
+            
+            if (imageBtn) {
+                imageBtn.onclick = () => {
+                    Swal.close();
+                    // Intentar obtener el usuario nuevamente para imagen
+                    obtenerUsuarioParaImagen();
+                };
+            }
+            
+            if (cancelBtn) {
+                cancelBtn.onclick = () => Swal.close();
+            }
+        }, 100);
     });
 }
 
-// Función para guardar emoji como avatar
+// Función auxiliar para obtener usuario para emoji - NUEVA
+async function obtenerUsuarioParaEmoji() {
+    try {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (user) {
+            mostrarSelectorEmojisPremium(user.id);
+        } else {
+            mostrarAlerta('error', 'No se pudo identificar al usuario');
+        }
+    } catch (error) {
+        mostrarAlerta('error', 'Error al identificar usuario');
+    }
+}
+
+// Función auxiliar para obtener usuario para imagen - NUEVA
+async function obtenerUsuarioParaImagen() {
+    try {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (user) {
+            subirImagenAvatar(user);
+        } else {
+            mostrarAlerta('error', 'No se pudo identificar al usuario');
+        }
+    } catch (error) {
+        mostrarAlerta('error', 'Error al identificar usuario');
+    }
+}
+
+// Función mejorada para configurar el avatar visualmente - CORREGIDA
+function configurarAvatar(avatarUrl) {
+    const avatarElement = document.getElementById('configAvatar');
+    if (!avatarElement) return;
+    
+    // Limpiar el elemento
+    avatarElement.innerHTML = '';
+    
+    // Guardar en localStorage para referencia rápida
+    if (avatarUrl) {
+        localStorage.setItem('current_avatar_url', avatarUrl);
+    } else {
+        localStorage.removeItem('current_avatar_url');
+    }
+    
+    // Determinar qué mostrar
+    if (avatarUrl) {
+        if (avatarUrl.startsWith('EMOJI:')) {
+            const emoji = avatarUrl.replace('EMOJI:', '');
+            mostrarEmojiDirecto(emoji, avatarElement);
+        } else if (avatarUrl.startsWith('http')) {
+            if (avatarUrl.includes('emoji-avatar-')) {
+                mostrarImagenConBordeEspecial(avatarUrl, avatarElement, 'emoji');
+            } else {
+                mostrarImagenNormal(avatarUrl, avatarElement);
+            }
+        } else if (avatarUrl.length <= 3 && /\p{Emoji}/u.test(avatarUrl)) {
+            mostrarEmojiDirecto(avatarUrl, avatarElement);
+        } else {
+            // Si no reconocemos el formato, usar avatar por defecto
+            mostrarAvatarPorDefecto(avatarElement);
+        }
+    } else {
+        // Avatar por defecto cuando es null
+        mostrarAvatarPorDefecto(avatarElement);
+    }
+    
+    // Siempre agregar botón de cambio
+    agregarBotonCambioAvatar(avatarElement);
+}
+
+// Función mejorada para guardar emoji como avatar - CORREGIDA
 async function guardarEmojiComoAvatar(emoji, userId) {
     try {
         Swal.fire({
@@ -1603,39 +1375,37 @@ async function guardarEmojiComoAvatar(emoji, userId) {
             }
         });
         
-        // Crear una imagen del emoji usando un canvas
-        const canvas = document.createElement('canvas');
-        canvas.width = 200;
-        canvas.height = 200;
-        const ctx = canvas.getContext('2d');
+        // Método 1: Intentar crear imagen del emoji
+        let imagenUrl = null;
         
-        // Fondo del avatar (color aleatorio)
-        const colores = ['#4caf50', '#2196f3', '#e91e63', '#ff9800', '#9c27b0', '#3f51b5'];
-        const colorAleatorio = colores[Math.floor(Math.random() * colores.length)];
-        
-        ctx.fillStyle = colorAleatorio;
-        ctx.fillRect(0, 0, 200, 200);
-        
-        // Dibujar el emoji
-        ctx.font = '120px Arial, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillStyle = 'white';
-        ctx.fillText(emoji, 100, 100);
-        
-        // Convertir a blob
-        canvas.toBlob(async (blob) => {
-            if (!blob) {
-                Swal.close();
-                mostrarAlerta('error', 'Error al crear la imagen del emoji');
-                return;
-            }
+        try {
+            // Crear una imagen del emoji usando un canvas
+            const canvas = document.createElement('canvas');
+            canvas.width = 200;
+            canvas.height = 200;
+            const ctx = canvas.getContext('2d');
             
-            // Crear la ruta para el archivo
-            const fileName = `emoji-avatar-${Date.now()}.png`;
-            const filePath = `avatars/${userId}/${fileName}`;
+            // Fondo del avatar (color aleatorio)
+            const colores = ['#4caf50', '#2196f3', '#e91e63', '#ff9800', '#9c27b0', '#3f51b5'];
+            const colorAleatorio = colores[Math.floor(Math.random() * colores.length)];
             
-            try {
+            ctx.fillStyle = colorAleatorio;
+            ctx.fillRect(0, 0, 200, 200);
+            
+            // Dibujar el emoji
+            ctx.font = '120px "Segoe UI Emoji", "Apple Color Emoji", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = 'white';
+            ctx.fillText(emoji, 100, 100);
+            
+            // Convertir a blob y subir
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+            
+            if (blob) {
+                const fileName = `emoji-avatar-${Date.now()}.png`;
+                const filePath = `avatars/${userId}/${fileName}`;
+                
                 // Subir a Supabase Storage
                 const { data, error: uploadError } = await supabaseClient.storage
                     .from('usuarios')
@@ -1645,925 +1415,106 @@ async function guardarEmojiComoAvatar(emoji, userId) {
                         contentType: 'image/png'
                     });
                 
-                if (uploadError) {
-                    console.error('❌ Error detallado:', uploadError);
+                if (!uploadError) {
+                    // Obtener URL pública
+                    const { data: { publicUrl } } = supabaseClient.storage
+                        .from('usuarios')
+                        .getPublicUrl(filePath);
                     
-                    // Intentar método alternativo si falla
-                    await metodoAlternativoSubida(blob, userId, fileName);
-                    return;
+                    imagenUrl = publicUrl;
                 }
-                
-                // Obtener URL pública
-                const { data: { publicUrl } } = supabaseClient.storage
-                    .from('usuarios')
-                    .getPublicUrl(filePath);
-                
-                // Actualizar en la base de datos
-                const { error: updateError } = await supabaseClient
-                    .from('usuarios')
-                    .update({ avatar_url: publicUrl })
-                    .eq('id', userId);
-                
-                if (updateError) {
-                    Swal.close();
-                    console.error('Error actualizando avatar en DB:', updateError);
-                    mostrarAlerta('error', 'Error al guardar el avatar en la base de datos');
-                    return;
-                }
-                
-                Swal.close();
-                
-                // Actualizar visualmente
-                configurarAvatar(publicUrl);
-                
-                mostrarAlerta('success', '¡Avatar actualizado! 🎉');
-                
-            } catch (storageError) {
-                Swal.close();
-                console.error('Error en proceso storage:', storageError);
-                mostrarAlerta('error', 'Error en el almacenamiento: ' + storageError.message);
             }
-            
-        }, 'image/png');
+        } catch (canvasError) {
+            console.warn('No se pudo crear imagen del emoji:', canvasError);
+            // Continuar con método alternativo
+        }
+        
+        // Si no se pudo crear imagen, usar el emoji directamente
+        let avatarUrlFinal = imagenUrl || `EMOJI:${emoji}`;
+        
+        // Actualizar en la base de datos
+        const { error: updateError } = await supabaseClient
+            .from('usuarios')
+            .update({ 
+                avatar_url: avatarUrlFinal,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', userId);
+        
+        if (updateError) {
+            throw updateError;
+        }
+        
+        Swal.close();
+        
+        // Actualizar visualmente
+        configurarAvatar(avatarUrlFinal);
+        
+        mostrarAlerta('success', '¡Avatar actualizado con emoji! 🎉');
         
     } catch (error) {
         Swal.close();
-        console.error('Error general guardando emoji:', error);
-        mostrarAlerta('error', 'Error al cambiar el avatar: ' + error.message);
-    }
-}
-
-// Método alternativo si falla la subida normal
-async function metodoAlternativoSubida(blob, userId, fileName) {
-    try {
-        console.log('🔄 Intentando método alternativo...');
+        console.error('Error guardando emoji como avatar:', error);
         
-        // Método alternativo: Subir sin carpeta de usuario
-        const filePathAlt = `avatars/${fileName}`;
-        
-        const { data, error } = await supabaseClient.storage
-            .from('usuarios')
-            .upload(filePathAlt, blob, {
-                cacheControl: '3600',
-                upsert: true,
-                contentType: 'image/png'
-            });
-        
-        if (error) {
-            throw error;
-        }
-        
-        // Obtener URL pública
-        const { data: { publicUrl } } = supabaseClient.storage
-            .from('usuarios')
-            .getPublicUrl(filePathAlt);
-        
-        // Actualizar en la base de datos
-        await supabaseClient
-            .from('usuarios')
-            .update({ avatar_url: publicUrl })
-            .eq('id', userId);
-        
-        Swal.close();
-        configurarAvatar(publicUrl);
-        mostrarAlerta('success', '¡Avatar actualizado! 🎉 (método alternativo)');
-        
-    } catch (altError) {
-        Swal.close();
-        console.error('❌ Método alternativo falló:', altError);
-        
-        // Último recurso: Guardar solo el emoji como texto
-        await guardarSoloEmoji(emojiSeleccionadoGlobal, userId);
-    }
-}
-
-// Último recurso: Guardar solo el emoji
-async function guardarSoloEmoji(emoji, userId) {
-    const { error } = await supabaseClient
-        .from('usuarios')
-        .update({ 
-            avatar_url: `EMOJI:${emoji}`,
-            updated_at: new Date().toISOString()
-        })
-        .eq('id', userId);
-    
-    if (error) {
-        mostrarAlerta('error', 'No se pudo guardar ningún tipo de avatar');
-        return;
-    }
-    
-    // Mostrar el emoji directamente
-    const avatarElement = document.getElementById('configAvatar');
-    if (avatarElement) {
-        avatarElement.innerHTML = '';
-        const emojiDiv = document.createElement('div');
-        emojiDiv.textContent = emoji;
-        emojiDiv.style.cssText = `
-            width: 100%;
-            height: 100%;
-            font-size: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #4caf50;
-            border-radius: 50%;
-            color: white;
-        `;
-        avatarElement.appendChild(emojiDiv);
-        
-        // Agregar botón de cambio
-        const changeBtn = document.createElement('button');
-        changeBtn.className = 'btn-change-avatar';
-        changeBtn.id = 'btnChangeAvatar';
-        changeBtn.innerHTML = '😊';
-        changeBtn.onclick = cambiarAvatar;
-        changeBtn.style.cssText = `
-            position: absolute;
-            bottom: 5px;
-            right: 5px;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: #4caf50;
-            color: white;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-        `;
-        avatarElement.appendChild(changeBtn);
-    }
-    
-    mostrarAlerta('success', 'Emoji guardado como avatar ✨');
-}
-
-// Función para configurar el avatar visualmente
-function configurarAvatar(avatarUrl) {
-    const avatarElement = document.getElementById('configAvatar');
-    if (!avatarElement) return;
-    
-    avatarElement.innerHTML = '';
-    
-    if (avatarUrl) {
-        // Caso 1: Es un emoji guardado como texto (nuestro método alternativo)
-        if (avatarUrl.startsWith('EMOJI:')) {
-            const emoji = avatarUrl.replace('EMOJI:', '');
-            mostrarEmojiDirecto(emoji, avatarElement);
-        }
-        // Caso 2: Es una URL de imagen (emoji convertido o imagen normal)
-        else if (avatarUrl.startsWith('http')) {
-            // Verificar si es un emoji convertido a imagen
-            if (avatarUrl.includes('emoji-avatar-')) {
-                mostrarImagenConBordeEspecial(avatarUrl, avatarElement, 'emoji');
+        // Último intento: Guardar solo el emoji como texto
+        try {
+            const { error: simpleError } = await supabaseClient
+                .from('usuarios')
+                .update({ 
+                    avatar_url: emoji,  // Solo el emoji sin prefijo
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', userId);
+            
+            if (!simpleError) {
+                configurarAvatar(emoji);
+                mostrarAlerta('success', 'Emoji guardado como avatar ✨');
             } else {
-                // Es una imagen normal
-                mostrarImagenNormal(avatarUrl, avatarElement);
+                mostrarAlerta('error', 'No se pudo guardar ningún tipo de avatar');
+            }
+        } catch (finalError) {
+            mostrarAlerta('error', 'Error crítico: ' + finalError.message);
+        }
+    }
+}
+
+// Función para inicializar el sistema de avatar al cargar la página - NUEVA
+async function inicializarSistemaAvatar() {
+    try {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        
+        if (user) {
+            // Obtener el avatar actual de la base de datos
+            const { data, error } = await supabaseClient
+                .from('usuarios')
+                .select('avatar_url')
+                .eq('id', user.id)
+                .single();
+            
+            if (!error && data) {
+                // Configurar el avatar visualmente
+                configurarAvatar(data.avatar_url);
+            } else {
+                // Si hay error, usar null (avatar por defecto)
+                configurarAvatar(null);
             }
         }
-        // Caso 3: Es solo un emoji (sin prefijo)
-        else if (avatarUrl.length <= 3 && /\p{Emoji}/u.test(avatarUrl)) {
-            mostrarEmojiDirecto(avatarUrl, avatarElement);
-        }
-    } else {
-        // Avatar por defecto
-        mostrarAvatarPorDefecto(avatarElement);
+    } catch (error) {
+        console.error('Error inicializando sistema de avatar:', error);
+        // En caso de error, configurar avatar por defecto
+        configurarAvatar(null);
     }
-    
-    // Siempre agregar botón de cambio
-    agregarBotonCambioAvatar(avatarElement);
 }
 
-// Funciones auxiliares para cada tipo de avatar
-function mostrarEmojiDirecto(emoji, avatarElement) {
-    const emojiDiv = document.createElement('div');
-    emojiDiv.textContent = emoji;
-    emojiDiv.style.cssText = `
-        width: 100%;
-        height: 100%;
-        font-size: 60px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #4caf50;
-        border-radius: 50%;
-        color: white;
-        font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;
-    `;
-    avatarElement.appendChild(emojiDiv);
-}
+// Llamar a la inicialización cuando la página cargue
+document.addEventListener('DOMContentLoaded', inicializarSistemaAvatar);
 
-function mostrarImagenConBordeEspecial(imageUrl, avatarElement, tipo = 'emoji') {
-    const container = document.createElement('div');
-    container.style.cssText = `
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        position: relative;
-        overflow: hidden;
-        border: ${tipo === 'emoji' ? '4px solid #4caf50' : '3px solid #2196f3'};
-    `;
-    
-    const img = document.createElement('img');
-    img.src = imageUrl;
-    img.alt = `Avatar ${tipo}`;
-    img.style.cssText = `
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    `;
-    
-    // Si es emoji, agregar pequeño indicador
-    if (tipo === 'emoji') {
-        const emojiBadge = document.createElement('div');
-        emojiBadge.textContent = '😊';
-        emojiBadge.style.cssText = `
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: rgba(76, 175, 80, 0.9);
-            color: white;
-            border-radius: 50%;
-            width: 25px;
-            height: 25px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-        `;
-        container.appendChild(emojiBadge);
+// También inicializar cuando el usuario haga login
+supabaseClient.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN' && session?.user) {
+        setTimeout(() => inicializarSistemaAvatar(), 1000);
     }
-    
-    container.appendChild(img);
-    avatarElement.appendChild(container);
-}
-
-function mostrarImagenNormal(imageUrl, avatarElement) {
-    const img = document.createElement('img');
-    img.src = imageUrl;
-    img.alt = 'Avatar del usuario';
-    img.style.cssText = `
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 3px solid #ddd;
-    `;
-    img.onerror = () => {
-        // Si la imagen falla al cargar, mostrar avatar por defecto
-        avatarElement.innerHTML = '';
-        mostrarAvatarPorDefecto(avatarElement);
-        agregarBotonCambioAvatar(avatarElement);
-    };
-    avatarElement.appendChild(img);
-}
-
-function mostrarAvatarPorDefecto(avatarElement) {
-    const icon = document.createElement('i');
-    icon.className = 'fas fa-user-circle';
-    icon.style.cssText = `
-        font-size: 100%;
-        color: #4caf50;
-    `;
-    avatarElement.appendChild(icon);
-}
-
-function agregarBotonCambioAvatar(avatarElement) {
-    const changeBtn = document.createElement('button');
-    changeBtn.className = 'btn-change-avatar';
-    changeBtn.id = 'btnChangeAvatar';
-    changeBtn.innerHTML = '📷'; // Icono de cámara
-    changeBtn.title = 'Cambiar avatar';
-    changeBtn.style.cssText = `
-        position: absolute;
-        bottom: 5px;
-        right: 5px;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        background: #4caf50;
-        color: white;
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 16px;
-    `;
-    changeBtn.onclick = cambiarAvatar;
-    avatarElement.appendChild(changeBtn);
-}
-
-// Estilos CSS para los modales (corregido el tamaño)
-const avatarModalStyles = `
-<style>
-/* ============================================
-   MODAL PREMIUM DE AVATAR
-   ============================================ */
-
-.avatar-premium-popup {
-    border-radius: 24px !important;
-    overflow: hidden !important;
-    border: none !important;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
-}
-
-.avatar-close-btn {
-    color: #666 !important;
-    font-size: 20px !important;
-    transition: all 0.2s !important;
-}
-
-.avatar-close-btn:hover {
-    color: #333 !important;
-    transform: scale(1.1) !important;
-}
-
-/* Encabezado del modal */
-.avatar-modal-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 30px;
-    color: white;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.avatar-header-icon {
-    width: 60px;
-    height: 60px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    backdrop-filter: blur(10px);
-}
-
-.avatar-header-text h3 {
-    margin: 0;
-    font-size: 28px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-}
-
-.avatar-header-text p {
-    margin: 5px 0 0 0;
-    opacity: 0.9;
-    font-size: 14px;
-}
-
-/* Cuerpo del modal */
-.avatar-modal-body {
-    padding: 30px;
-    background: #f8fafc;
-}
-
-/* Grid de opciones */
-.avatar-options-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-bottom: 30px;
-}
-
-.avatar-option-card {
-    background: white;
-    border-radius: 16px;
-    padding: 20px;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 2px solid transparent;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-}
-
-.avatar-option-card:hover {
-    transform: translateY(-2px);
-    border-color: #667eea;
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
-}
-
-.avatar-option-card:active {
-    transform: translateY(0);
-}
-
-.option-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    flex-shrink: 0;
-}
-
-.emoji-icon {
-    background: linear-gradient(135deg, #FFD93D 0%, #FF6B6B 100%);
-    color: white;
-}
-
-.image-icon {
-    background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
-    color: white;
-}
-
-.default-icon {
-    background: linear-gradient(135deg, #A3A1FF 0%, #7E7BFF 100%);
-    color: white;
-}
-
-.option-content {
-    flex: 1;
-}
-
-.option-content h4 {
-    margin: 0 0 5px 0;
-    color: #2C3E50;
-    font-size: 18px;
-    font-weight: 600;
-}
-
-.option-content p {
-    margin: 0 0 10px 0;
-    color: #64748B;
-    font-size: 14px;
-    line-height: 1.4;
-}
-
-.option-tags {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.tag {
-    background: #F1F5F9;
-    color: #475569;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.3px;
-}
-
-.option-arrow {
-    color: #94A3B8;
-    font-size: 18px;
-    opacity: 0.6;
-    transition: all 0.2s;
-}
-
-.avatar-option-card:hover .option-arrow {
-    opacity: 1;
-    transform: translateX(5px);
-    color: #667eea;
-}
-
-/* Vista previa actual */
-.current-avatar-preview {
-    background: white;
-    border-radius: 16px;
-    padding: 25px;
-    margin-bottom: 25px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-}
-
-.current-avatar-preview h4 {
-    margin: 0 0 20px 0;
-    color: #2C3E50;
-    font-size: 18px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.preview-container {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.avatar-preview-circle {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    flex-shrink: 0;
-}
-
-.avatar-preview-circle img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.avatar-preview-circle i {
-    font-size: 40px;
-    color: white;
-}
-
-.emoji-preview {
-    font-size: 40px;
-    line-height: 1;
-}
-
-.preview-info {
-    flex: 1;
-}
-
-.preview-name {
-    margin: 0 0 5px 0;
-    color: #2C3E50;
-    font-size: 18px;
-    font-weight: 600;
-}
-
-.preview-status {
-    margin: 0;
-    color: #64748B;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-/* Nota informativa */
-.avatar-info-note {
-    background: linear-gradient(135deg, #FFF9C4 0%, #FFECB3 100%);
-    border-radius: 12px;
-    padding: 15px 20px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    color: #5D4037;
-    font-size: 14px;
-}
-
-.avatar-info-note i {
-    font-size: 20px;
-    color: #FFA000;
-    flex-shrink: 0;
-}
-
-.avatar-info-note p {
-    margin: 0;
-    line-height: 1.4;
-}
-
-/* Pie del modal */
-.avatar-modal-footer {
-    padding: 20px 30px;
-    background: #F8FAFC;
-    border-top: 1px solid #E2E8F0;
-    text-align: center;
-}
-
-.btn-cancel-avatar {
-    background: transparent;
-    border: 2px solid #CBD5E1;
-    color: #64748B;
-    padding: 12px 30px;
-    border-radius: 12px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.btn-cancel-avatar:hover {
-    background: #F1F5F9;
-    border-color: #94A3B8;
-    color: #475569;
-}
-
-/* ============================================
-   MODAL PREMIUM DE EMOJIS (CORREGIDO)
-   ============================================ */
-
-.emoji-premium-popup {
-    border-radius: 24px !important;
-    overflow: hidden !important;
-    border: none !important;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
-    padding: 0 !important;
-}
-
-/* Encabezado de emojis */
-.emoji-modal-header {
-    background: linear-gradient(135deg, #FFD93D 0%, #FF6B6B 100%);
-    padding: 25px 30px;
-    color: white;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.btn-back-emoji {
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    color: white;
-    font-size: 18px;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.btn-back-emoji:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: scale(1.05);
-}
-
-.emoji-header-text h3 {
-    margin: 0;
-    font-size: 24px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.emoji-header-text p {
-    margin: 5px 0 0 0;
-    opacity: 0.9;
-    font-size: 14px;
-}
-
-/* Barra de búsqueda */
-.emoji-search-container {
-    background: white;
-    padding: 20px 30px;
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.search-icon {
-    position: absolute;
-    left: 50px;
-    color: #94A3B8;
-    font-size: 18px;
-}
-
-.emoji-search-input {
-    width: 100%;
-    padding: 15px 50px 15px 50px;
-    border: 2px solid #E2E8F0;
-    border-radius: 12px;
-    font-size: 16px;
-    color: #2C3E50;
-    transition: all 0.2s;
-    background: #F8FAFC;
-}
-
-.emoji-search-input:focus {
-    outline: none;
-    border-color: #667eea;
-    background: white;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.search-clear {
-    position: absolute;
-    right: 50px;
-    background: #E2E8F0;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: #64748B;
-    transition: all 0.2s;
-}
-
-.search-clear:hover {
-    background: #CBD5E1;
-    color: #475569;
-}
-
-/* Categorías */
-.emoji-categories {
-    background: white;
-    padding: 15px 30px;
-    display: flex;
-    gap: 10px;
-    overflow-x: auto;
-    border-bottom: 1px solid #E2E8F0;
-}
-
-.emoji-category-btn {
-    background: #F1F5F9;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 10px;
-    color: #64748B;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.emoji-category-btn.active {
-    background: linear-gradient(135deg, #FFD93D 0%, #FF6B6B 100%);
-    color: white;
-}
-
-.emoji-category-btn:hover:not(.active) {
-    background: #E2E8F0;
-    color: #475569;
-}
-
-/* Grid de emojis */
-.emoji-grid-container {
-    height: 300px;
-    overflow-y: auto;
-    padding: 20px 30px;
-    background: #F8FAFC;
-}
-
-.emoji-grid-premium {
-    display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    gap: 15px;
-}
-
-.emoji-item {
-    width: 50px;
-    height: 50px;
-    background: white;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    cursor: pointer;
-    transition: all 0.2s;
-    border: 2px solid transparent;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.emoji-item:hover {
-    transform: scale(1.1);
-    border-color: #FFD93D;
-    box-shadow: 0 5px 15px rgba(255, 217, 61, 0.3);
-}
-
-.emoji-item.selected {
-    background: linear-gradient(135deg, #FFD93D 0%, #FF6B6B 100%);
-    color: white;
-    border-color: #FF6B6B;
-    transform: scale(1.05);
-}
-
-.emoji-loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 200px;
-    color: #64748B;
-}
-
-.loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid #E2E8F0;
-    border-top-color: #667eea;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 15px;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-/* Vista previa seleccionada - CORREGIDA */
-.emoji-preview-section {
-    background: white;
-    padding: 25px 30px;
-    border-top: 1px solid #E2E8F0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-}
-
-.emoji-selected-preview {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 20px;
-    margin-bottom: 5px;
-}
-
-.selected-emoji {
-    width: 100px;
-    height: 100px;
-    background: linear-gradient(135deg, #FFD93D 0%, #FF6B6B 100%);
-    border-radius: 25px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 60px;
-    color: white;
-    box-shadow: 0 10px 30px rgba(255, 107, 107, 0.3);
-}
-
-.selected-info h4 {
-    margin: 0 0 8px 0;
-    color: #2C3E50;
-    font-size: 18px;
-    font-weight: 600;
-}
-
-.selected-info p {
-    margin: 0;
-    color: #64748B;
-    font-size: 14px;
-}
-
-/* Botón CORREGIDO - más pequeño */
-.btn-confirm-emoji {
-    width: auto !important;
-    padding: 12px 30px !important;
-    font-size: 15px !important;
-    border-radius: 12px !important;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-    color: white !important;
-    border: none !important;
-    cursor: pointer !important;
-    transition: all 0.3s !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
-}
-
-.btn-confirm-emoji:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4) !important;
-}
-
-.btn-confirm-emoji:active {
-    transform: translateY(0) !important;
-}
-
-/* Scrollbar personalizada */
-.emoji-grid-container::-webkit-scrollbar {
-    width: 8px;
-}
-
-.emoji-grid-container::-webkit-scrollbar-track {
-    background: #F1F5F9;
-    border-radius: 4px;
-}
-
-.emoji-grid-container::-webkit-scrollbar-thumb {
-    background: #CBD5E1;
-    border-radius: 4px;
-}
-
-.emoji-grid-container::-webkit-scrollbar-thumb:hover {
-    background: #94A3B8;
-}
-</style>
-`;
-
-// Añadir estilos al documento si no existen
-if (!document.querySelector('style[data-avatar-styles]')) {
-    const styleElement = document.createElement('style');
-    styleElement.setAttribute('data-avatar-styles', 'true');
-    styleElement.textContent = avatarModalStyles;
-    document.head.appendChild(styleElement);
-}
+});
     // FUNCIONES DE ELIMINAR CUENTA
     // ============================================
     
