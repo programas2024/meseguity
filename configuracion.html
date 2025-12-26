@@ -3367,53 +3367,19 @@
     // ============================================
     // FUNCIONES DE INICIALIZACIÓN
     // ============================================
-
-    document.addEventListener('DOMContentLoaded', function() {
-    console.log('Configuracion.html cargado');
-    
-    // Verificar parámetros de URL O sessionStorage
-    const urlParams = new URLSearchParams(window.location.search);
-    let publicacionId = urlParams.get('publicacion') || sessionStorage.getItem('publicacionCompartida');
-    let section = urlParams.get('section') || sessionStorage.getItem('sectionCompartida');
-    
-    if (publicacionId && section === 'publicaciones') {
-        console.log('Procesando publicación compartida en configuracion.html:', publicacionId);
-        
-        // Limpiar URL y sessionStorage
-        const cleanUrl = window.location.origin + window.location.pathname;
-        window.history.replaceState({}, document.title, cleanUrl);
-        
-        sessionStorage.removeItem('publicacionCompartida');
-        sessionStorage.removeItem('sectionCompartida');
-        
-        // Navegar automáticamente a la sección de publicaciones
-        if (typeof mostrarSeccionPublicaciones === 'function') {
-            console.log('Mostrando sección de publicaciones automáticamente');
-            mostrarSeccionPublicaciones();
-            
-            // Guardar para destacar después que carguen las publicaciones
-            setTimeout(() => {
-                sessionStorage.setItem('destacarPublicacion', publicacionId);
-            }, 1000);
-        } else {
-            console.error('ERROR: mostrarSeccionPublicaciones no está definido');
-        }
-    }
-});
-    
-    // En tu configuracion.html
+// En configuracion.html - ACTUALIZA ESTA PARTE:
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('Configuracion.html cargado');
     
-    // 1. Inicializar Supabase primero
-    await inicializarSupabase(); // Asegúrate de que esto se ejecute
+    // 1. ESPERAR a que Supabase se inicialice primero
+    await esperarSupabaseInicializado();
     
     // 2. Verificar publicación compartida
     const urlParams = new URLSearchParams(window.location.search);
     let publicacionId = urlParams.get('publicacion');
     let section = urlParams.get('section');
     
-    // También verificar sessionStorage (por si viene de index.html)
+    // También verificar sessionStorage
     if (!publicacionId) {
         publicacionId = sessionStorage.getItem('publicacionCompartida');
         section = sessionStorage.getItem('sectionCompartida') || 'publicaciones';
@@ -3430,29 +3396,89 @@ document.addEventListener('DOMContentLoaded', async function() {
         sessionStorage.removeItem('publicacionCompartida');
         sessionStorage.removeItem('sectionCompartida');
         
-        // ESPERAR 1 segundo para asegurar que Supabase esté listo
-        setTimeout(async () => {
-            // Verificar si hay usuario autenticado
-            const user = await obtenerUsuarioActual(true);
+        // Guardar el ID para después
+        sessionStorage.setItem('publicacionCompartidaPendiente', publicacionId);
+        sessionStorage.setItem('esVistaPublica', 'true');
+        
+        console.log('✅ Publicación guardada, esperando inicialización completa...');
+    }
+    
+    // 3. Inicializar el resto de la aplicación normalmente
+    inicializarAplicacion();
+});
+
+// ======================
+// FUNCIÓN PARA ESPERAR SUPABASE
+// ======================
+function esperarSupabaseInicializado() {
+    return new Promise((resolve, reject) => {
+        console.log('Esperando inicialización de Supabase...');
+        
+        let intentos = 0;
+        const maxIntentos = 20; // 5 segundos máximo
+        
+        const verificarSupabase = () => {
+            intentos++;
             
-            if (user) {
-                console.log('✅ Usuario autenticado, modo normal');
+            if (window.supabaseClient && typeof window.supabaseClient.from === 'function') {
+                console.log('✅ Supabase inicializado después de', intentos, 'intentos');
+                resolve(window.supabaseClient);
+                return;
+            }
+            
+            if (intentos >= maxIntentos) {
+                console.error('❌ Timeout: Supabase no se inicializó');
+                reject(new Error('Supabase no se inicializó'));
+                return;
+            }
+            
+            setTimeout(verificarSupabase, 250); // Reintentar cada 250ms
+        };
+        
+        verificarSupabase();
+    });
+}
+
+// ======================
+// FUNCIÓN DE INICIALIZACIÓN PRINCIPAL
+// ======================
+async function inicializarAplicacion() {
+    console.log('Inicializando aplicación...');
+    
+    try {
+        // Tu código de inicialización existente
+        if (window.inicializarBotonInformacion) {
+            window.inicializarBotonInformacion();
+        }
+        
+        // Verificar si hay publicación compartida pendiente
+        const publicacionPendiente = sessionStorage.getItem('publicacionCompartidaPendiente');
+        const esVistaPublica = sessionStorage.getItem('esVistaPublica') === 'true';
+        
+        if (publicacionPendiente && esVistaPublica) {
+            console.log('📢 Procesando publicación compartida pendiente:', publicacionPendiente);
+            
+            // Limpiar
+            sessionStorage.removeItem('publicacionCompartidaPendiente');
+            sessionStorage.removeItem('esVistaPublica');
+            
+            // ESPERAR un poco más para asegurar que todo está listo
+            setTimeout(() => {
                 if (typeof mostrarSeccionPublicaciones === 'function') {
-                    mostrarSeccionPublicaciones();
-                    sessionStorage.setItem('destacarPublicacion', publicacionId);
-                }
-            } else {
-                console.log('👤 Usuario NO autenticado, modo vista pública');
-                if (typeof mostrarSeccionPublicaciones === 'function') {
-                    mostrarSeccionPublicaciones(true); // true = vista pública
-                    sessionStorage.setItem('destacarPublicacion', publicacionId);
+                    console.log('📢 Mostrando en modo vista pública');
+                    mostrarSeccionPublicaciones(true);
                     
-                    // Mostrar mensaje informativo
+                    // Guardar para destacar
+                    setTimeout(() => {
+                        sessionStorage.setItem('destacarPublicacion', publicacionPendiente);
+                    }, 1500);
+                    
+                    // Mostrar mensaje
                     Swal.fire({
-                        title: 'Vista pública',
+                        title: 'Vista pública activada',
                         text: 'Estás viendo una publicación compartida. Inicia sesión para ver más contenido.',
                         icon: 'info',
-                        timer: 3000,
+                        timer: 4000,
                         showConfirmButton: true,
                         confirmButtonText: 'Iniciar sesión',
                         showCancelButton: true,
@@ -3463,10 +3489,15 @@ document.addEventListener('DOMContentLoaded', async function() {
                         }
                     });
                 }
-            }
-        }, 1000);
+            }, 1000);
+        }
+        
+        console.log('✅ Aplicación inicializada correctamente');
+        
+    } catch (error) {
+        console.error('Error inicializando aplicación:', error);
     }
-    });
+}
     
     async function inicializarSupabase() {
         console.log('Inicializando Supabase...');
@@ -3558,34 +3589,54 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
     
-  // Función para obtener usuario actual - VERSIÓN MEJORADA
+  // Función para obtener usuario actual - VERSIÓN MÁS ROBUSTA
 async function obtenerUsuarioActual(allowNull = false) {
     try {
-        // Verificar si supabaseClient está disponible
-        if (!supabaseClient) {
-            console.warn('supabaseClient no disponible');
+        // 1. Verificar que supabaseClient exista
+        if (!window.supabaseClient) {
+            console.warn('⚠️ supabaseClient no está disponible aún');
+            
+            // Intentar inicializarlo
+            if (window.supabase && window.supabase.auth) {
+                window.supabaseClient = window.supabase;
+            } else {
+                return allowNull ? null : null;
+            }
+        }
+        
+        // 2. Obtener usuario
+        const { data: { user }, error } = await window.supabaseClient.auth.getUser();
+        
+        if (error) {
+            console.warn('Error obteniendo usuario auth:', error.message);
             return allowNull ? null : null;
         }
         
-        // Obtener usuario de auth
-        const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-        
-        if (authError || !user) {
-            console.log('Usuario no autenticado o error en auth:', authError?.message || 'No user');
+        if (!user) {
+            console.log('👤 Usuario no autenticado');
             return allowNull ? null : null;
         }
         
-        // Usar TU función obtenerODatosUsuario
-        const usuarioCompleto = await obtenerODatosUsuario(user);
-        console.log('✅ Usuario obtenido:', usuarioCompleto?.email || 'No email');
-        return usuarioCompleto;
+        console.log('✅ Usuario autenticado:', user.email);
+        
+        // 3. Usar tu función obtenerODatosUsuario
+        if (typeof obtenerODatosUsuario === 'function') {
+            const usuarioCompleto = await obtenerODatosUsuario(user);
+            return usuarioCompleto;
+        }
+        
+        // Fallback: retornar datos básicos
+        return {
+            id: user.id,
+            email: user.email,
+            nombre: user.user_metadata?.name || user.email.split('@')[0]
+        };
         
     } catch (error) {
-        console.error('Error en obtenerUsuarioActual:', error);
+        console.error('❌ Error en obtenerUsuarioActual:', error);
         return allowNull ? null : null;
     }
 }
-    
     async function crearUsuarioEnDB(usuarioAuth) {
         const nuevoUsuario = {
             id: usuarioAuth.id,
