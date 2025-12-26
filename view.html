@@ -17,7 +17,7 @@
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #020824 0%, #000000 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -370,6 +370,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+       <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // ======================
         // CONFIGURACIÓN SUPABASE (TUS CREDENCIALES)
@@ -377,8 +378,8 @@
         const SUPABASE_URL = 'https://enmiomqkkdlmodrjmfak.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVubWlvbXFra2RsbW9kcmptZmFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MDA0OTEsImV4cCI6MjA4MDk3NjQ5MX0.HeiJGnnkUjutlZkMTopFK7AIRZzRLxBTXvWk96OcAxg';
         
-        // Crear cliente Supabase
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // Crear cliente Supabase - USAR NOMBRE DIFERENTE
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
         // ======================
         // VARIABLES GLOBALES
@@ -397,8 +398,8 @@
                     throw new Error('No se especificó ID de publicación');
                 }
                 
-                // Obtener publicación desde Supabase
-                const { data: publicacion, error } = await supabase
+                // Obtener publicación desde Supabase - USAR supabaseClient
+                const { data: publicacion, error } = await supabaseClient
                     .from('publicaciones')
                     .select(`
                         *,
