@@ -140,164 +140,209 @@
     <script src="modulos/ayulogin.js"></script>
 
     <script>
-        // Esperar a que TODO esté cargado
-        document.addEventListener('DOMContentLoaded', async function() {
-            console.log('DOM cargado, verificando Supabase...');
+       // ======================
+// PASO 1: SI VIENE DE UN ENLACE COMPARTIDO, REDIRIGIR A CONFIGURACION.HTML
+// ======================
+function procesarParametrosURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const publicacionId = urlParams.get('publicacion');
+    const section = urlParams.get('section');
+    
+    console.log('Procesando parámetros URL en index:', { publicacionId, section });
+    
+    // Si hay una publicación compartida, redirigir a configuracion.html
+    if (publicacionId && section === 'publicaciones') {
+        console.log('¡Enlace compartido detectado! Redirigiendo a configuracion.html...');
+        
+        // Guardar el ID en sessionStorage
+        sessionStorage.setItem('publicacionCompartida', publicacionId);
+        sessionStorage.setItem('sectionCompartida', section);
+        
+        // REDIRIGIR A CONFIGURACION.HTML, NO A PRINCIPAL.HTML
+        window.location.href = "configuracion.html?publicacion=" + publicacionId + "&section=" + section;
+        return true; // ¡IMPORTANTE! Indica que se redirigió
+    }
+    
+    return false; // No hay publicación compartida
+}
+
+// ======================
+// CÓDIGO PRINCIPAL DE INDEX.HTML
+// ======================
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('DOM cargado en index.html');
+    
+    // PRIMERO: Verificar si hay parámetros de publicación compartida
+    const tienePublicacionCompartida = procesarParametrosURL();
+    if (tienePublicacionCompartida) {
+        console.log('Redirigido a configuracion.html por publicación compartida');
+        return; // SALIR - Ya se redirigió a configuracion.html
+    }
+    
+    console.log('No hay publicación compartida, continuando con login normal...');
+    
+    // Verificar que supabase esté disponible
+    if (!window.supabase || !window.supabaseClient) {
+        console.error('Supabase no está disponible');
+        Swal.fire({
+            title: "Error de configuración",
+            text: "No se pudo cargar el sistema de autenticación. Por favor recarga la página.",
+            icon: "error"
+        });
+        return;
+    }
+    
+    // Inicializar botón de información
+    if (window.inicializarBotonInformacion) {
+        window.inicializarBotonInformacion();
+    }
+    
+    // Usar el cliente correcto
+    const supabase = window.supabaseClient || window.supabase;
+    
+    // ----------------- VERIFICAR SESIÓN ACTIVA -----------------
+    async function verificarSesionActiva() {
+        try {
+            const { data: { session }, error } = await supabase.auth.getSession();
             
-            // Verificar que supabase esté disponible
-            if (!window.supabase || !window.supabaseClient) {
-                console.error('Supabase no está disponible');
-                Swal.fire({
-                    title: "Error de configuración",
-                    text: "No se pudo cargar el sistema de autenticación. Por favor recarga la página.",
-                    icon: "error"
-                });
+            if (error) {
+                console.error('Error al verificar sesión:', error);
+                return null;
+            }
+            
+            if (session) {
+                console.log('Sesión activa encontrada:', session.user.email);
+                return session;
+            }
+            
+            return null;
+        } catch (error) {
+            console.error('Error en verificarSesionActiva:', error);
+            return null;
+        }
+    }
+
+    // Verificar sesión al cargar
+    const session = await verificarSesionActiva();
+    if (session) {
+        Swal.fire({
+            title: "Ya estás autenticado",
+            text: `Serás redirigido a la página principal...`,
+            icon: "info",
+            timer: 2000,
+            showConfirmButton: false
+        });
+        
+        setTimeout(() => {
+            window.location.href = "principal.html";
+        }, 2000);
+        return; // Salir para evitar configurar los event listeners
+    }
+
+    // ----------------- FUNCIÓN PARA MANEJAR ERRORES -----------------
+    function mostrarErrorLogin(error) {
+        let errorMessage = error.message;
+        
+        if (error.message.includes('Invalid login credentials')) {
+            errorMessage = "Credenciales incorrectas. Verifica tu email y contraseña.";
+        } else if (error.message.includes('Email not confirmed')) {
+            errorMessage = "Por favor confirma tu email antes de iniciar sesión.";
+        } else if (error.message.includes('User not found') || error.message.includes('Email not found')) {
+            errorMessage = "Usuario no encontrado. ¿Estás registrado?";
+        } else if (error.message.includes('too many requests')) {
+            errorMessage = "Demasiados intentos. Por favor espera unos minutos.";
+        }
+        
+        Swal.fire({ 
+            title: "Error en el inicio de sesión", 
+            text: errorMessage, 
+            icon: "error",
+            confirmButtonText: "Entendido"
+        });
+    }
+
+    // ----------------- LOGIN NORMAL -----------------
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        try {
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+
+            if (error) {
+                mostrarErrorLogin(error);
                 return;
             }
-// Inicializar botón de información
-            if (window.inicializarBotonInformacion) {
-                window.inicializarBotonInformacion();
-            }
-            // Usar el cliente correcto
-            const supabase = window.supabaseClient || window.supabase;
+
+            // Esperar un momento para que se establezca la sesión
+            await new Promise(resolve => setTimeout(resolve, 500));
             
-            // ----------------- VERIFICAR SESIÓN ACTIVA -----------------
-            async function verificarSesionActiva() {
-                try {
-                    const { data: { session }, error } = await supabase.auth.getSession();
-                    
-                    if (error) {
-                        console.error('Error al verificar sesión:', error);
-                        return null;
-                    }
-                    
-                    if (session) {
-                        console.log('Sesión activa encontrada:', session.user.email);
-                        return session;
-                    }
-                    
-                    return null;
-                } catch (error) {
-                    console.error('Error en verificarSesionActiva:', error);
-                    return null;
-                }
-            }
+            Swal.fire({
+                title: "¡Bienvenido!",
+                text: `Inicio de sesión exitoso para ${data.user.email}`,
+                icon: "success",
+                timer: 1500,
+                showConfirmButton: false
+            });
 
-            // Verificar sesión al cargar
-            const session = await verificarSesionActiva();
-            if (session) {
+            setTimeout(() => {
+                window.location.href = "principal.html";
+            }, 1500);
+
+        } catch (catchError) {
+            console.error('Error inesperado:', catchError);
+            Swal.fire({ 
+                title: "Error inesperado", 
+                text: "Ocurrió un error inesperado. Por favor intenta nuevamente.", 
+                icon: "error" 
+            });
+        }
+    });
+
+    // ----------------- LOGIN CON GITHUB -----------------
+    document.getElementById("githubLogin").addEventListener("click", async () => {
+        try {
+            // Usar la URL actual como base para el redirect
+            const redirectUrl = `${window.location.origin}/principal.html`;
+            
+            console.log('Redirigiendo a GitHub...', redirectUrl);
+            
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: "github",
+                options: {
+                    redirectTo: redirectUrl
+                }
+            });
+
+            if (error) {
+                console.error('Error con GitHub OAuth:', error);
                 Swal.fire({
-                    title: "Ya estás autenticado",
-                    text: `Serás redirigido a la página principal...`,
-                    icon: "info",
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-                
-                setTimeout(() => {
-                    window.location.href = "principal.html";
-                }, 2000);
-                return; // Salir para evitar configurar los event listeners
-            }
-
-            // ----------------- FUNCIÓN PARA MANEJAR ERRORES -----------------
-            function mostrarErrorLogin(error) {
-                let errorMessage = error.message;
-                
-                if (error.message.includes('Invalid login credentials')) {
-                    errorMessage = "Credenciales incorrectas. Verifica tu email y contraseña.";
-                } else if (error.message.includes('Email not confirmed')) {
-                    errorMessage = "Por favor confirma tu email antes de iniciar sesión.";
-                } else if (error.message.includes('User not found') || error.message.includes('Email not found')) {
-                    errorMessage = "Usuario no encontrado. ¿Estás registrado?";
-                } else if (error.message.includes('too many requests')) {
-                    errorMessage = "Demasiados intentos. Por favor espera unos minutos.";
-                }
-                
-                Swal.fire({ 
-                    title: "Error en el inicio de sesión", 
-                    text: errorMessage, 
-                    icon: "error",
-                    confirmButtonText: "Entendido"
+                    title: "Error con GitHub",
+                    text: error.message,
+                    icon: "error"
                 });
             }
-
-            // ----------------- LOGIN NORMAL -----------------
-            document.getElementById("loginForm").addEventListener("submit", async (e) => {
-                e.preventDefault();
-
-                const email = document.getElementById("email").value;
-                const password = document.getElementById("password").value;
-
-                try {
-                    const { data, error } = await supabase.auth.signInWithPassword({
-                        email: email,
-                        password: password
-                    });
-
-                    if (error) {
-                        mostrarErrorLogin(error);
-                        return;
-                    }
-
-                    // Esperar un momento para que se establezca la sesión
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    
-                    Swal.fire({
-                        title: "¡Bienvenido!",
-                        text: `Inicio de sesión exitoso para ${data.user.email}`,
-                        icon: "success",
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-
-                    setTimeout(() => {
-                        window.location.href = "principal.html";
-                    }, 1500);
-
-                } catch (catchError) {
-                    console.error('Error inesperado:', catchError);
-                    Swal.fire({ 
-                        title: "Error inesperado", 
-                        text: "Ocurrió un error inesperado. Por favor intenta nuevamente.", 
-                        icon: "error" 
-                    });
-                }
+        } catch (error) {
+            console.error('Error en login con GitHub:', error);
+            Swal.fire({
+                title: "Error",
+                text: "No se pudo conectar con GitHub",
+                icon: "error"
             });
+        }
+    });
+    
+    console.log('Index.html configurado correctamente');
+});
 
-            // ----------------- LOGIN CON GITHUB -----------------
-            document.getElementById("githubLogin").addEventListener("click", async () => {
-                try {
-                    // Usar la URL actual como base para el redirect
-                    const redirectUrl = `${window.location.origin}/principal.html`;
-                    
-                    console.log('Redirigiendo a GitHub...', redirectUrl);
-                    
-                    const { error } = await supabase.auth.signInWithOAuth({
-                        provider: "github",
-                        options: {
-                            redirectTo: redirectUrl
-                        }
-                    });
-
-                    if (error) {
-                        console.error('Error con GitHub OAuth:', error);
-                        Swal.fire({
-                            title: "Error con GitHub",
-                            text: error.message,
-                            icon: "error"
-                        });
-                    }
-                } catch (error) {
-                    console.error('Error en login con GitHub:', error);
-                    Swal.fire({
-                        title: "Error",
-                        text: "No se pudo conectar con GitHub",
-                        icon: "error"
-                    });
-                }
-            });
-        });
+// ======================
+// INICIALIZACIÓN
+// ======================
 
 
     </script>
