@@ -3401,29 +3401,71 @@
     }
 });
     
-    document.addEventListener('DOMContentLoaded', async function() {
-        console.log('DOM cargado, inicializando configuración...');
+    // En tu configuracion.html
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('Configuracion.html cargado');
+    
+    // 1. Inicializar Supabase primero
+    await inicializarSupabase(); // Asegúrate de que esto se ejecute
+    
+    // 2. Verificar publicación compartida
+    const urlParams = new URLSearchParams(window.location.search);
+    let publicacionId = urlParams.get('publicacion');
+    let section = urlParams.get('section');
+    
+    // También verificar sessionStorage (por si viene de index.html)
+    if (!publicacionId) {
+        publicacionId = sessionStorage.getItem('publicacionCompartida');
+        section = sessionStorage.getItem('sectionCompartida') || 'publicaciones';
+    }
+    
+    if (publicacionId && section === 'publicaciones') {
+        console.log('🔗 Publicación compartida detectada:', publicacionId);
         
-        try {
-            // 1. Inicializar Supabase
-            await inicializarSupabase();
+        // Limpiar URL
+        const cleanUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+        
+        // Limpiar sessionStorage
+        sessionStorage.removeItem('publicacionCompartida');
+        sessionStorage.removeItem('sectionCompartida');
+        
+        // ESPERAR 1 segundo para asegurar que Supabase esté listo
+        setTimeout(async () => {
+            // Verificar si hay usuario autenticado
+            const user = await obtenerUsuarioActual(true);
             
-            // 2. Verificar autenticación
-            const usuario = await verificarAutenticacion();
-            if (!usuario) return;
-            
-            // 3. Inicializar sección de perfil
-            await inicializarPerfil(usuario);
-            
-            // 4. Configurar eventos
-            configurarEventos(usuario);
-            
-            console.log('Configuración inicializada correctamente');
-            
-        } catch (error) {
-            console.error('Error en inicialización:', error);
-            mostrarAlerta('error', 'Error al cargar la configuración: ' + error.message);
-        }
+            if (user) {
+                console.log('✅ Usuario autenticado, modo normal');
+                if (typeof mostrarSeccionPublicaciones === 'function') {
+                    mostrarSeccionPublicaciones();
+                    sessionStorage.setItem('destacarPublicacion', publicacionId);
+                }
+            } else {
+                console.log('👤 Usuario NO autenticado, modo vista pública');
+                if (typeof mostrarSeccionPublicaciones === 'function') {
+                    mostrarSeccionPublicaciones(true); // true = vista pública
+                    sessionStorage.setItem('destacarPublicacion', publicacionId);
+                    
+                    // Mostrar mensaje informativo
+                    Swal.fire({
+                        title: 'Vista pública',
+                        text: 'Estás viendo una publicación compartida. Inicia sesión para ver más contenido.',
+                        icon: 'info',
+                        timer: 3000,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Iniciar sesión',
+                        showCancelButton: true,
+                        cancelButtonText: 'Continuar viendo'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = 'index.html';
+                        }
+                    });
+                }
+            }
+        }, 1000);
+    }
     });
     
     async function inicializarSupabase() {
@@ -3516,40 +3558,33 @@
         }
     }
     
-    async function obtenerODatosUsuario(usuarioAuth) {
-        try {
-            // Buscar usuario en la tabla usuarios
-            const { data: usuarioDB, error } = await supabaseClient
-                .from('usuarios')
-                .select('*')
-                .eq('id', usuarioAuth.id)
-                .single();
-            
-            // Si no existe, crearlo
-            if (error && error.code === 'PGRST116') {
-                console.log('Usuario no existe en DB, creando...');
-                return await crearUsuarioEnDB(usuarioAuth);
-            }
-            
-            if (error) {
-                console.error('Error buscando usuario:', error);
-                throw error;
-            }
-            
-            console.log('✅ Datos de usuario cargados de DB');
-            return usuarioDB;
-            
-        } catch (error) {
-            console.error('Error obteniendo datos de usuario:', error);
-            // Retornar datos básicos del auth
-            return {
-                id: usuarioAuth.id,
-                email: usuarioAuth.email,
-                nombre: usuarioAuth.user_metadata?.name || '',
-                apellidos: usuarioAuth.user_metadata?.last_name || ''
-            };
+  // Función para obtener usuario actual - VERSIÓN MEJORADA
+async function obtenerUsuarioActual(allowNull = false) {
+    try {
+        // Verificar si supabaseClient está disponible
+        if (!supabaseClient) {
+            console.warn('supabaseClient no disponible');
+            return allowNull ? null : null;
         }
+        
+        // Obtener usuario de auth
+        const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+        
+        if (authError || !user) {
+            console.log('Usuario no autenticado o error en auth:', authError?.message || 'No user');
+            return allowNull ? null : null;
+        }
+        
+        // Usar TU función obtenerODatosUsuario
+        const usuarioCompleto = await obtenerODatosUsuario(user);
+        console.log('✅ Usuario obtenido:', usuarioCompleto?.email || 'No email');
+        return usuarioCompleto;
+        
+    } catch (error) {
+        console.error('Error en obtenerUsuarioActual:', error);
+        return allowNull ? null : null;
     }
+}
     
     async function crearUsuarioEnDB(usuarioAuth) {
         const nuevoUsuario = {
@@ -7088,16 +7123,9 @@ async function subirMediaPublicacion(file, userId, tipoCarpeta) {
     }
 }
 
-// Cargar publicaciones del usuario
-async function cargarPublicaciones(pagina = 1) {
+// Cargar publicaciones - VERSIÓN CORREGIDA
+async function cargarPublicaciones(pagina = 1, isPublicView = false) {
     try {
-        const user = await obtenerUsuarioActual();
-        if (!user) {
-            mostrarAlerta('error', 'Debes iniciar sesión para ver publicaciones');
-            return;
-        }
-        
-        // Mostrar estado de carga
         const listaElement = document.getElementById('listaPublicaciones');
         if (!listaElement) return;
         
@@ -7107,38 +7135,54 @@ async function cargarPublicaciones(pagina = 1) {
             </div>
         `;
         
-        // Obtener filtros
+        // Construir consulta base
+        let query = supabaseClient
+            .from('publicaciones')
+            .select('*, usuarios(nombre, avatar_url)', { count: 'exact' });
+        
+        // VERIFICAR SI ES VISTA PÚBLICA
+        if (isPublicView) {
+            console.log('📢 MODO VISTA PÚBLICA: Mostrando solo publicaciones públicas');
+            query = query.eq('visibilidad', 'publico');
+        } else {
+            // Modo normal: verificar si usuario está autenticado
+            const user = await obtenerUsuarioActual(true);
+            
+            if (user) {
+                // Usuario autenticado: mostrar sus publicaciones
+                query = query.eq('usuario_id', user.id);
+                console.log('👤 Usuario autenticado:', user.email);
+            } else {
+                // Usuario no autenticado en modo normal: mostrar solo públicas
+                query = query.eq('visibilidad', 'publico');
+                console.log('👤 Usuario NO autenticado, mostrando públicas');
+            }
+        }
+        
+        // Aplicar filtros...
         const filtroTipo = document.getElementById('filtroTipo');
         const filtroOrden = document.getElementById('filtroOrden');
         
-        const tipoFiltro = filtroTipo ? filtroTipo.value : 'todas';
-        const ordenFiltro = filtroOrden ? filtroOrden.value : 'recientes';
-        
-        // Construir consulta
-        let query = supabaseClient
-            .from('publicaciones')
-            .select('*, usuarios(nombre, avatar_url)', { count: 'exact' })
-            .eq('usuario_id', user.id);
-        
-        // Aplicar filtro de tipo
-        if (tipoFiltro !== 'todas') {
-            query = query.eq('tipo', tipoFiltro);
+        if (filtroTipo && filtroTipo.value !== 'todas') {
+            query = query.eq('tipo', filtroTipo.value);
         }
         
-        // Aplicar orden
-        switch(ordenFiltro) {
-            case 'recientes':
-                query = query.order('fecha_creacion', { ascending: false });
-                break;
-            case 'antiguas':
-                query = query.order('fecha_creacion', { ascending: true });
-                break;
-            case 'populares':
-                query = query.order('likes_count', { ascending: false });
-                break;
+        // Orden
+        if (filtroOrden) {
+            switch(filtroOrden.value) {
+                case 'recientes':
+                    query = query.order('fecha_creacion', { ascending: false });
+                    break;
+                case 'antiguas':
+                    query = query.order('fecha_creacion', { ascending: true });
+                    break;
+                case 'populares':
+                    query = query.order('likes_count', { ascending: false });
+                    break;
+            }
         }
         
-        // Aplicar paginación
+        // Paginación
         const desde = (pagina - 1) * publicacionesPaginacion.porPagina;
         const hasta = desde + publicacionesPaginacion.porPagina - 1;
         
@@ -7146,32 +7190,38 @@ async function cargarPublicaciones(pagina = 1) {
         
         if (error) throw error;
         
-        // Cargar likes del usuario actual para estas publicaciones
-        await cargarLikesUsuario(publicaciones.map(p => p.id));
-        
         // Actualizar paginación
         publicacionesPaginacion.totalPublicaciones = count || 0;
         publicacionesPaginacion.paginaActual = pagina;
         
         // Mostrar publicaciones
-        mostrarPublicaciones(publicaciones);
+        mostrarPublicaciones(publicaciones, isPublicView);
         
-        // Actualizar paginación UI
-        actualizarPaginacion();
+        // Destacar publicación compartida si existe
+        const publicacionADestacar = sessionStorage.getItem('destacarPublicacion');
+        if (publicacionADestacar) {
+            console.log('🎯 Destacando publicación compartida:', publicacionADestacar);
+            
+            setTimeout(() => {
+                if (typeof destacarPublicacion === 'function') {
+                    destacarPublicacion(publicacionADestacar);
+                }
+                sessionStorage.removeItem('destacarPublicacion');
+            }, 1500);
+        }
         
     } catch (error) {
         console.error('Error cargando publicaciones:', error);
         const listaElement = document.getElementById('listaPublicaciones');
         if (listaElement) {
             listaElement.innerHTML = `
-                <div class="cargando-publicaciones" style="color: #e74c3c;">
-                    <i class="fas fa-exclamation-circle"></i> Error cargando publicaciones
+                <div class="cargando-publicaciones error">
+                    <i class="fas fa-exclamation-circle"></i> Error: ${error.message}
                 </div>
             `;
         }
     }
 }
-
 // Cargar likes del usuario actual para las publicaciones
 async function cargarLikesUsuario(publicacionIds) {
     try {
@@ -7198,20 +7248,35 @@ async function cargarLikesUsuario(publicacionIds) {
     }
 }
 
-// Mostrar publicaciones en la lista
-function mostrarPublicaciones(publicaciones) {
+// Mostrar publicaciones en la lista - VERSIÓN COMPLETA ACTUALIZADA
+function mostrarPublicaciones(publicaciones, isPublicView = false) {
     const listaElement = document.getElementById('listaPublicaciones');
     if (!listaElement) return;
     
+    // Mensaje cuando no hay publicaciones
     if (!publicaciones || publicaciones.length === 0) {
+        const mensajeTitulo = isPublicView 
+            ? 'No hay publicaciones públicas disponibles' 
+            : 'No hay publicaciones todavía';
+        
+        const mensajeDescripcion = isPublicView
+            ? 'No hay publicaciones visibles para el público en este momento.'
+            : '¡Crea tu primera publicación y comparte con la comunidad!';
+        
         listaElement.innerHTML = `
             <div class="estado-vacio">
                 <i class="fas fa-newspaper"></i>
-                <h4>No hay publicaciones todavía</h4>
-                <p>¡Crea tu primera publicación y comparte con la comunidad!</p>
+                <h4>${mensajeTitulo}</h4>
+                <p>${mensajeDescripcion}</p>
+                ${!isPublicView ? `
                 <button class="btn-publicar" onclick="document.querySelector('.tipo-btn[data-tipo=\"texto\"]').click()">
                     <i class="fas fa-plus"></i> Crear Primera Publicación
                 </button>
+                ` : `
+                <button class="btn-publicar" onclick="window.location.href='index.html'">
+                    <i class="fas fa-sign-in-alt"></i> Iniciar sesión para ver más
+                </button>
+                `}
             </div>
         `;
         return;
@@ -7238,12 +7303,13 @@ function mostrarPublicaciones(publicaciones) {
             visibilidadText = 'Solo amigos';
         }
         
-        // Verificar si el usuario ya dio like
-        const yaDioLike = userLikes.has(publicacion.id);
+        // Verificar si el usuario ya dio like (solo para usuarios autenticados)
+        const yaDioLike = !isPublicView ? userLikes.has(publicacion.id) : false;
         
         let contenidoHTML = '';
         let mediaHTML = '';
         
+        // Mostrar media según el tipo
         if (publicacion.url_media) {
             switch(publicacion.tipo) {
                 case 'imagen':
@@ -7305,19 +7371,72 @@ function mostrarPublicaciones(publicaciones) {
             contenidoHTML = `<div class="publicacion-texto">${publicacion.contenido}</div>`;
         }
         
-        // Generar URL de compartir si no existe
+        // Generar URL de compartir
         const shareUrl = publicacion.share_url || generarShareUrl(publicacion.id);
         
+        // Determinar nombre del autor
+        const nombreAutor = publicacion.usuarios?.nombre || 'Usuario';
+        
+        // Crear botones de acciones según el modo
+        let accionesHTML = '';
+        
+        if (isPublicView) {
+            // VISTA PÚBLICA - Solo botones básicos
+            accionesHTML = `
+                <div class="publicacion-acciones-item">
+                    <button type="button" class="like-btn-disabled" title="Inicia sesión para dar like">
+                        <i class="fas fa-heart"></i> ${publicacion.likes_count || 0}
+                    </button>
+                    <button type="button" class="comment-btn-disabled" title="Inicia sesión para comentar">
+                        <i class="fas fa-comment"></i> ${publicacion.comentarios_count || 0}
+                    </button>
+                    <button type="button" class="share-btn" onclick="compartirPublicacion('${publicacion.id}', '${shareUrl}')">
+                        <i class="fas fa-share-alt"></i> Compartir
+                    </button>
+                </div>
+            `;
+        } else {
+            // VISTA NORMAL (usuario autenticado) - Todos los botones
+            accionesHTML = `
+                <div class="publicacion-acciones-item">
+                    <button type="button" class="${yaDioLike ? 'liked' : ''}" 
+                            onclick="darLikePublicacion('${publicacion.id}', ${yaDioLike})">
+                        <i class="fas fa-heart"></i> ${publicacion.likes_count || 0}
+                    </button>
+                    <button type="button" onclick="mostrarComentarios('${publicacion.id}')">
+                        <i class="fas fa-comment"></i> ${publicacion.comentarios_count || 0}
+                    </button>
+                    <button type="button" class="share-btn" onclick="compartirPublicacion('${publicacion.id}', '${shareUrl}')">
+                        <i class="fas fa-share-alt"></i> Compartir
+                    </button>
+                    <button type="button" onclick="editarPublicacion('${publicacion.id}')">
+                        <i class="fas fa-edit"></i> Editar
+                    </button>
+                    <button type="button" onclick="eliminarPublicacion('${publicacion.id}')">
+                        <i class="fas fa-trash"></i> Eliminar
+                    </button>
+                </div>
+            `;
+        }
+        
+        // Crear elemento de publicación
         const publicacionElement = document.createElement('div');
-        publicacionElement.className = 'publicacion-item';
+        publicacionElement.className = 'publicacion-item' + (isPublicView ? ' public-view' : '');
         publicacionElement.setAttribute('data-publicacion-id', publicacion.id);
+        
+        // Si es vista pública, agregar indicador
+        const publicViewBadge = isPublicView 
+            ? '<span class="public-view-badge"><i class="fas fa-eye"></i> Vista pública</span>' 
+            : '';
+        
         publicacionElement.innerHTML = `
             <div class="publicacion-header">
+                ${publicViewBadge}
                 <div class="publicacion-avatar">
                     <i class="fas fa-user-circle"></i>
                 </div>
                 <div class="publicacion-info">
-                    <h4>${publicacion.usuarios?.nombre || 'Tú'}</h4>
+                    <h4>${nombreAutor}</h4>
                     <div class="publicacion-meta">
                         <span class="publicacion-fecha">
                             <i class="far fa-clock"></i> ${fecha}
@@ -7334,39 +7453,95 @@ function mostrarPublicaciones(publicaciones) {
                 ${contenidoHTML}
             </div>
             
-            <div class="publicacion-acciones-item">
-                <button type="button" class="${yaDioLike ? 'liked' : ''}" 
-                        onclick="darLikePublicacion('${publicacion.id}', ${yaDioLike})">
-                    <i class="fas fa-heart"></i> ${publicacion.likes_count || 0}
-                </button>
-                <button type="button" onclick="mostrarComentarios('${publicacion.id}')">
-                    <i class="fas fa-comment"></i> ${publicacion.comentarios_count || 0}
-                </button>
-                <button type="button" class="share-btn" onclick="compartirPublicacion('${publicacion.id}', '${shareUrl}')">
-                    <i class="fas fa-share-alt"></i> Compartir
-                </button>
-                <button type="button" onclick="editarPublicacion('${publicacion.id}')">
-                    <i class="fas fa-edit"></i> Editar
-                </button>
-                <button type="button" onclick="eliminarPublicacion('${publicacion.id}')">
-                    <i class="fas fa-trash"></i> Eliminar
-                </button>
+            ${accionesHTML}
+            
+            ${isPublicView ? `
+            <div class="public-view-notice">
+                <i class="fas fa-info-circle"></i>
+                <span>Inicia sesión para interactuar con esta publicación</span>
             </div>
+            ` : ''}
         `;
         
         listaElement.appendChild(publicacionElement);
     });
     
-    // Verificar si hay una publicación específica para destacar (desde parámetros URL)
-    const urlParams = new URLSearchParams(window.location.search);
-    const publicacionId = urlParams.get('publicacion');
-    if (publicacionId) {
+    // Verificar si hay una publicación específica para destacar
+    const publicacionADestacar = sessionStorage.getItem('destacarPublicacion');
+    if (publicacionADestacar) {
+        console.log('Buscando publicación para destacar:', publicacionADestacar);
         setTimeout(() => {
-            destacarPublicacion(publicacionId);
-        }, 500);
+            destacarPublicacion(publicacionADestacar);
+        }, 1000);
     }
 }
 
+// ======================
+// ESTILOS CSS ADICIONALES PARA VISTA PÚBLICA
+// ======================
+function agregarEstilosVistaPublica() {
+    if (!document.getElementById('public-view-styles')) {
+        const style = document.createElement('style');
+        style.id = 'public-view-styles';
+        style.textContent = `
+            .publicacion-item.public-view {
+                border: 2px solid rgba(102, 126, 234, 0.2);
+                background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            }
+            
+            .public-view-badge {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 4px 10px;
+                border-radius: 15px;
+                font-size: 12px;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                z-index: 10;
+            }
+            
+            .public-view-notice {
+                background: rgba(52, 152, 219, 0.1);
+                border-radius: 10px;
+                padding: 10px 15px;
+                margin-top: 15px;
+                border-left: 4px solid #3498db;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                color: #2c3e50;
+                font-size: 14px;
+            }
+            
+            .public-view-notice i {
+                color: #3498db;
+                font-size: 16px;
+            }
+            
+            .like-btn-disabled, .comment-btn-disabled {
+                opacity: 0.6;
+                cursor: not-allowed !important;
+                background-color: #e8edf2 !important;
+                color: #95a5a6 !important;
+            }
+            
+            .like-btn-disabled:hover, .comment-btn-disabled:hover {
+                transform: none !important;
+                box-shadow: none !important;
+            }
+            
+            .publicacion-item.public-view .publicacion-header {
+                position: relative;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+}
 // Actualizar paginación
 function actualizarPaginacion() {
     const paginacionElement = document.getElementById('paginacionPublicaciones');
