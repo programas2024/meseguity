@@ -391,172 +391,6 @@
         // ======================
         const esMovil = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
-        // Limpiar caché en móviles para prevenir problemas
-        if (esMovil) {
-            console.log('📱 Dispositivo móvil detectado, aplicando optimizaciones');
-            try {
-                localStorage.removeItem('supabase.auth.token');
-                sessionStorage.clear();
-            } catch (e) {
-                console.log('⚠️ No se pudo limpiar caché:', e);
-            }
-        }
-        
-        // ======================
-        // FUNCIÓN MEJORADA PARA OBTENER NOMBRE DEL USUARIO
-        // ======================
-        async function obtenerNombreUsuario(publicacion) {
-            try {
-                console.log('🔍 Obteniendo nombre del usuario para publicación:', publicacion.id);
-                console.log('📱 Es dispositivo móvil:', esMovil);
-                
-                // CASO 1: Usar datos ya disponibles en la publicación (funciona en PC)
-                if (publicacion.usuarios && publicacion.usuarios.nombre) {
-                    console.log('✅ Nombre encontrado en usuarios:', publicacion.usuarios.nombre);
-                    return {
-                        nombre: publicacion.usuarios.nombre,
-                        avatar_url: publicacion.usuarios.avatar_url,
-                        email: publicacion.usuarios.email
-                    };
-                }
-                
-                // CASO 2: Para móviles - método directo a la tabla usuarios
-                console.log('📱 Usando método para móvil...');
-                
-                // Método directo a la tabla 'usuarios'
-                const { data: usuarioData, error: usuarioError } = await supabaseClient
-                    .from('usuarios')
-                    .select('nombre, avatar_url, email')
-                    .eq('id', publicacion.usuario_id)
-                    .maybeSingle();
-                
-                if (!usuarioError && usuarioData) {
-                    console.log('✅ Usuario encontrado en tabla usuarios:', usuarioData);
-                    
-                    let nombre = usuarioData.nombre;
-                    let avatar_url = usuarioData.avatar_url;
-                    
-                    // Si no hay nombre, generar uno del email
-                    if (!nombre && usuarioData.email) {
-                        nombre = usuarioData.email.split('@')[0];
-                        nombre = nombre.charAt(0).toUpperCase() + nombre.slice(1);
-                    }
-                    
-                    return {
-                        nombre: nombre || `Usuario_${publicacion.usuario_id.substring(0, 8)}`,
-                        avatar_url: avatar_url,
-                        email: usuarioData.email
-                    };
-                }
-                
-                // CASO 3: Intentar obtener datos de auth.users (solo si tenemos permisos)
-                console.log('🔍 Intentando con auth.users...');
-                try {
-                    // Primero intentar obtener el email del usuario
-                    const { data: authData, error: authError } = await supabaseClient
-                        .from('auth.users')
-                        .select('email, raw_user_meta_data')
-                        .eq('id', publicacion.usuario_id)
-                        .maybeSingle();
-                    
-                    if (!authError && authData) {
-                        console.log('✅ Auth user encontrado:', authData.email);
-                        
-                        let nombre = '';
-                        let avatar_url = null;
-                        
-                        // Procesar metadata
-                        if (authData.raw_user_meta_data) {
-                            let metaData = authData.raw_user_meta_data;
-                            
-                            // Si es string, parsear
-                            if (typeof metaData === 'string') {
-                                try {
-                                    metaData = JSON.parse(metaData);
-                                } catch (e) {
-                                    console.log('⚠️ No se pudo parsear metadata:', e);
-                                }
-                            }
-                            
-                            if (metaData && typeof metaData === 'object') {
-                                nombre = metaData.name || metaData.full_name || metaData.nombre || '';
-                                avatar_url = metaData.avatar_url || metaData.picture || metaData.avatar || null;
-                            }
-                        }
-                        
-                        // Si no hay nombre en metadata, usar el email
-                        if (!nombre && authData.email) {
-                            nombre = authData.email.split('@')[0];
-                            nombre = nombre.charAt(0).toUpperCase() + nombre.slice(1);
-                        }
-                        
-                        return {
-                            nombre: nombre || `Usuario_${publicacion.usuario_id.substring(0, 8)}`,
-                            avatar_url: avatar_url,
-                            email: authData.email
-                        };
-                    }
-                } catch (authError) {
-                    console.log('⚠️ Error accediendo a auth.users:', authError);
-                }
-                
-                // CASO 4: Intentar RPC si existe
-                console.log('🔍 Intentando con función RPC...');
-                try {
-                    const { data: rpcData, error: rpcError } = await supabaseClient.rpc(
-                        'get_user_profile',
-                        { user_id: publicacion.usuario_id }
-                    );
-                    
-                    if (!rpcError && rpcData) {
-                        return {
-                            nombre: rpcData.name || rpcData.nombre || `Usuario_${publicacion.usuario_id.substring(0, 8)}`,
-                            avatar_url: rpcData.avatar_url || rpcData.picture || null,
-                            email: rpcData.email || null
-                        };
-                    }
-                } catch (rpcError) {
-                    console.log('⚠️ RPC no disponible:', rpcError);
-                }
-                
-                // CASO 5: Verificar almacenamiento local
-                console.log('🔍 Revisando almacenamiento local...');
-                const userDataKey = `messery_user_${publicacion.usuario_id}`;
-                const storedUserData = localStorage.getItem(userDataKey) || sessionStorage.getItem(userDataKey);
-                
-                if (storedUserData) {
-                    try {
-                        const parsedData = JSON.parse(storedUserData);
-                        console.log('✅ Datos encontrados en almacenamiento local:', parsedData);
-                        return {
-                            nombre: parsedData.nombre || parsedData.name || `Usuario_${publicacion.usuario_id.substring(0, 8)}`,
-                            avatar_url: parsedData.avatar_url || parsedData.picture || null,
-                            email: parsedData.email || null
-                        };
-                    } catch (e) {
-                        console.log('⚠️ Error al parsear datos almacenados:', e);
-                    }
-                }
-                
-                // CASO 6: Información genérica con prefijo específico
-                console.log('⚠️ Usando información genérica');
-                const randomNum = Math.floor(Math.random() * 10000);
-                return {
-                    nombre: esMovil ? `Usuario_${publicacion.usuario_id.substring(0, 6)}` : `Usuario_${randomNum}`,
-                    avatar_url: null,
-                    email: null
-                };
-                
-            } catch (error) {
-                console.error('❌ Error crítico obteniendo nombre:', error);
-                return {
-                    nombre: 'Usuario Messery',
-                    avatar_url: null,
-                    email: null
-                };
-            }
-        }
-        
         // ======================
         // FUNCIONES PRINCIPALES
         // ======================
@@ -569,27 +403,24 @@
                     throw new Error('No se especificó ID de publicación');
                 }
                 
-                // Para móviles, usar consulta más simple
-                const query = esMovil 
-                    ? supabaseClient
-                        .from('publicaciones')
-                        .select('*')
-                        .eq('id', publicacionId)
-                        .single()
-                    : supabaseClient
-                        .from('publicaciones')
-                        .select(`
-                            *,
-                            usuarios:usuario_id (
-                                nombre,
-                                avatar_url,
-                                email
-                            )
-                        `)
-                        .eq('id', publicacionId)
-                        .single();
-                
-                const { data: publicacion, error } = await query;
+                // CORRECCIÓN: Usar la misma consulta para PC y móvil
+                const { data: publicacion, error } = await supabaseClient
+                    .from('publicaciones')
+                    .select(`
+                        *,
+                        usuarios:usuario_id (
+                            id,
+                            nombre,
+                            apellidos,
+                            avatar_url,
+                            email,
+                            pais,
+                            ciudad,
+                            biografia
+                        )
+                    `)
+                    .eq('id', publicacionId)
+                    .single();
                 
                 if (error) {
                     console.error('Error Supabase:', error);
@@ -613,13 +444,10 @@
                 }
                 
                 console.log('✅ Publicación cargada:', publicacion);
+                console.log('👤 Datos del usuario desde la consulta:', publicacion.usuarios);
                 
-                // OBTENER NOMBRE Y AVATAR DEL USUARIO
-                const usuarioInfo = await obtenerNombreUsuario(publicacion);
-                console.log('👤 Información del usuario obtenida:', usuarioInfo);
-                
-                // Mostrar la publicación con la información del usuario
-                mostrarPublicacion(publicacion, usuarioInfo);
+                // Mostrar la publicación
+                mostrarPublicacion(publicacion);
                 
                 // Mostrar prompt de login después de 1 segundo
                 setTimeout(() => {
@@ -632,7 +460,7 @@
             }
         }
         
-        function mostrarPublicacion(publicacion, usuarioInfo) {
+        function mostrarPublicacion(publicacion) {
             const container = document.getElementById('publicacionContainer');
             const loading = document.getElementById('loading');
             
@@ -649,16 +477,40 @@
             });
             
             // ============================================
-            // DETERMINAR NOMBRE Y AVATAR
+            // OBTENER DATOS DEL USUARIO DESDE LA TABLA usuarios
             // ============================================
-            const nombreAutor = usuarioInfo.nombre || 'Usuario Messery';
-            const avatarUrl = usuarioInfo.avatar_url || publicacion.usuarios?.avatar_url;
+            const usuarioData = publicacion.usuarios;
+            console.log('👤 Datos completos del usuario:', usuarioData);
             
-            console.log('🎨 Mostrando publicación con:', {
-                nombreAutor,
-                avatarUrl,
-                tieneAvatar: !!avatarUrl
-            });
+            let nombreAutor = 'Usuario Messery';
+            let avatarUrl = null;
+            let emailUsuario = null;
+            
+            if (usuarioData) {
+                // Obtener nombre completo
+                if (usuarioData.nombre) {
+                    nombreAutor = usuarioData.apellidos 
+                        ? `${usuarioData.nombre} ${usuarioData.apellidos}`
+                        : usuarioData.nombre;
+                } else if (usuarioData.email) {
+                    // Si no hay nombre, usar email
+                    const nombreEmail = usuarioData.email.split('@')[0];
+                    nombreAutor = nombreEmail.charAt(0).toUpperCase() + nombreEmail.slice(1);
+                }
+                
+                avatarUrl = usuarioData.avatar_url;
+                emailUsuario = usuarioData.email;
+                
+                console.log('📊 Datos procesados:', {
+                    nombreCompleto: nombreAutor,
+                    avatarUrl: avatarUrl,
+                    email: emailUsuario
+                });
+            } else {
+                console.warn('⚠️ No se encontraron datos del usuario en la tabla usuarios');
+                // Intentar obtener datos alternativos
+                nombreAutor = `Usuario_${publicacion.usuario_id.substring(0, 8)}`;
+            }
             
             // Generar contenido HTML según el tipo
             let mediaHTML = '';
@@ -733,7 +585,7 @@
             }
             
             // ============================================
-            // HTML DEL AVATAR CON FALLBACK ROBUSTO
+            // HTML DEL AVATAR
             // ============================================
             let avatarHTML = '';
 
@@ -755,6 +607,22 @@
                 `;
             }
             
+            // Mostrar información adicional del usuario si está disponible
+            let userInfoHTML = '';
+            if (usuarioData && (usuarioData.pais || usuarioData.ciudad)) {
+                const ubicacion = [];
+                if (usuarioData.ciudad) ubicacion.push(usuarioData.ciudad);
+                if (usuarioData.pais) ubicacion.push(usuarioData.pais);
+                
+                if (ubicacion.length > 0) {
+                    userInfoHTML = `
+                        <div style="margin-top: 5px; font-size: 13px; color: #7f8c8d;">
+                            <i class="fas fa-map-marker-alt"></i> ${ubicacion.join(', ')}
+                        </div>
+                    `;
+                }
+            }
+            
             // Crear HTML de la publicación
             const publicacionHTML = `
                 <div class="publicacion-item" id="publicacion-${publicacion.id}">
@@ -762,6 +630,7 @@
                         ${avatarHTML}
                         <div class="publicacion-info">
                             <h4 style="color: #2c3e50; margin: 0 0 5px 0;">${nombreAutor}</h4>
+                            ${userInfoHTML}
                             <div class="publicacion-meta">
                                 <span><i class="far fa-clock"></i> ${fecha}</span>
                                 <span><i class="fas fa-globe-americas"></i> Pública</span>
@@ -792,6 +661,15 @@
                             <span>Compartida</span>
                         </div>
                     </div>
+                    
+                    ${usuarioData && usuarioData.biografia ? `
+                        <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e8edf2;">
+                            <p style="font-size: 14px; color: #5d6d7e; font-style: italic;">
+                                <i class="fas fa-quote-left" style="color: #667eea; margin-right: 5px;"></i>
+                                ${usuarioData.biografia}
+                            </p>
+                        </div>
+                    ` : ''}
                 </div>
             `;
             
@@ -809,10 +687,14 @@
             }, 100);
             
             // Guardar datos del usuario en localStorage para uso futuro
-            if (usuarioInfo.email) {
+            if (usuarioData && usuarioData.email) {
                 try {
                     const userDataKey = `messery_user_${publicacion.usuario_id}`;
-                    localStorage.setItem(userDataKey, JSON.stringify(usuarioInfo));
+                    localStorage.setItem(userDataKey, JSON.stringify({
+                        nombre: nombreAutor,
+                        avatar_url: avatarUrl,
+                        email: usuarioData.email
+                    }));
                 } catch (e) {
                     console.log('⚠️ No se pudo guardar en localStorage:', e);
                 }
@@ -923,6 +805,17 @@
             console.log('🚀 Página view.html cargada');
             console.log('📱 Navegador:', navigator.userAgent);
             console.log('🖥️ Plataforma:', navigator.platform);
+            console.log('📱 Es dispositivo móvil:', esMovil);
+            
+            // Limpiar caché en móviles para prevenir problemas
+            if (esMovil) {
+                console.log('📱 Dispositivo móvil detectado, aplicando optimizaciones');
+                try {
+                    localStorage.removeItem('supabase.auth.token');
+                } catch (e) {
+                    console.log('⚠️ No se pudo limpiar caché:', e);
+                }
+            }
             
             // Obtener ID de publicación de la URL
             const urlParams = new URLSearchParams(window.location.search);
