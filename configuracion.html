@@ -6644,12 +6644,11 @@ if (typeof window.onRTBSuccess === 'undefined') {
     };
 }
 
-// Configuración de URLs según el entorno
+// En APP_CONFIG, cambiar a:
 const APP_CONFIG = {
     generateShareUrl: function(publicacionId) {
-        // Usa tu URL de GitHub Pages directamente
         const baseUrl = 'https://programas2024.github.io/meseguity/';
-        return `${baseUrl}?publicacion=${publicacionId}&section=publicaciones`;
+        return `${baseUrl}view.html?id=${publicacionId}`;
     }
 };
 

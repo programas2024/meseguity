@@ -143,27 +143,20 @@
        // ======================
 // PASO 1: SI VIENE DE UN ENLACE COMPARTIDO, REDIRIGIR A CONFIGURACION.HTML
 // ======================
+// En index.html, modificar procesarParametrosURL:
 function procesarParametrosURL() {
     const urlParams = new URLSearchParams(window.location.search);
     const publicacionId = urlParams.get('publicacion');
     const section = urlParams.get('section');
     
-    console.log('Procesando parámetros URL en index:', { publicacionId, section });
-    
-    // Si hay una publicación compartida, redirigir a configuracion.html
     if (publicacionId && section === 'publicaciones') {
-        console.log('¡Enlace compartido detectado! Redirigiendo a configuracion.html...');
-        
-        // Guardar el ID en sessionStorage
-        sessionStorage.setItem('publicacionCompartida', publicacionId);
-        sessionStorage.setItem('sectionCompartida', section);
-        
-        // REDIRIGIR A CONFIGURACION.HTML, NO A PRINCIPAL.HTML
-        window.location.href = "configuracion.html?publicacion=" + publicacionId + "&section=" + section;
-        return true; // ¡IMPORTANTE! Indica que se redirigió
+        console.log('Redirigiendo a view.html...');
+        // Redirigir directamente a view.html
+        window.location.href = `view.html?id=${publicacionId}`;
+        return true;
     }
     
-    return false; // No hay publicación compartida
+    return false;
 }
 
 // ======================
