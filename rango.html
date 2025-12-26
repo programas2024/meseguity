@@ -695,6 +695,7 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="modulos/cerrarsesion_ranking.js"></script>
 
     <script>
        // Script de inicialización modificado para incluir el botón de información
@@ -951,17 +952,6 @@ function inicializarEventos() {
         });
     }
 
-    // Botón de cerrar sesión
-    document.getElementById('btn-logout').addEventListener('click', async function() {
-        try {
-            const { error } = await supabase.auth.signOut();
-            if (!error) {
-                window.location.href = 'index.html';
-            }
-        } catch (error) {
-            console.error('Error al cerrar sesión:', error);
-        }
-    });
 }
 
 // Cambiar categoría activa
@@ -3628,7 +3618,7 @@ async function enviarMensajeConfirmadoPremium(email, nombre) {
         
         // Cerrar modal de carga
         Swal.close();
-        
+
         
         // Mostrar error
         Swal.fire({
