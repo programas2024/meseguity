@@ -17,7 +17,7 @@
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #020824 0%, #000000 100%);
+            background: #ffffff;
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -35,7 +35,7 @@
         }
         
         .header {
-            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 25px;
             text-align: center;
@@ -51,7 +51,7 @@
         }
         
         .header h1 i {
-            color: #2ecc71;
+            color: #ffffff;
         }
         
         .header p {
@@ -371,6 +371,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // ======================
         // CONFIGURACIÓN SUPABASE (TUS CREDENCIALES)
@@ -378,7 +379,7 @@
         const SUPABASE_URL = 'https://enmiomqkkdlmodrjmfak.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVubWlvbXFra2RsbW9kcmptZmFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MDA0OTEsImV4cCI6MjA4MDk3NjQ5MX0.HeiJGnnkUjutlZkMTopFK7AIRZzRLxBTXvWk96OcAxg';
         
-        // Crear cliente Supabase - USAR NOMBRE DIFERENTE
+        // Crear cliente Supabase
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
         // ======================
@@ -386,6 +387,65 @@
         // ======================
         let publicacionId = null;
         let publicacionActual = null;
+        
+        // ======================
+        // FUNCIÓN PARA OBTENER NOMBRE DEL USUARIO (GARANTIZADO)
+        // ======================
+        async function obtenerNombreUsuario(publicacion) {
+            try {
+                console.log('🔍 Obteniendo nombre del usuario para publicación:', publicacion.id);
+                
+                // Caso 1: Ya tiene nombre en usuarios
+                if (publicacion.usuarios && publicacion.usuarios.nombre) {
+                    console.log('✅ Nombre encontrado en usuarios:', publicacion.usuarios.nombre);
+                    return {
+                        nombre: publicacion.usuarios.nombre,
+                        avatar_url: publicacion.usuarios.avatar_url
+                    };
+                }
+                
+                // Caso 2: Buscar email del usuario creador
+                console.log('🔍 Buscando email del usuario...');
+                
+                // Primero obtener el usuario que creó la publicación
+                const { data: usuarioCreador, error: usuarioError } = await supabaseClient.auth.admin.getUserById(
+                    publicacion.usuario_id
+                );
+                
+                if (!usuarioError && usuarioCreador && usuarioCreador.user) {
+                    const user = usuarioCreador.user;
+                    console.log('✅ Usuario encontrado:', user.email);
+                    
+                    // Si tiene metadata con nombre, usarlo
+                    if (user.user_metadata?.name) {
+                        return {
+                            nombre: user.user_metadata.name,
+                            avatar_url: user.user_metadata.avatar_url || null
+                        };
+                    }
+                    
+                    // Si no, usar el email
+                    return {
+                        nombre: user.email.split('@')[0],
+                        avatar_url: user.user_metadata?.avatar_url || null
+                    };
+                }
+                
+                // Caso 3: Si todo falla, usar información genérica
+                console.log('⚠️ Usando información genérica');
+                return {
+                    nombre: `Usuario_${publicacion.usuario_id.substring(0, 8)}`,
+                    avatar_url: null
+                };
+                
+            } catch (error) {
+                console.error('Error obteniendo nombre:', error);
+                return {
+                    nombre: 'Usuario Messery',
+                    avatar_url: null
+                };
+            }
+        }
         
         // ======================
         // FUNCIONES PRINCIPALES
@@ -398,14 +458,15 @@
                     throw new Error('No se especificó ID de publicación');
                 }
                 
-                // Obtener publicación desde Supabase - USAR supabaseClient
+                // Obtener publicación desde Supabase
                 const { data: publicacion, error } = await supabaseClient
                     .from('publicaciones')
                     .select(`
                         *,
                         usuarios (
                             nombre,
-                            avatar_url
+                            avatar_url,
+                            email
                         )
                     `)
                     .eq('id', publicacionId)
@@ -434,8 +495,12 @@
                 
                 console.log('✅ Publicación cargada:', publicacion);
                 
-                // Mostrar la publicación
-                mostrarPublicacion(publicacion);
+                // OBTENER NOMBRE Y AVATAR DEL USUARIO (GARANTIZADO)
+                const usuarioInfo = await obtenerNombreUsuario(publicacion);
+                console.log('👤 Información del usuario:', usuarioInfo);
+                
+                // Mostrar la publicación con la información del usuario
+                mostrarPublicacion(publicacion, usuarioInfo);
                 
                 // Mostrar prompt de login después de 1 segundo
                 setTimeout(() => {
@@ -448,7 +513,7 @@
             }
         }
         
-        function mostrarPublicacion(publicacion) {
+        function mostrarPublicacion(publicacion, usuarioInfo) {
             const container = document.getElementById('publicacionContainer');
             const loading = document.getElementById('loading');
             
@@ -462,6 +527,18 @@
                 day: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit'
+            });
+            
+            // ============================================
+            // DETERMINAR NOMBRE Y AVATAR (GARANTIZADO)
+            // ============================================
+            const nombreAutor = usuarioInfo.nombre || 'Usuario Messery';
+            const avatarUrl = usuarioInfo.avatar_url || publicacion.usuarios?.avatar_url;
+            
+            console.log('🎨 Mostrando publicación con:', {
+                nombreAutor,
+                avatarUrl,
+                tieneAvatar: !!avatarUrl
             });
             
             // Generar contenido HTML según el tipo
@@ -511,9 +588,13 @@
                         break;
                         
                     case 'enlace':
-                        // Mostrar solo el dominio para que no sea tan largo
-                        const urlObj = new URL(publicacion.url_media);
-                        const dominio = urlObj.hostname;
+                        let dominio = 'Enlace compartido';
+                        try {
+                            const urlObj = new URL(publicacion.url_media);
+                            dominio = urlObj.hostname;
+                        } catch (e) {
+                            console.warn('URL inválida:', publicacion.url_media);
+                        }
                         
                         mediaHTML = `
                             <a href="${publicacion.url_media}" 
@@ -531,18 +612,31 @@
                 }
             }
             
+            // ============================================
+            // HTML DEL AVATAR (SIEMPRE VISIBLE)
+            // ============================================
+            let avatarHTML = '';
+            if (avatarUrl) {
+                avatarHTML = `
+                    <img src="${avatarUrl}" 
+                         alt="Avatar de ${nombreAutor}"
+                         style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                `;
+            } else {
+                avatarHTML = `
+                    <i class="fas fa-user-circle" style="font-size: 100%; color: #667eea;"></i>
+                `;
+            }
+            
             // Crear HTML de la publicación
             const publicacionHTML = `
                 <div class="publicacion-item" id="publicacion-${publicacion.id}">
                     <div class="publicacion-header">
-                        <div class="publicacion-avatar">
-                            ${publicacion.usuarios?.avatar_url 
-                                ? `<img src="${publicacion.usuarios.avatar_url}" alt="Avatar" style="width:100%;height:100%;border-radius:50%;">`
-                                : `<i class="fas fa-user-circle"></i>`
-                            }
+                        <div class="publicacion-avatar" style="display: flex; align-items: center; justify-content: center;">
+                            ${avatarHTML}
                         </div>
                         <div class="publicacion-info">
-                            <h4>${publicacion.usuarios?.nombre || 'Usuario'}</h4>
+                            <h4 style="color: #2c3e50; margin: 0 0 5px 0;">${nombreAutor}</h4>
                             <div class="publicacion-meta">
                                 <span><i class="far fa-clock"></i> ${fecha}</span>
                                 <span><i class="fas fa-globe-americas"></i> Pública</span>
