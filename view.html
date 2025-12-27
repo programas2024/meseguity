@@ -665,6 +665,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
     // ======================
     // CONFIGURACIÓN SUPABASE (TUS CREDENCIALES)
@@ -683,7 +684,7 @@
     let usuarioActual = null;
     
     // ======================
-    // DETECCIÓN DE DISPOSITIVO - ESTA ES LA LÍNEA QUE FALTABA
+    // DETECCIÓN DE DISPOSITIVO
     // ======================
     const esMovil = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
@@ -811,59 +812,216 @@
     // ======================
     // FUNCIÓN PARA MOSTRAR PERFIL COMPLETO DEL USUARIO
     // ======================
-   async function obtenerDatosUsuario(userId) {
-    console.log('🔍 Obteniendo datos del usuario ID:', userId);
-    
-    // Solo obtener datos públicos del usuario
-    try {
-        console.log('🔄 Buscando datos públicos del usuario...');
-        const { data, error } = await supabaseClient
-            .from('usuarios')
-            .select('nombre, apellidos, avatar_url, email, pais, ciudad, biografia, perfil_publico')
-            .eq('id', userId)
-            .eq('perfil_publico', true)  // Solo si es público
-            .maybeSingle();
-        
-        if (!error && data) {
-            console.log('✅ Datos públicos obtenidos:', data);
+    async function mostrarPerfilCompleto(usuarioId) {
+        try {
+            console.log('🔍 Buscando perfil público del usuario ID:', usuarioId);
             
-            // Guardar en localStorage para futuras visitas
-            try {
-                localStorage.setItem(`user_${userId}`, JSON.stringify(data));
-            } catch (e) {
-                console.log('⚠️ No se pudo guardar en localStorage');
+            // Obtener solo datos públicos del usuario
+            const { data: usuario, error } = await supabaseClient
+                .from('usuarios')
+                .select('nombre, apellidos, avatar_url, email, pais, ciudad, biografia, fecha_nacimiento, created_at, tipo_cuenta, genero, perfil_publico')
+                .eq('id', usuarioId)
+                .eq('perfil_publico', true)  // Solo usuarios con perfil público
+                .maybeSingle();  // Usar maybeSingle para evitar error si no hay datos
+            
+            if (error) {
+                console.error('Error Supabase:', error);
+                throw error;
             }
             
-            return data;
-        } else if (error) {
-            console.log('⚠️ Error obteniendo datos públicos:', error.message);
-        } else {
-            console.log('⚠️ Usuario no encontrado o perfil no es público');
+            if (!usuario) {
+                // Si no hay datos o perfil no es público, mostrar mensaje
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Perfil no disponible',
+                    html: `
+                        <div style="text-align: center; padding: 20px;">
+                            <i class="fas fa-user-lock" style="font-size: 60px; color: #667eea; margin-bottom: 20px;"></i>
+                            <p style="color: #5d6d7e; font-size: 16px; line-height: 1.5;">
+                                Este usuario ha configurado su perfil como privado.<br>
+                                Solo los usuarios autenticados pueden ver perfiles privados.
+                            </p>
+                            <div style="margin-top: 25px; display: flex; gap: 15px; justify-content: center;">
+                                <button onclick="window.open('index.html', '_blank')" 
+                                        style="padding: 12px 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600;">
+                                    <i class="fas fa-sign-in-alt"></i> Iniciar sesión
+                                </button>
+                                <button onclick="window.open('registro.html', '_blank')"
+                                        style="padding: 12px 25px; background: #f8f9fa; color: #2c3e50; border: 2px solid #e8edf2; border-radius: 10px; cursor: pointer; font-weight: 600;">
+                                    <i class="fas fa-user-plus"></i> Registrarse
+                                </button>
+                            </div>
+                        </div>
+                    `,
+                    showConfirmButton: false,
+                    showCloseButton: true,
+                    width: '500px'
+                });
+                return;
+            }
+            
+            // Si el usuario existe y tiene perfil público, mostrar datos
+            const nombreCompleto = `${usuario.nombre || ''} ${usuario.apellidos || ''}`.trim() || 'Usuario Messery';
+            const ubicacion = formatearUbicacion(usuario.ciudad, usuario.pais);
+            const edad = calcularEdad(usuario.fecha_nacimiento);
+            const fechaRegistro = new Date(usuario.created_at).toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            console.log('✅ Datos del perfil público:', usuario);
+            
+            // Crear HTML del perfil
+            const profileHTML = `
+                <div class="profile-modal-content">
+                    <div class="profile-header">
+                        <div class="profile-avatar-large">
+                            ${usuario.avatar_url ? 
+                                `<img src="${usuario.avatar_url}" alt="${nombreCompleto}" onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<div style=\\'background: ${obtenerColorAvatar(nombreCompleto)}; color: white; font-size: 36px; border-radius: 20px; width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; font-weight: bold;\\'>${obtenerIniciales(nombreCompleto)}</div>';">
+                                ` :
+                                `<div style="background: ${obtenerColorAvatar(nombreCompleto)}; color: white; font-size: 36px; border-radius: 20px; width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                                    ${obtenerIniciales(nombreCompleto)}
+                                </div>`
+                            }
+                        </div>
+                        <div class="profile-title">
+                            <h2>${nombreCompleto}</h2>
+                            <p class="profile-subtitle">Perfil público</p>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-info-grid">
+                        ${usuario.email ? `
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fas fa-envelope"></i>
+                                <span>Email</span>
+                            </div>
+                            <div class="info-value">${usuario.email}</div>
+                        </div>
+                        ` : ''}
+                        
+                        ${ubicacion !== 'No especificada' ? `
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Ubicación</span>
+                            </div>
+                            <div class="info-value">${ubicacion}</div>
+                        </div>
+                        ` : ''}
+                        
+                        ${usuario.tipo_cuenta ? `
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fas fa-user-tag"></i>
+                                <span>Tipo de cuenta</span>
+                            </div>
+                            <div class="info-value">${usuario.tipo_cuenta === 'personal' ? 'Personal' : usuario.tipo_cuenta}</div>
+                        </div>
+                        ` : ''}
+                        
+                        ${edad !== 'No especificada' ? `
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fas fa-birthday-cake"></i>
+                                <span>Edad</span>
+                            </div>
+                            <div class="info-value">${edad}</div>
+                        </div>
+                        ` : ''}
+                        
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fas fa-calendar-plus"></i>
+                                <span>Se unió</span>
+                            </div>
+                            <div class="info-value">${fechaRegistro}</div>
+                        </div>
+                        
+                        ${usuario.genero ? `
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fas fa-venus-mars"></i>
+                                <span>Género</span>
+                            </div>
+                            <div class="info-value">${usuario.genero}</div>
+                        </div>
+                        ` : ''}
+                    </div>
+                    
+                    ${usuario.biografia ? `
+                    <div class="profile-bio-section">
+                        <h3><i class="fas fa-quote-left"></i> Biografía</h3>
+                        <div class="bio-content">
+                            <p>${usuario.biografia}</p>
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    <div class="profile-actions">
+                        <button class="btn-profile-action btn-send-message" onclick="window.open('index.html', '_blank')">
+                            <i class="fas fa-comment-dots"></i>
+                            <span>Iniciar sesión para enviar mensaje</span>
+                        </button>
+                        
+                        <button class="btn-profile-action btn-send-request" onclick="window.open('registro.html', '_blank')">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Registrarse en Messery</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Mostrar SweetAlert con el perfil
+            Swal.fire({
+                html: profileHTML,
+                showCloseButton: true,
+                showConfirmButton: false,
+                width: '700px',
+                customClass: {
+                    popup: 'profile-modal',
+                    closeButton: 'swal2-close'
+                },
+                background: 'white'
+            });
+            
+        } catch (error) {
+            console.error('Error al cargar perfil:', error);
+            
+            // Mensaje de error amigable
+            Swal.fire({
+                icon: 'error',
+                title: 'Error al cargar perfil',
+                html: `
+                    <div style="text-align: center; padding: 10px;">
+                        <p style="color: #5d6d7e; margin-bottom: 20px;">
+                            No se pudo cargar el perfil del usuario.<br>
+                            Posibles razones:
+                        </p>
+                        <div style="text-align: left; background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 0 auto 20px; max-width: 400px;">
+                            <p style="margin: 5px 0; color: #5d6d7e;">
+                                <i class="fas fa-circle" style="font-size: 8px; color: #667eea; margin-right: 10px;"></i>
+                                El usuario tiene su perfil configurado como privado
+                            </p>
+                            <p style="margin: 5px 0; color: #5d6d7e;">
+                                <i class="fas fa-circle" style="font-size: 8px; color: #667eea; margin-right: 10px;"></i>
+                                El usuario no existe en la plataforma
+                            </p>
+                            <p style="margin: 5px 0; color: #5d6d7e;">
+                                <i class="fas fa-circle" style="font-size: 8px; color: #667eea; margin-right: 10px;"></i>
+                                Problemas de conexión con el servidor
+                            </p>
+                        </div>
+                    </div>
+                `,
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#667eea',
+                width: '500px'
+            });
         }
-    } catch (error) {
-        console.log('⚠️ Error en consulta:', error.message);
     }
-    
-    // Verificar cache local
-    try {
-        const storedKey = `user_${userId}`;
-        const storedData = localStorage.getItem(storedKey);
-        if (storedData) {
-            console.log('✅ Datos obtenidos de cache local');
-            return JSON.parse(storedData);
-        }
-    } catch (error) {
-        console.log('⚠️ Error obteniendo de cache:', error.message);
-    }
-    
-    // Fallback: Datos básicos
-    console.log('⚠️ Usando datos básicos');
-    return {
-        nombre: `Usuario_${userId.substring(0, 8)}`,
-        avatar_url: null,
-        email: null
-    };
-}
     
     // ======================
     // FUNCIÓN PARA MOSTRAR OPCIONES DE COMPARTIR
