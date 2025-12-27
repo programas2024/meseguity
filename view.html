@@ -664,370 +664,366 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-        // ======================
-        // CONFIGURACIÓN SUPABASE (TUS CREDENCIALES)
-        // ======================
-        const SUPABASE_URL = 'https://enmiomqkkdlmodrjmfak.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVubWlvbXFra2RsbW9kcmptZmFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MDA0OTEsImV4cCI6MjA4MDk3NjQ5MX0.HeiJGnnkUjutlZkMTopFK7AIRZzRLxBTXvWk96OcAxg';
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    // ======================
+    // CONFIGURACIÓN SUPABASE (TUS CREDENCIALES)
+    // ======================
+    const SUPABASE_URL = 'https://enmiomqkkdlmodrjmfak.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVubWlvbXFra2RsbW9kcmptZmFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MDA0OTEsImV4cCI6MjA4MDk3NjQ5MX0.HeiJGnnkUjutlZkMTopFK7AIRZzRLxBTXvWk96OcAxg';
+    
+    // Crear cliente Supabase
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
+    // ======================
+    // VARIABLES GLOBALES
+    // ======================
+    let publicacionId = null;
+    let publicacionActual = null;
+    let usuarioActual = null;
+    
+    // ======================
+    // DETECCIÓN DE DISPOSITIVO - ESTA ES LA LÍNEA QUE FALTABA
+    // ======================
+    const esMovil = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    // ======================
+    // FUNCIONES DE UTILIDAD
+    // ======================
+    function obtenerIniciales(nombre) {
+        if (!nombre) return '??';
+        const partes = nombre.split(' ');
+        let iniciales = '';
+        partes.forEach(parte => {
+            if (parte.length > 0) {
+                iniciales += parte[0].toUpperCase();
+            }
+        });
+        return iniciales.substring(0, 2);
+    }
+    
+    function obtenerColorAvatar(nombre) {
+        const colores = [
+            '#667eea', '#764ba2', '#f093fb', '#f5576c',
+            '#4facfe', '#00f2fe', '#43e97b', '#38f9d7',
+            '#fa709a', '#fee140', '#a8edea', '#fed6e3'
+        ];
+        let hash = 0;
+        for (let i = 0; i < nombre.length; i++) {
+            hash = nombre.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return colores[Math.abs(hash) % colores.length];
+    }
+    
+    function formatearUbicacion(ciudad, pais) {
+        if (ciudad && pais) {
+            return `${ciudad}, ${pais}`;
+        } else if (ciudad) {
+            return ciudad;
+        } else if (pais) {
+            return pais;
+        }
+        return 'No especificada';
+    }
+    
+    function calcularEdad(fechaNacimiento) {
+        if (!fechaNacimiento) return 'No especificada';
+        const hoy = new Date();
+        const nacimiento = new Date(fechaNacimiento);
+        let edad = hoy.getFullYear() - nacimiento.getFullYear();
+        const mes = hoy.getMonth() - nacimiento.getMonth();
+        if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+            edad--;
+        }
+        return edad + ' años';
+    }
+    
+    // ======================
+    // FUNCIÓN PARA OBTENER DATOS DEL USUARIO (SIN SESIÓN)
+    // ======================
+    async function obtenerDatosUsuario(userId) {
+        console.log('🔍 Obteniendo datos del usuario ID:', userId);
         
-        // Crear cliente Supabase
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // PRIMERO: Intentar con la función RPC
+        try {
+            console.log('🔄 Intentando obtener datos con RPC...');
+            const { data: rpcData, error: rpcError } = await supabaseClient.rpc(
+                'get_public_user_data',
+                { user_uuid: userId }
+            );
+            
+            if (!rpcError && rpcData && rpcData.length > 0) {
+                console.log('✅ Datos obtenidos via RPC:', rpcData[0]);
+                return rpcData[0];
+            } else if (rpcError) {
+                console.log('⚠️ Función RPC no disponible:', rpcError.message);
+            }
+        } catch (rpcError) {
+            console.log('⚠️ Error en RPC:', rpcError.message);
+        }
         
-        // ======================
-        // VARIABLES GLOBALES
-        // ======================
-        let publicacionId = null;
-        let publicacionActual = null;
-        let usuarioActual = null;
-        
-        // ======================
-        // FUNCIONES DE UTILIDAD
-        // ======================
-        function obtenerIniciales(nombre) {
-            if (!nombre) return '??';
-            const partes = nombre.split(' ');
-            let iniciales = '';
-            partes.forEach(parte => {
-                if (parte.length > 0) {
-                    iniciales += parte[0].toUpperCase();
+        // SEGUNDO: Si RPC falla, intentar directamente
+        try {
+            console.log('🔄 Intentando obtener datos directamente...');
+            const { data, error } = await supabaseClient
+                .from('usuarios')
+                .select('nombre, apellidos, avatar_url, email, pais, ciudad, biografia, perfil_publico')
+                .eq('id', userId)
+                .maybeSingle();
+            
+            if (!error && data) {
+                console.log('✅ Datos obtenidos directamente:', data);
+                try {
+                    localStorage.setItem(`user_${userId}`, JSON.stringify(data));
+                } catch (e) {
+                    console.log('⚠️ No se pudo guardar en localStorage');
                 }
+                return data;
+            } else if (error) {
+                console.log('⚠️ Error directo (probablemente RLS):', error.message);
+            }
+        } catch (error) {
+            console.log('⚠️ Error en consulta directa:', error.message);
+        }
+        
+        // TERCERO: Verificar si hay datos almacenados localmente
+        try {
+            const storedKey = `user_${userId}`;
+            const storedData = localStorage.getItem(storedKey);
+            if (storedData) {
+                const parsed = JSON.parse(storedData);
+                console.log('✅ Datos obtenidos de localStorage:', parsed);
+                return parsed;
+            }
+        } catch (error) {
+            console.log('⚠️ Error obteniendo de localStorage:', error.message);
+        }
+        
+        // CUARTO: Datos por defecto (fallback)
+        console.log('⚠️ Usando datos por defecto');
+        return {
+            nombre: `Usuario_${userId.substring(0, 8)}`,
+            avatar_url: null,
+            email: null
+        };
+    }
+    
+    // ======================
+    // FUNCIÓN PARA MOSTRAR PERFIL COMPLETO DEL USUARIO
+    // ======================
+    async function mostrarPerfilCompleto(usuarioId) {
+        try {
+            // Obtener datos completos del usuario
+            const { data: usuario, error } = await supabaseClient
+                .from('usuarios')
+                .select('*')
+                .eq('id', usuarioId)
+                .single();
+            
+            if (error) throw error;
+            
+            const nombreCompleto = `${usuario.nombre} ${usuario.apellidos}`;
+            const ubicacion = formatearUbicacion(usuario.ciudad, usuario.pais);
+            const edad = calcularEdad(usuario.fecha_nacimiento);
+            const fechaRegistro = new Date(usuario.created_at).toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
             });
-            return iniciales.substring(0, 2);
-        }
-        
-        function obtenerColorAvatar(nombre) {
-            const colores = [
-                '#667eea', '#764ba2', '#f093fb', '#f5576c',
-                '#4facfe', '#00f2fe', '#43e97b', '#38f9d7',
-                '#fa709a', '#fee140', '#a8edea', '#fed6e3'
-            ];
-            let hash = 0;
-            for (let i = 0; i < nombre.length; i++) {
-                hash = nombre.charCodeAt(i) + ((hash << 5) - hash);
-            }
-            return colores[Math.abs(hash) % colores.length];
-        }
-        
-        function formatearUbicacion(ciudad, pais) {
-            if (ciudad && pais) {
-                return `${ciudad}, ${pais}`;
-            } else if (ciudad) {
-                return ciudad;
-            } else if (pais) {
-                return pais;
-            }
-            return 'No especificada';
-        }
-        
-        function calcularEdad(fechaNacimiento) {
-            if (!fechaNacimiento) return 'No especificada';
-            const hoy = new Date();
-            const nacimiento = new Date(fechaNacimiento);
-            let edad = hoy.getFullYear() - nacimiento.getFullYear();
-            const mes = hoy.getMonth() - nacimiento.getMonth();
-            if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
-                edad--;
-            }
-            return edad + ' años';
-        }
-        
-        // ======================
-        // FUNCIÓN PARA OBTENER DATOS DEL USUARIO (SIN SESIÓN)
-        // ======================
-        async function obtenerDatosUsuario(userId) {
-            console.log('🔍 Obteniendo datos del usuario ID:', userId);
             
-            // PRIMERO: Intentar con la función RPC
-            try {
-                console.log('🔄 Intentando obtener datos con RPC...');
-                const { data: rpcData, error: rpcError } = await supabaseClient.rpc(
-                    'get_public_user_data',
-                    { user_uuid: userId }
-                );
-                
-                if (!rpcError && rpcData && rpcData.length > 0) {
-                    console.log('✅ Datos obtenidos via RPC:', rpcData[0]);
-                    return rpcData[0];
-                } else if (rpcError) {
-                    console.log('⚠️ Función RPC no disponible:', rpcError.message);
-                }
-            } catch (rpcError) {
-                console.log('⚠️ Error en RPC:', rpcError.message);
-            }
-            
-            // SEGUNDO: Si RPC falla, intentar directamente
-            try {
-                console.log('🔄 Intentando obtener datos directamente...');
-                const { data, error } = await supabaseClient
-                    .from('usuarios')
-                    .select('nombre, apellidos, avatar_url, email, pais, ciudad, biografia, perfil_publico')
-                    .eq('id', userId)
-                    .maybeSingle();
-                
-                if (!error && data) {
-                    console.log('✅ Datos obtenidos directamente:', data);
-                    try {
-                        localStorage.setItem(`user_${userId}`, JSON.stringify(data));
-                    } catch (e) {
-                        console.log('⚠️ No se pudo guardar en localStorage');
-                    }
-                    return data;
-                } else if (error) {
-                    console.log('⚠️ Error directo (probablemente RLS):', error.message);
-                }
-            } catch (error) {
-                console.log('⚠️ Error en consulta directa:', error.message);
-            }
-            
-            // TERCERO: Verificar si hay datos almacenados localmente
-            try {
-                const storedKey = `user_${userId}`;
-                const storedData = localStorage.getItem(storedKey);
-                if (storedData) {
-                    const parsed = JSON.parse(storedData);
-                    console.log('✅ Datos obtenidos de localStorage:', parsed);
-                    return parsed;
-                }
-            } catch (error) {
-                console.log('⚠️ Error obteniendo de localStorage:', error.message);
-            }
-            
-            // CUARTO: Datos por defecto (fallback)
-            console.log('⚠️ Usando datos por defecto');
-            return {
-                nombre: `Usuario_${userId.substring(0, 8)}`,
-                avatar_url: null,
-                email: null
-            };
-        }
-        
-        // ======================
-        // FUNCIÓN PARA MOSTRAR PERFIL COMPLETO DEL USUARIO
-        // ======================
-        async function mostrarPerfilCompleto(usuarioId) {
-            try {
-                // Obtener datos completos del usuario
-                const { data: usuario, error } = await supabaseClient
-                    .from('usuarios')
-                    .select('*')
-                    .eq('id', usuarioId)
-                    .single();
-                
-                if (error) throw error;
-                
-                const nombreCompleto = `${usuario.nombre} ${usuario.apellidos}`;
-                const ubicacion = formatearUbicacion(usuario.ciudad, usuario.pais);
-                const edad = calcularEdad(usuario.fecha_nacimiento);
-                const fechaRegistro = new Date(usuario.created_at).toLocaleDateString('es-ES', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                });
-                
-                // Crear HTML del perfil
-                const profileHTML = `
-                    <div class="profile-modal-content">
-                        <div class="profile-header">
-                            <div class="profile-avatar-large">
-                                ${usuario.avatar_url ? 
-                                    `<img src="${usuario.avatar_url}" alt="${nombreCompleto}" onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<div style=\\'background: ${obtenerColorAvatar(nombreCompleto)}; color: white; font-size: 36px; border-radius: 20px; width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; font-weight: bold;\\'>${obtenerIniciales(nombreCompleto)}</div>';">
-                                    ` :
-                                    `<div style="background: ${obtenerColorAvatar(nombreCompleto)}; color: white; font-size: 36px; border-radius: 20px; width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; font-weight: bold;">
-                                        ${obtenerIniciales(nombreCompleto)}
-                                    </div>`
-                                }
-                            </div>
-                            <div class="profile-title">
-                                <h2>${nombreCompleto}</h2>
-                                <p class="profile-subtitle">Perfil completo</p>
-                            </div>
+            // Crear HTML del perfil
+            const profileHTML = `
+                <div class="profile-modal-content">
+                    <div class="profile-header">
+                        <div class="profile-avatar-large">
+                            ${usuario.avatar_url ? 
+                                `<img src="${usuario.avatar_url}" alt="${nombreCompleto}" onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<div style=\\'background: ${obtenerColorAvatar(nombreCompleto)}; color: white; font-size: 36px; border-radius: 20px; width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; font-weight: bold;\\'>${obtenerIniciales(nombreCompleto)}</div>';">
+                                ` :
+                                `<div style="background: ${obtenerColorAvatar(nombreCompleto)}; color: white; font-size: 36px; border-radius: 20px; width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                                    ${obtenerIniciales(nombreCompleto)}
+                                </div>`
+                            }
                         </div>
-                        
-                        <div class="profile-info-grid">
-                            <div class="info-item">
-                                <div class="info-label">
-                                    <i class="fas fa-envelope"></i>
-                                    <span>Email</span>
-                                </div>
-                                <div class="info-value">${usuario.email || 'No especificado'}</div>
-                            </div>
-                            
-                            <div class="info-item">
-                                <div class="info-label">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    <span>Ubicación</span>
-                                </div>
-                                <div class="info-value">${ubicacion}</div>
-                            </div>
-                            
-                            <div class="info-item">
-                                <div class="info-label">
-                                    <i class="fas fa-user-tag"></i>
-                                    <span>Tipo de cuenta</span>
-                                </div>
-                                <div class="info-value">${usuario.tipo_cuenta || 'Personal'}</div>
-                            </div>
-                            
-                            <div class="info-item">
-                                <div class="info-label">
-                                    <i class="fas fa-birthday-cake"></i>
-                                    <span>Edad</span>
-                                </div>
-                                <div class="info-value">${edad}</div>
-                            </div>
-                            
-                            <div class="info-item">
-                                <div class="info-label">
-                                    <i class="fas fa-calendar-plus"></i>
-                                    <span>Se unió</span>
-                                </div>
-                                <div class="info-value">${fechaRegistro}</div>
-                            </div>
-                            
-                            ${usuario.genero ? `
-                            <div class="info-item">
-                                <div class="info-label">
-                                    <i class="fas fa-venus-mars"></i>
-                                    <span>Género</span>
-                                </div>
-                                <div class="info-value">${usuario.genero}</div>
-                            </div>
-                            ` : ''}
-                        </div>
-                        
-                        ${usuario.biografia ? `
-                        <div class="profile-bio-section">
-                            <h3><i class="fas fa-quote-left"></i> Biografía</h3>
-                            <div class="bio-content">
-                                <p>${usuario.biografia}</p>
-                            </div>
-                        </div>
-                        ` : ''}
-                        
-                        <div class="profile-actions">
-                            <button class="btn-profile-action btn-send-message" onclick="window.open('index.html', '_blank')">
-                                <i class="fas fa-comment-dots"></i>
-                                <span>Iniciar sesión para enviar mensaje</span>
-                            </button>
-                            
-                            <button class="btn-profile-action btn-send-request" onclick="window.open('registro.html', '_blank')">
-                                <i class="fas fa-user-plus"></i>
-                                <span>Registrarse en Messery</span>
-                            </button>
+                        <div class="profile-title">
+                            <h2>${nombreCompleto}</h2>
+                            <p class="profile-subtitle">Perfil completo</p>
                         </div>
                     </div>
-                `;
-                
-                // Mostrar SweetAlert con el perfil
-                Swal.fire({
-                    html: profileHTML,
-                    showCloseButton: true,
-                    showConfirmButton: false,
-                    width: '700px',
-                    customClass: {
-                        popup: 'profile-modal',
-                        closeButton: 'swal2-close'
-                    },
-                    background: 'white'
-                });
-                
-            } catch (error) {
-                console.error('Error al cargar perfil:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'No se pudo cargar el perfil del usuario',
-                    confirmButtonColor: '#667eea'
-                });
-            }
-        }
-        
-        // ======================
-        // FUNCIÓN PARA MOSTRAR OPCIONES DE COMPARTIR
-        // ======================
-        function mostrarOpcionesCompartir() {
-            if (!publicacionActual) return;
-            
-            const currentUrl = window.location.href;
-            const titulo = '¡Mira esta publicación de Messery!';
-            const texto = 'He encontrado esta publicación interesante en Messery';
-            
-            const shareHTML = `
-                <div style="text-align: center;">
-                    <p style="margin-bottom: 20px; color: #2c3e50; font-size: 18px; font-weight: 600;">Compartir esta publicación</p>
                     
-                    <input type="text" id="shareUrl" value="${currentUrl}" readonly 
-                           style="width:100%; padding:12px; border:2px solid #e8edf2; border-radius:8px; margin-bottom: 25px; font-size: 14px; background: #f8f9fa;">
+                    <div class="profile-info-grid">
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fas fa-envelope"></i>
+                                <span>Email</span>
+                            </div>
+                            <div class="info-value">${usuario.email || 'No especificado'}</div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Ubicación</span>
+                            </div>
+                            <div class="info-value">${ubicacion}</div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fas fa-user-tag"></i>
+                                <span>Tipo de cuenta</span>
+                            </div>
+                            <div class="info-value">${usuario.tipo_cuenta || 'Personal'}</div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fas fa-birthday-cake"></i>
+                                <span>Edad</span>
+                            </div>
+                            <div class="info-value">${edad}</div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fas fa-calendar-plus"></i>
+                                <span>Se unió</span>
+                            </div>
+                            <div class="info-value">${fechaRegistro}</div>
+                        </div>
+                        
+                        ${usuario.genero ? `
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fas fa-venus-mars"></i>
+                                <span>Género</span>
+                            </div>
+                            <div class="info-value">${usuario.genero}</div>
+                        </div>
+                        ` : ''}
+                    </div>
                     
-                    <div class="share-options">
-                        <div class="share-option link" onclick="copiarEnlace()">
-                            <i class="fas fa-copy"></i>
-                            <span>Copiar Link</span>
+                    ${usuario.biografia ? `
+                    <div class="profile-bio-section">
+                        <h3><i class="fas fa-quote-left"></i> Biografía</h3>
+                        <div class="bio-content">
+                            <p>${usuario.biografia}</p>
                         </div>
+                    </div>
+                    ` : ''}
+                    
+                    <div class="profile-actions">
+                        <button class="btn-profile-action btn-send-message" onclick="window.open('index.html', '_blank')">
+                            <i class="fas fa-comment-dots"></i>
+                            <span>Iniciar sesión para enviar mensaje</span>
+                        </button>
                         
-                        <div class="share-option whatsapp" onclick="compartirWhatsApp('${currentUrl}', '${texto}')">
-                            <i class="fab fa-whatsapp"></i>
-                            <span>WhatsApp</span>
-                        </div>
-                        
-                        <div class="share-option facebook" onclick="compartirFacebook('${currentUrl}')">
-                            <i class="fab fa-facebook"></i>
-                            <span>Facebook</span>
-                        </div>
-                        
-                        <div class="share-option txt" onclick="compartirTXT('${currentUrl}', '${titulo}')">
-                            <i class="fas fa-file-alt"></i>
-                            <span>Guardar como TXT</span>
-                        </div>
-                        
-                        <div class="share-option gmail" onclick="compartirGmail('${currentUrl}', '${titulo}', '${texto}')">
-                            <i class="fas fa-envelope"></i>
-                            <span>Gmail</span>
-                        </div>
-                        
-                        <div class="share-option" onclick="window.open('${currentUrl}', '_blank')">
-                            <i class="fas fa-external-link-alt"></i>
-                            <span>Abrir en nueva pestaña</span>
-                        </div>
+                        <button class="btn-profile-action btn-send-request" onclick="window.open('registro.html', '_blank')">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Registrarse en Messery</span>
+                        </button>
                     </div>
                 </div>
             `;
             
+            // Mostrar SweetAlert con el perfil
             Swal.fire({
-                title: 'Compartir Publicación',
-                html: shareHTML,
+                html: profileHTML,
                 showCloseButton: true,
                 showConfirmButton: false,
-                width: 550,
+                width: '700px',
                 customClass: {
-                    popup: 'profile-modal'
-                }
+                    popup: 'profile-modal',
+                    closeButton: 'swal2-close'
+                },
+                background: 'white'
+            });
+            
+        } catch (error) {
+            console.error('Error al cargar perfil:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudo cargar el perfil del usuario',
+                confirmButtonColor: '#667eea'
             });
         }
+    }
+    
+    // ======================
+    // FUNCIÓN PARA MOSTRAR OPCIONES DE COMPARTIR
+    // ======================
+    function mostrarOpcionesCompartir() {
+        if (!publicacionActual) return;
         
-        // ======================
-        // FUNCIONES DE COMPARTIR
-        // ======================
-        function copiarEnlace() {
-            const input = document.getElementById('shareUrl');
-            if (!input) return;
-            
-            input.select();
-            input.setSelectionRange(0, 99999);
-            
-            try {
-                navigator.clipboard.writeText(input.value).then(() => {
-                    Swal.fire({
-                        icon: 'success',
-                        title: '¡Copiado!',
-                        text: 'Enlace copiado al portapapeles',
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                });
-            } catch (err) {
-                document.execCommand('copy');
+        const currentUrl = window.location.href;
+        const titulo = '¡Mira esta publicación de Messery!';
+        const texto = 'He encontrado esta publicación interesante en Messery';
+        
+        const shareHTML = `
+            <div style="text-align: center;">
+                <p style="margin-bottom: 20px; color: #2c3e50; font-size: 18px; font-weight: 600;">Compartir esta publicación</p>
+                
+                <input type="text" id="shareUrl" value="${currentUrl}" readonly 
+                       style="width:100%; padding:12px; border:2px solid #e8edf2; border-radius:8px; margin-bottom: 25px; font-size: 14px; background: #f8f9fa;">
+                
+                <div class="share-options">
+                    <div class="share-option link" onclick="copiarEnlace()">
+                        <i class="fas fa-copy"></i>
+                        <span>Copiar Link</span>
+                    </div>
+                    
+                    <div class="share-option whatsapp" onclick="compartirWhatsApp('${currentUrl}', '${texto}')">
+                        <i class="fab fa-whatsapp"></i>
+                        <span>WhatsApp</span>
+                    </div>
+                    
+                    <div class="share-option facebook" onclick="compartirFacebook('${currentUrl}')">
+                        <i class="fab fa-facebook"></i>
+                        <span>Facebook</span>
+                    </div>
+                    
+                    <div class="share-option txt" onclick="compartirTXT('${currentUrl}', '${titulo}')">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Guardar como TXT</span>
+                    </div>
+                    
+                    <div class="share-option gmail" onclick="compartirGmail('${currentUrl}', '${titulo}', '${texto}')">
+                        <i class="fas fa-envelope"></i>
+                        <span>Gmail</span>
+                    </div>
+                    
+                    <div class="share-option" onclick="window.open('${currentUrl}', '_blank')">
+                        <i class="fas fa-external-link-alt"></i>
+                        <span>Abrir en nueva pestaña</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        Swal.fire({
+            title: 'Compartir Publicación',
+            html: shareHTML,
+            showCloseButton: true,
+            showConfirmButton: false,
+            width: 550,
+            customClass: {
+                popup: 'profile-modal'
+            }
+        });
+    }
+    
+    // ======================
+    // FUNCIONES DE COMPARTIR
+    // ======================
+    function copiarEnlace() {
+        const input = document.getElementById('shareUrl');
+        if (!input) return;
+        
+        input.select();
+        input.setSelectionRange(0, 99999);
+        
+        try {
+            navigator.clipboard.writeText(input.value).then(() => {
                 Swal.fire({
                     icon: 'success',
                     title: '¡Copiado!',
@@ -1035,393 +1031,403 @@
                     timer: 2000,
                     showConfirmButton: false
                 });
-            }
-        }
-        
-        function compartirWhatsApp(url, texto) {
-            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(texto + ' ' + url)}`;
-            window.open(whatsappUrl, '_blank');
-        }
-        
-        function compartirFacebook(url) {
-            const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
-            window.open(facebookUrl, '_blank');
-        }
-        
-        function compartirTXT(url, titulo) {
-            const contenido = `${titulo}\n\nURL: ${url}\nFecha: ${new Date().toLocaleDateString()}\n\nCompartido desde Messery\n\n---\nVisita Messery para más contenido interesante!`;
-            const blob = new Blob([contenido], { type: 'text/plain' });
-            const blobUrl = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = blobUrl;
-            a.download = 'Publicacion-Messery.txt';
-            a.click();
-            URL.revokeObjectURL(blobUrl);
-            
+            });
+        } catch (err) {
+            document.execCommand('copy');
             Swal.fire({
                 icon: 'success',
-                title: 'Descargado',
-                text: 'El contenido se ha guardado como archivo TXT',
+                title: '¡Copiado!',
+                text: 'Enlace copiado al portapapeles',
                 timer: 2000,
                 showConfirmButton: false
             });
         }
+    }
+    
+    function compartirWhatsApp(url, texto) {
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(texto + ' ' + url)}`;
+        window.open(whatsappUrl, '_blank');
+    }
+    
+    function compartirFacebook(url) {
+        const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+        window.open(facebookUrl, '_blank');
+    }
+    
+    function compartirTXT(url, titulo) {
+        const contenido = `${titulo}\n\nURL: ${url}\nFecha: ${new Date().toLocaleDateString()}\n\nCompartido desde Messery\n\n---\nVisita Messery para más contenido interesante!`;
+        const blob = new Blob([contenido], { type: 'text/plain' });
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = 'Publicacion-Messery.txt';
+        a.click();
+        URL.revokeObjectURL(blobUrl);
         
-        function compartirGmail(url, titulo, texto) {
-            const subject = encodeURIComponent(titulo);
-            const body = encodeURIComponent(`${texto}\n\n${url}`);
-            const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`;
-            window.open(gmailUrl, '_blank');
-        }
-        
-        // ======================
-        // FUNCIONES PRINCIPALES
-        // ======================
-        async function cargarPublicacion() {
-            try {
-                console.log('🔄 Cargando publicación ID:', publicacionId);
-                console.log('📱 Dispositivo:', esMovil ? 'Móvil' : 'PC/Desktop');
-                
-                if (!publicacionId) {
-                    throw new Error('No se especificó ID de publicación');
-                }
-                
-                // PASO 1: Obtener la publicación básica
-                const { data: publicacion, error } = await supabaseClient
-                    .from('publicaciones')
-                    .select('*')
-                    .eq('id', publicacionId)
-                    .single();
-                
-                if (error) {
-                    console.error('Error Supabase:', error);
-                    if (error.code === 'PGRST116') {
-                        throw new Error('Publicación no encontrada');
-                    }
-                    throw new Error('Error al cargar la publicación: ' + error.message);
-                }
-                
-                if (!publicacion) {
+        Swal.fire({
+            icon: 'success',
+            title: 'Descargado',
+            text: 'El contenido se ha guardado como archivo TXT',
+            timer: 2000,
+            showConfirmButton: false
+        });
+    }
+    
+    function compartirGmail(url, titulo, texto) {
+        const subject = encodeURIComponent(titulo);
+        const body = encodeURIComponent(`${texto}\n\n${url}`);
+        const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`;
+        window.open(gmailUrl, '_blank');
+    }
+    
+    // ======================
+    // FUNCIONES PRINCIPALES
+    // ======================
+    async function cargarPublicacion() {
+        try {
+            console.log('🔄 Cargando publicación ID:', publicacionId);
+            console.log('📱 Dispositivo:', esMovil ? 'Móvil' : 'PC/Desktop');
+            
+            if (!publicacionId) {
+                throw new Error('No se especificó ID de publicación');
+            }
+            
+            // PASO 1: Obtener la publicación básica
+            const { data: publicacion, error } = await supabaseClient
+                .from('publicaciones')
+                .select('*')
+                .eq('id', publicacionId)
+                .single();
+            
+            if (error) {
+                console.error('Error Supabase:', error);
+                if (error.code === 'PGRST116') {
                     throw new Error('Publicación no encontrada');
                 }
-                
-                // Guardar publicación actual
-                publicacionActual = publicacion;
-                
-                // Verificar que sea pública
-                if (publicacion.visibilidad !== 'publico') {
-                    mostrarError('🔒 Esta publicación es privada y no está disponible para ver públicamente');
-                    return;
-                }
-                
-                console.log('✅ Publicación cargada:', publicacion);
-                
-                // PASO 2: Obtener datos del usuario
-                usuarioActual = await obtenerDatosUsuario(publicacion.usuario_id);
-                console.log('👤 Datos finales del usuario:', usuarioActual);
-                
-                // Mostrar la publicación
-                mostrarPublicacion(publicacion, usuarioActual);
-                
-                // Mostrar prompt de login después de 1 segundo
-                setTimeout(() => {
-                    document.getElementById('loginPrompt').style.display = 'block';
-                }, 1000);
-                
-            } catch (error) {
-                console.error('❌ Error cargando publicación:', error);
-                mostrarError(error.message || 'No se pudo cargar la publicación');
+                throw new Error('Error al cargar la publicación: ' + error.message);
             }
+            
+            if (!publicacion) {
+                throw new Error('Publicación no encontrada');
+            }
+            
+            // Guardar publicación actual
+            publicacionActual = publicacion;
+            
+            // Verificar que sea pública
+            if (publicacion.visibilidad !== 'publico') {
+                mostrarError('🔒 Esta publicación es privada y no está disponible para ver públicamente');
+                return;
+            }
+            
+            console.log('✅ Publicación cargada:', publicacion);
+            
+            // PASO 2: Obtener datos del usuario
+            usuarioActual = await obtenerDatosUsuario(publicacion.usuario_id);
+            console.log('👤 Datos finales del usuario:', usuarioActual);
+            
+            // Mostrar la publicación
+            mostrarPublicacion(publicacion, usuarioActual);
+            
+            // Mostrar prompt de login después de 1 segundo
+            setTimeout(() => {
+                document.getElementById('loginPrompt').style.display = 'block';
+            }, 1000);
+            
+        } catch (error) {
+            console.error('❌ Error cargando publicación:', error);
+            mostrarError(error.message || 'No se pudo cargar la publicación');
+        }
+    }
+    
+    function mostrarPublicacion(publicacion, usuarioData) {
+        const container = document.getElementById('publicacionContainer');
+        const loading = document.getElementById('loading');
+        
+        // Ocultar loading
+        loading.style.display = 'none';
+        
+        // Formatear fecha
+        const fecha = new Date(publicacion.fecha_creacion).toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        // ============================================
+        // PROCESAR DATOS DEL USUARIO
+        // ============================================
+        let nombreAutor = 'Usuario Messery';
+        let avatarUrl = null;
+        
+        if (usuarioData) {
+            // Obtener nombre completo
+            if (usuarioData.nombre) {
+                nombreAutor = usuarioData.apellidos 
+                    ? `${usuarioData.nombre} ${usuarioData.apellidos}`
+                    : usuarioData.nombre;
+            } else if (usuarioData.email) {
+                // Si no hay nombre, usar email
+                const nombreEmail = usuarioData.email.split('@')[0];
+                nombreAutor = nombreEmail.charAt(0).toUpperCase() + nombreEmail.slice(1);
+            } else {
+                // Si no hay nada, usar el ID
+                nombreAutor = `Usuario_${publicacion.usuario_id.substring(0, 8)}`;
+            }
+            
+            avatarUrl = usuarioData.avatar_url;
         }
         
-        function mostrarPublicacion(publicacion, usuarioData) {
-            const container = document.getElementById('publicacionContainer');
-            const loading = document.getElementById('loading');
-            
-            // Ocultar loading
-            loading.style.display = 'none';
-            
-            // Formatear fecha
-            const fecha = new Date(publicacion.fecha_creacion).toLocaleDateString('es-ES', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            
-            // ============================================
-            // PROCESAR DATOS DEL USUARIO
-            // ============================================
-            let nombreAutor = 'Usuario Messery';
-            let avatarUrl = null;
-            
-            if (usuarioData) {
-                // Obtener nombre completo
-                if (usuarioData.nombre) {
-                    nombreAutor = usuarioData.apellidos 
-                        ? `${usuarioData.nombre} ${usuarioData.apellidos}`
-                        : usuarioData.nombre;
-                } else if (usuarioData.email) {
-                    // Si no hay nombre, usar email
-                    const nombreEmail = usuarioData.email.split('@')[0];
-                    nombreAutor = nombreEmail.charAt(0).toUpperCase() + nombreEmail.slice(1);
-                } else {
-                    // Si no hay nada, usar el ID
-                    nombreAutor = `Usuario_${publicacion.usuario_id.substring(0, 8)}`;
-                }
-                
-                avatarUrl = usuarioData.avatar_url;
-            }
-            
-            // Generar contenido HTML según el tipo
-            let mediaHTML = '';
-            if (publicacion.url_media) {
-                switch(publicacion.tipo) {
-                    case 'imagen':
-                        mediaHTML = `
-                            <div class="publicacion-media">
-                                <img src="${publicacion.url_media}" 
-                                     alt="Imagen publicada" 
-                                     loading="lazy"
-                                     onclick="abrirImagenEnGrande('${publicacion.url_media}')"
-                                     style="cursor: pointer; max-height: 500px; object-fit: contain;"
-                                     onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<p style=\\'color:#e74c3c; padding:20px; text-align:center;\\'><i class=\\'fas fa-exclamation-triangle\\'></i> No se pudo cargar la imagen</p>';">
-                            </div>
-                        `;
-                        break;
-                        
-                    case 'video':
-                        if (publicacion.url_media.includes('youtube.com') || publicacion.url_media.includes('youtu.be')) {
-                            const videoId = extraerIdYouTube(publicacion.url_media);
-                            if (videoId) {
-                                mediaHTML = `
-                                    <div class="publicacion-media">
-                                        <iframe 
-                                            width="100%" 
-                                            height="400" 
-                                            src="https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1" 
-                                            frameborder="0" 
-                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                            allowfullscreen
-                                            loading="lazy">
-                                        </iframe>
-                                    </div>
-                                `;
-                            }
-                        } else {
+        // Generar contenido HTML según el tipo
+        let mediaHTML = '';
+        if (publicacion.url_media) {
+            switch(publicacion.tipo) {
+                case 'imagen':
+                    mediaHTML = `
+                        <div class="publicacion-media">
+                            <img src="${publicacion.url_media}" 
+                                 alt="Imagen publicada" 
+                                 loading="lazy"
+                                 onclick="abrirImagenEnGrande('${publicacion.url_media}')"
+                                 style="cursor: pointer; max-height: 500px; object-fit: contain;"
+                                 onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<p style=\\'color:#e74c3c; padding:20px; text-align:center;\\'><i class=\\'fas fa-exclamation-triangle\\'></i> No se pudo cargar la imagen</p>';">
+                        </div>
+                    `;
+                    break;
+                    
+                case 'video':
+                    if (publicacion.url_media.includes('youtube.com') || publicacion.url_media.includes('youtu.be')) {
+                        const videoId = extraerIdYouTube(publicacion.url_media);
+                        if (videoId) {
                             mediaHTML = `
                                 <div class="publicacion-media">
-                                    <video width="100%" controls style="border-radius: 10px;">
-                                        <source src="${publicacion.url_media}" type="video/mp4">
-                                        Tu navegador no soporta el video.
-                                    </video>
+                                    <iframe 
+                                        width="100%" 
+                                        height="400" 
+                                        src="https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1" 
+                                        frameborder="0" 
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowfullscreen
+                                        loading="lazy">
+                                    </iframe>
                                 </div>
                             `;
                         }
-                        break;
-                        
-                    case 'enlace':
-                        let dominio = 'Enlace compartido';
-                        try {
-                            const urlObj = new URL(publicacion.url_media);
-                            dominio = urlObj.hostname.replace('www.', '');
-                        } catch (e) {
-                            console.warn('URL inválida:', publicacion.url_media);
-                        }
-                        
+                    } else {
                         mediaHTML = `
-                            <a href="${publicacion.url_media}" 
-                               target="_blank" 
-                               rel="noopener noreferrer" 
-                               class="publicacion-enlace">
-                                <i class="fas fa-external-link-alt"></i>
-                                <div>
-                                    <strong>Enlace compartido</strong><br>
-                                    <small>${dominio}</small>
-                                </div>
-                            </a>
-                        `;
-                        break;
-                }
-            }
-            
-            // ============================================
-            // HTML DEL AVATAR CON CLICK PARA PERFIL
-            // ============================================
-            let avatarHTML = '';
-
-            if (avatarUrl) {
-                avatarHTML = `
-                    <div class="publicacion-avatar" onclick="mostrarPerfilCompleto('${publicacion.usuario_id}')" style="position: relative; width: 50px; height: 50px; border-radius: 50%; overflow: hidden; background: #667eea; cursor: pointer;">
-                        <img src="${avatarUrl}" 
-                             alt="Avatar de ${nombreAutor}"
-                             style="width: 100%; height: 100%; object-fit: cover;"
-                             onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<i class=\\'fas fa-user-circle\\' style=\\'font-size: 32px; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);\\'></i>';">
-                    </div>
-                `;
-            } else {
-                avatarHTML = `
-                    <div class="publicacion-avatar" onclick="mostrarPerfilCompleto('${publicacion.usuario_id}')" style="display: flex; align-items: center; justify-content: center; background: ${obtenerColorAvatar(nombreAutor)}; cursor: pointer;">
-                        <div style="color: white; font-size: 20px; font-weight: bold;">
-                            ${obtenerIniciales(nombreAutor)}
-                        </div>
-                    </div>
-                `;
-            }
-            
-            // Mostrar información adicional del usuario si está disponible
-            let userInfoHTML = '';
-            if (usuarioData && (usuarioData.pais || usuarioData.ciudad)) {
-                const ubicacion = [];
-                if (usuarioData.ciudad) ubicacion.push(usuarioData.ciudad);
-                if (usuarioData.pais) ubicacion.push(usuarioData.pais);
-                
-                if (ubicacion.length > 0) {
-                    userInfoHTML = `
-                        <div style="margin-top: 5px; font-size: 13px; color: #7f8c8d;">
-                            <i class="fas fa-map-marker-alt"></i> ${ubicacion.join(', ')}
-                        </div>
-                    `;
-                }
-            }
-            
-            // Crear HTML de la publicación
-            const publicacionHTML = `
-                <div class="publicacion-item" id="publicacion-${publicacion.id}">
-                    <div class="publicacion-header">
-                        ${avatarHTML}
-                        <div class="publicacion-info">
-                            <h4 onclick="mostrarPerfilCompleto('${publicacion.usuario_id}')">${nombreAutor}</h4>
-                            ${userInfoHTML}
-                            <div class="publicacion-meta">
-                                <span><i class="far fa-clock"></i> ${fecha}</span>
-                                <span><i class="fas fa-globe-americas"></i> Pública</span>
-                                <span><i class="fas fa-${publicacion.tipo === 'imagen' ? 'image' : publicacion.tipo === 'video' ? 'video' : 'link'}"></i> ${publicacion.tipo}</span>
+                            <div class="publicacion-media">
+                                <video width="100%" controls style="border-radius: 10px;">
+                                    <source src="${publicacion.url_media}" type="video/mp4">
+                                    Tu navegador no soporta el video.
+                                </video>
                             </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'enlace':
+                    let dominio = 'Enlace compartido';
+                    try {
+                        const urlObj = new URL(publicacion.url_media);
+                        dominio = urlObj.hostname.replace('www.', '');
+                    } catch (e) {
+                        console.warn('URL inválida:', publicacion.url_media);
+                    }
+                    
+                    mediaHTML = `
+                        <a href="${publicacion.url_media}" 
+                           target="_blank" 
+                           rel="noopener noreferrer" 
+                           class="publicacion-enlace">
+                            <i class="fas fa-external-link-alt"></i>
+                            <div>
+                                <strong>Enlace compartido</strong><br>
+                                <small>${dominio}</small>
+                            </div>
+                        </a>
+                    `;
+                    break;
+            }
+        }
+        
+        // ============================================
+        // HTML DEL AVATAR CON CLICK PARA PERFIL
+        // ============================================
+        let avatarHTML = '';
+
+        if (avatarUrl) {
+            avatarHTML = `
+                <div class="publicacion-avatar" onclick="mostrarPerfilCompleto('${publicacion.usuario_id}')" style="position: relative; width: 50px; height: 50px; border-radius: 50%; overflow: hidden; background: #667eea; cursor: pointer;">
+                    <img src="${avatarUrl}" 
+                         alt="Avatar de ${nombreAutor}"
+                         style="width: 100%; height: 100%; object-fit: cover;"
+                         onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<i class=\\'fas fa-user-circle\\' style=\\'font-size: 32px; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);\\'></i>';">
+                </div>
+            `;
+        } else {
+            avatarHTML = `
+                <div class="publicacion-avatar" onclick="mostrarPerfilCompleto('${publicacion.usuario_id}')" style="display: flex; align-items: center; justify-content: center; background: ${obtenerColorAvatar(nombreAutor)}; cursor: pointer;">
+                    <div style="color: white; font-size: 20px; font-weight: bold;">
+                        ${obtenerIniciales(nombreAutor)}
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Mostrar información adicional del usuario si está disponible
+        let userInfoHTML = '';
+        if (usuarioData && (usuarioData.pais || usuarioData.ciudad)) {
+            const ubicacion = [];
+            if (usuarioData.ciudad) ubicacion.push(usuarioData.ciudad);
+            if (usuarioData.pais) ubicacion.push(usuarioData.pais);
+            
+            if (ubicacion.length > 0) {
+                userInfoHTML = `
+                    <div style="margin-top: 5px; font-size: 13px; color: #7f8c8d;">
+                        <i class="fas fa-map-marker-alt"></i> ${ubicacion.join(', ')}
+                    </div>
+                `;
+            }
+        }
+        
+        // Crear HTML de la publicación
+        const publicacionHTML = `
+            <div class="publicacion-item" id="publicacion-${publicacion.id}">
+                <div class="publicacion-header">
+                    ${avatarHTML}
+                    <div class="publicacion-info">
+                        <h4 onclick="mostrarPerfilCompleto('${publicacion.usuario_id}')">${nombreAutor}</h4>
+                        ${userInfoHTML}
+                        <div class="publicacion-meta">
+                            <span><i class="far fa-clock"></i> ${fecha}</span>
+                            <span><i class="fas fa-globe-americas"></i> Pública</span>
+                            <span><i class="fas fa-${publicacion.tipo === 'imagen' ? 'image' : publicacion.tipo === 'video' ? 'video' : 'link'}"></i> ${publicacion.tipo}</span>
                         </div>
                     </div>
-                    
-                    <div class="publicacion-contenido">
-                        ${publicacion.contenido ? `
-                            <div class="publicacion-texto">${publicacion.contenido}</div>
-                        ` : ''}
-                        
-                        ${mediaHTML}
-                    </div>
-                    
-                    <div class="publicacion-stats">
-                        <div class="stat-item">
-                            <i class="fas fa-heart"></i>
-                            <span>${publicacion.likes_count || 0} likes</span>
-                        </div>
-                        <div class="stat-item">
-                            <i class="fas fa-comment"></i>
-                            <span>${publicacion.comentarios_count || 0} comentarios</span>
-                        </div>
-                        <div class="stat-item">
-                            <i class="fas fa-share-alt"></i>
-                            <span>Compartida</span>
-                        </div>
-                    </div>
-                    
-                    ${usuarioData && usuarioData.biografia ? `
-                        <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e8edf2;">
-                            <p style="font-size: 14px; color: #5d6d7e; font-style: italic;">
-                                <i class="fas fa-quote-left" style="color: #667eea; margin-right: 5px;"></i>
-                                ${usuarioData.biografia}
-                            </p>
-                        </div>
+                </div>
+                
+                <div class="publicacion-contenido">
+                    ${publicacion.contenido ? `
+                        <div class="publicacion-texto">${publicacion.contenido}</div>
                     ` : ''}
+                    
+                    ${mediaHTML}
                 </div>
-            `;
-            
-            // Insertar en el contenedor
-            container.innerHTML = publicacionHTML;
-            container.style.display = 'block';
-            
-            // Animación de entrada
-            setTimeout(() => {
-                const pubElement = document.getElementById(`publicacion-${publicacion.id}`);
-                if (pubElement) {
-                    pubElement.style.opacity = '1';
-                    pubElement.style.transform = 'translateY(0)';
-                }
-            }, 100);
-        }
-        
-        function mostrarError(mensaje) {
-            const loading = document.getElementById('loading');
-            const errorContainer = document.getElementById('errorContainer');
-            
-            loading.style.display = 'none';
-            errorContainer.innerHTML = `
-                <i class="fas fa-exclamation-triangle"></i>
-                <h3>Error</h3>
-                <p>${mensaje}</p>
-                <div class="actions" style="margin-top: 30px; justify-content: center;">
-                    <a href="configuracion.html" class="btn btn-primary">
-                        <i class="fas fa-home"></i> Ir a Messery
-                    </a>
-                    <button class="btn btn-secondary" onclick="window.location.reload()">
-                        <i class="fas fa-redo"></i> Reintentar
-                    </button>
+                
+                <div class="publicacion-stats">
+                    <div class="stat-item">
+                        <i class="fas fa-heart"></i>
+                        <span>${publicacion.likes_count || 0} likes</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-comment"></i>
+                        <span>${publicacion.comentarios_count || 0} comentarios</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-share-alt"></i>
+                        <span>Compartida</span>
+                    </div>
                 </div>
-            `;
-            errorContainer.style.display = 'block';
-        }
+                
+                ${usuarioData && usuarioData.biografia ? `
+                    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e8edf2;">
+                        <p style="font-size: 14px; color: #5d6d7e; font-style: italic;">
+                            <i class="fas fa-quote-left" style="color: #667eea; margin-right: 5px;"></i>
+                            ${usuarioData.biografia}
+                        </p>
+                    </div>
+                ` : ''}
+            </div>
+        `;
         
-        function abrirImagenEnGrande(url) {
-            Swal.fire({
-                imageUrl: url,
-                imageAlt: 'Imagen de la publicación',
-                showCloseButton: true,
-                showConfirmButton: false,
-                background: 'rgba(0,0,0,0.9)',
-                backdrop: 'rgba(0,0,0,0.9)',
-                padding: '0',
-                width: '90%',
-                heightAuto: true,
-                imageHeight: 'auto',
-                imageWidth: '100%'
-            });
-        }
+        // Insertar en el contenedor
+        container.innerHTML = publicacionHTML;
+        container.style.display = 'block';
         
-        function extraerIdYouTube(url) {
-            const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
-            const match = url.match(regex);
-            return match ? match[1] : null;
-        }
-        
-        // ======================
-        // INICIALIZACIÓN
-        // ======================
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Página view.html cargada');
-            
-            // Obtener ID de publicación de la URL
-            const urlParams = new URLSearchParams(window.location.search);
-            publicacionId = urlParams.get('id');
-            
-            if (!publicacionId) {
-                mostrarError('❌ No se especificó ninguna publicación para ver');
-                return;
+        // Animación de entrada
+        setTimeout(() => {
+            const pubElement = document.getElementById(`publicacion-${publicacion.id}`);
+            if (pubElement) {
+                pubElement.style.opacity = '1';
+                pubElement.style.transform = 'translateY(0)';
             }
-            
-            console.log('📌 ID de publicación:', publicacionId);
-            
-            // Validar que sea un UUID válido
-            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-            if (!uuidRegex.test(publicacionId)) {
-                mostrarError('❌ ID de publicación inválido');
-                return;
-            }
-            
-            // Cargar la publicación después de 500ms
-            setTimeout(() => {
-                cargarPublicacion();
-            }, 500);
+        }, 100);
+    }
+    
+    function mostrarError(mensaje) {
+        const loading = document.getElementById('loading');
+        const errorContainer = document.getElementById('errorContainer');
+        
+        loading.style.display = 'none';
+        errorContainer.innerHTML = `
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>Error</h3>
+            <p>${mensaje}</p>
+            <div class="actions" style="margin-top: 30px; justify-content: center;">
+                <a href="configuracion.html" class="btn btn-primary">
+                    <i class="fas fa-home"></i> Ir a Messery
+                </a>
+                <button class="btn btn-secondary" onclick="window.location.reload()">
+                    <i class="fas fa-redo"></i> Reintentar
+                </button>
+            </div>
+        `;
+        errorContainer.style.display = 'block';
+    }
+    
+    function abrirImagenEnGrande(url) {
+        Swal.fire({
+            imageUrl: url,
+            imageAlt: 'Imagen de la publicación',
+            showCloseButton: true,
+            showConfirmButton: false,
+            background: 'rgba(0,0,0,0.9)',
+            backdrop: 'rgba(0,0,0,0.9)',
+            padding: '0',
+            width: '90%',
+            heightAuto: true,
+            imageHeight: 'auto',
+            imageWidth: '100%'
         });
-    </script>
+    }
+    
+    function extraerIdYouTube(url) {
+        const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+        const match = url.match(regex);
+        return match ? match[1] : null;
+    }
+    
+    // ======================
+    // INICIALIZACIÓN
+    // ======================
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🚀 Página view.html cargada');
+        
+        // Obtener ID de publicación de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        publicacionId = urlParams.get('id');
+        
+        if (!publicacionId) {
+            mostrarError('❌ No se especificó ninguna publicación para ver');
+            return;
+        }
+        
+        console.log('📌 ID de publicación:', publicacionId);
+        
+        // Validar que sea un UUID válido
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (!uuidRegex.test(publicacionId)) {
+            mostrarError('❌ ID de publicación inválido');
+            return;
+        }
+        
+        // Cargar la publicación después de 500ms
+        setTimeout(() => {
+            cargarPublicacion();
+        }, 500);
+    });
+</script>
 </body>
 </html>
