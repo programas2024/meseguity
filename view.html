@@ -1050,393 +1050,71 @@ async function mostrarPerfilCompleto(usuarioId) {
     
     try {
         console.log('🔍 Buscando perfil del usuario ID:', usuarioId);
-        console.log('📋 Verificando campo perfil_publico para el usuario:', usuarioId);
         
         // Simular un pequeño retraso para mostrar el loader
         await new Promise(resolve => setTimeout(resolve, 800));
         
-        // PRIMERO: Verificar si el perfil es público
-        const { data: perfilInfo, error: perfilError } = await supabaseClient
-            .from('usuarios')
-            .select('perfil_publico, nombre')
-            .eq('id', usuarioId)
-            .maybeSingle();
+        // USAR LA MISMA FUNCIÓN RPC QUE YA FUNCIONA EN obtenerDatosUsuario
+        console.log('🔄 Intentando obtener datos con RPC get_public_user_data...');
+        const { data: rpcData, error: rpcError } = await supabaseClient.rpc(
+            'get_public_user_data',
+            { user_uuid: usuarioId }
+        );
         
-        if (perfilError) {
-            console.error('Error al verificar perfil:', perfilError);
-            // Continuar igual, podría ser error de RLS
-        }
+        console.log('📊 Resultado RPC:', rpcData);
+        console.log('❌ Error RPC:', rpcError);
         
-        console.log('📊 Información del perfil:', perfilInfo);
-        
-        // Verificar si el perfil es público
-        if (perfilInfo && perfilInfo.perfil_publico === false) {
-            // Cerrar loader primero
-            Swal.close();
+        if (rpcError) {
+            console.error('Error en RPC:', rpcError);
             
-            // Mostrar mensaje de perfil privado
-            Swal.fire({
-                icon: 'info',
-                title: 'Perfil no disponible',
-                html: `
-                    <div style="text-align: center; padding: 20px;">
-                        <div style="
-                            width: 80px; 
-                            height: 80px; 
-                            margin: 0 auto 20px; 
-                            border-radius: 50%; 
-                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                            display: flex; 
-                            align-items: center; 
-                            justify-content: center;
-                        ">
-                            <i class="fas fa-user-lock" style="font-size: 40px; color: white;"></i>
-                        </div>
-                        <h3 style="color: #764ba2; margin-bottom: 15px;">Perfil Privado</h3>
-                        <p style="color: #5d6d7e; font-size: 16px; line-height: 1.5;">
-                            ${perfilInfo.nombre ? perfilInfo.nombre : 'Este usuario'} ha configurado su perfil como privado.<br>
-                            Solo los usuarios autenticados pueden ver perfiles privados.
-                        </p>
-                        <div style="margin-top: 25px; display: flex; gap: 15px; justify-content: center;">
-                            <button onclick="window.open('index.html', '_blank')" 
-                                    style="padding: 12px 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600;">
-                                <i class="fas fa-sign-in-alt"></i> Iniciar sesión
-                            </button>
-                            <button onclick="window.open('registro.html', '_blank')"
-                                    style="padding: 12px 25px; background: #f8f9fa; color: #2c3e50; border: 2px solid #e8edf2; border-radius: 10px; cursor: pointer; font-weight: 600;">
-                                <i class="fas fa-user-plus"></i> Registrarse
-                            </button>
-                        </div>
-                    </div>
-                `,
-                showConfirmButton: false,
-                showCloseButton: true,
-                width: '500px',
-                background: 'white',
-                customClass: {
-                    popup: 'profile-modal'
-                }
-            });
-            return;
-        }
-        
-        // SEGUNDO: Si el perfil es público o no podemos determinar, intentar obtener datos
-        // NOTA: Removemos la condición .eq('perfil_publico', true) para probar
-        const { data: usuario, error } = await supabaseClient
-            .from('usuarios')
-            .select('nombre, apellidos, avatar_url, email, pais, ciudad, biografia, fecha_nacimiento, created_at, tipo_cuenta, genero, perfil_publico')
-            .eq('id', usuarioId)
-            // .eq('perfil_publico', true)  // Comentado para debugging
-            .maybeSingle();
-        
-        console.log('🔍 Resultado de la consulta completa:', usuario);
-        console.log('❌ Error (si hay):', error);
-        
-        if (error) {
-            console.error('Error Supabase al obtener datos completos:', error);
-            
-            // Si hay error, podría ser por RLS, intentar con datos básicos
-            if (error.message.includes('permission') || error.message.includes('RLS')) {
-                console.log('⚠️ Error de permisos/RLS detectado, intentando obtener datos básicos...');
-                
-                // Intentar obtener solo datos públicos sin RLS
-                const { data: datosBasicos, error: errorBasico } = await supabaseClient
-                    .from('usuarios')
-                    .select('nombre, apellidos, avatar_url, perfil_publico')
-                    .eq('id', usuarioId)
-                    .maybeSingle();
-                
-                if (datosBasicos) {
-                    console.log('✅ Datos básicos obtenidos:', datosBasicos);
-                    
-                    // Verificar si perfil_publico es falso
-                    if (datosBasicos.perfil_publico === false) {
-                        Swal.close();
-                        Swal.fire({
-                            icon: 'info',
-                            title: 'Perfil Privado',
-                            text: 'Este usuario tiene su perfil configurado como privado.',
-                            confirmButtonText: 'Entendido',
-                            confirmButtonColor: '#667eea'
-                        });
-                        return;
-                    }
-                    
-                    // Si es público o no especificado, mostrar datos básicos
-                    const nombreCompleto = `${datosBasicos.nombre || ''} ${datosBasicos.apellidos || ''}`.trim() || 'Usuario Messery';
-                    
-                    const profileHTML = `
-                        <div class="profile-modal-content">
-                            <div class="profile-header">
-                                <div class="profile-avatar-large">
-                                    ${datosBasicos.avatar_url ? 
-                                        `<img src="${datosBasicos.avatar_url}" alt="${nombreCompleto}" onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<div style=\\'background: ${obtenerColorAvatar(nombreCompleto)}; color: white; font-size: 36px; border-radius: 20px; width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; font-weight: bold;\\'>${obtenerIniciales(nombreCompleto)}</div>';">
-                                        ` :
-                                        `<div style="background: ${obtenerColorAvatar(nombreCompleto)}; color: white; font-size: 36px; border-radius: 20px; width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; font-weight: bold;">
-                                            ${obtenerIniciales(nombreCompleto)}
-                                        </div>`
-                                    }
-                                </div>
-                                <div class="profile-title">
-                                    <h2 style="color: #764ba2;">${nombreCompleto}</h2>
-                                    <p class="profile-subtitle">Perfil básico</p>
-                                </div>
-                            </div>
-                            
-                            <div class="profile-info-grid">
-                                <div class="info-item">
-                                    <div class="info-label">
-                                        <i class="fas fa-info-circle"></i>
-                                        <span>Información</span>
-                                    </div>
-                                    <div class="info-value">Solo se muestran datos públicos disponibles</div>
-                                </div>
-                            </div>
-                            
-                            <div class="profile-actions">
-                                <button class="btn-profile-action btn-send-message" onclick="window.open('index.html', '_blank')">
-                                    <i class="fas fa-comment-dots"></i>
-                                    <span>Iniciar sesión para ver más detalles</span>
-                                </button>
-                                
-                                <button class="btn-profile-action btn-send-request" onclick="window.open('registro.html', '_blank')">
-                                    <i class="fas fa-user-plus"></i>
-                                    <span>Registrarse en Messery</span>
-                                </button>
-                            </div>
-                            
-                            <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 10px; border-left: 4px solid #667eea;">
-                                <p style="color: #5d6d7e; font-size: 14px; margin: 0;">
-                                    <i class="fas fa-info-circle" style="color: #667eea; margin-right: 8px;"></i>
-                                    Para ver toda la información del perfil, necesitas iniciar sesión en Messery.
-                                </p>
-                            </div>
-                        </div>
-                    `;
-                    
-                    Swal.close();
-                    Swal.fire({
-                        html: profileHTML,
-                        showCloseButton: true,
-                        showConfirmButton: false,
-                        width: '700px',
-                        customClass: {
-                            popup: 'profile-modal',
-                            closeButton: 'swal2-close'
-                        },
-                        background: 'white',
-                        didOpen: () => {
-                            const popup = document.querySelector('.profile-modal .swal2-popup');
-                            if (popup) {
-                                popup.style.border = '2px solid #764ba2';
-                                popup.style.borderRadius = '15px';
-                                popup.style.overflow = 'hidden';
-                            }
-                        }
-                    });
+            // Si RPC falla, intentar con datos locales almacenados
+            try {
+                const storedKey = `user_${usuarioId}`;
+                const storedData = localStorage.getItem(storedKey);
+                if (storedData) {
+                    const parsed = JSON.parse(storedData);
+                    console.log('✅ Datos obtenidos de localStorage:', parsed);
+                    mostrarPerfilDesdeDatos(parsed, usuarioId);
                     return;
                 }
+            } catch (localError) {
+                console.log('⚠️ Error obteniendo de localStorage:', localError);
             }
             
-            // Si no pudimos obtener nada, mostrar error genérico
+            // Si no hay datos, mostrar error
             Swal.close();
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'No se pudo cargar el perfil. Intenta de nuevo más tarde.',
-                confirmButtonText: 'Entendido',
-                confirmButtonColor: '#667eea'
-            });
+            mostrarErrorPerfil('No se pudo cargar el perfil. La función RPC no está disponible.');
             return;
         }
         
-        if (!usuario) {
-            // Cerrar loader primero
-            Swal.close();
+        if (!rpcData || rpcData.length === 0) {
+            console.log('⚠️ RPC no devolvió datos, el perfil podría ser privado o no existir');
             
-            // Si no hay usuario, podría no existir o tener RLS que bloquea
-            Swal.fire({
-                icon: 'info',
-                title: 'Perfil no disponible',
-                html: `
-                    <div style="text-align: center; padding: 20px;">
-                        <div style="
-                            width: 80px; 
-                            height: 80px; 
-                            margin: 0 auto 20px; 
-                            border-radius: 50%; 
-                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                            display: flex; 
-                            align-items: center; 
-                            justify-content: center;
-                        ">
-                            <i class="fas fa-question-circle" style="font-size: 40px; color: white;"></i>
-                        </div>
-                        <h3 style="color: #764ba2; margin-bottom: 15px;">Perfil no encontrado</h3>
-                        <p style="color: #5d6d7e; font-size: 16px; line-height: 1.5;">
-                            No se pudo acceder al perfil del usuario.<br>
-                            El usuario puede no existir o tener restricciones de privacidad.
-                        </p>
-                    </div>
-                `,
-                showConfirmButton: false,
-                showCloseButton: true,
-                width: '500px',
-                background: 'white'
-            });
+            // Verificar si hay datos locales
+            try {
+                const storedKey = `user_${usuarioId}`;
+                const storedData = localStorage.getItem(storedKey);
+                if (storedData) {
+                    const parsed = JSON.parse(storedData);
+                    console.log('✅ Datos obtenidos de localStorage:', parsed);
+                    mostrarPerfilDesdeDatos(parsed, usuarioId);
+                    return;
+                }
+            } catch (localError) {
+                console.log('⚠️ Error obteniendo de localStorage:', localError);
+            }
+            
+            // Mostrar mensaje de perfil privado
+            Swal.close();
+            mostrarMensajePerfilPrivado();
             return;
         }
         
-        // Datos del perfil
-        const nombreCompleto = `${usuario.nombre || ''} ${usuario.apellidos || ''}`.trim() || 'Usuario Messery';
-        const ubicacion = formatearUbicacion(usuario.ciudad, usuario.pais);
-        const edad = calcularEdad(usuario.fecha_nacimiento);
-        const fechaRegistro = new Date(usuario.created_at).toLocaleDateString('es-ES', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
+        // Si tenemos datos del RPC, mostrar el perfil
+        const usuario = rpcData[0];
+        console.log('✅ Datos del perfil desde RPC:', usuario);
         
-        console.log('✅ Datos del perfil cargados:', usuario);
-        console.log('📋 Estado perfil_publico:', usuario.perfil_publico);
-        
-        // HTML del perfil
-        const profileHTML = `
-            <div class="profile-modal-content">
-                <div class="profile-header">
-                    <div class="profile-avatar-large">
-                        ${usuario.avatar_url ? 
-                            `<img src="${usuario.avatar_url}" alt="${nombreCompleto}" onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<div style=\\'background: ${obtenerColorAvatar(nombreCompleto)}; color: white; font-size: 36px; border-radius: 20px; width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; font-weight: bold;\\'>${obtenerIniciales(nombreCompleto)}</div>';">
-                            ` :
-                            `<div style="background: ${obtenerColorAvatar(nombreCompleto)}; color: white; font-size: 36px; border-radius: 20px; width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; font-weight: bold;">
-                                ${obtenerIniciales(nombreCompleto)}
-                            </div>`
-                        }
-                    </div>
-                    <div class="profile-title">
-                        <h2 style="color: #764ba2;">${nombreCompleto}</h2>
-                        <p class="profile-subtitle">${usuario.perfil_publico ? 'Perfil público' : 'Perfil básico'}</p>
-                    </div>
-                </div>
-                
-                <div class="profile-info-grid">
-                    ${usuario.email ? `
-                    <div class="info-item">
-                        <div class="info-label">
-                            <i class="fas fa-envelope"></i>
-                            <span>Email</span>
-                        </div>
-                        <div class="info-value">${usuario.email}</div>
-                    </div>
-                    ` : ''}
-                    
-                    ${ubicacion !== 'No especificada' ? `
-                    <div class="info-item">
-                        <div class="info-label">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <span>Ubicación</span>
-                        </div>
-                        <div class="info-value">${ubicacion}</div>
-                    </div>
-                    ` : ''}
-                    
-                    ${usuario.tipo_cuenta ? `
-                    <div class="info-item">
-                        <div class="info-label">
-                            <i class="fas fa-user-tag"></i>
-                            <span>Tipo de cuenta</span>
-                        </div>
-                        <div class="info-value">${usuario.tipo_cuenta === 'personal' ? 'Personal' : usuario.tipo_cuenta}</div>
-                    </div>
-                    ` : ''}
-                    
-                    ${edad !== 'No especificada' ? `
-                    <div class="info-item">
-                        <div class="info-label">
-                            <i class="fas fa-birthday-cake"></i>
-                            <span>Edad</span>
-                        </div>
-                        <div class="info-value">${edad}</div>
-                    </div>
-                    ` : ''}
-                    
-                    <div class="info-item">
-                        <div class="info-label">
-                            <i class="fas fa-calendar-plus"></i>
-                            <span>Se unió</span>
-                        </div>
-                        <div class="info-value">${fechaRegistro}</div>
-                    </div>
-                    
-                    ${usuario.genero ? `
-                    <div class="info-item">
-                        <div class="info-label">
-                            <i class="fas fa-venus-mars"></i>
-                            <span>Género</span>
-                        </div>
-                        <div class="info-value">${usuario.genero}</div>
-                    </div>
-                    ` : ''}
-                </div>
-                
-                ${usuario.biografia ? `
-                <div class="profile-bio-section">
-                    <h3 style="color: #764ba2;"><i class="fas fa-quote-left"></i> Biografía</h3>
-                    <div class="bio-content">
-                        <p>${usuario.biografia}</p>
-                    </div>
-                </div>
-                ` : ''}
-                
-                <div class="profile-actions">
-                    <button class="btn-profile-action btn-send-message" onclick="window.open('index.html', '_blank')">
-                        <i class="fas fa-comment-dots"></i>
-                        <span>Iniciar sesión para enviar mensaje</span>
-                    </button>
-                    
-                    <button class="btn-profile-action btn-send-request" onclick="window.open('registro.html', '_blank')">
-                        <i class="fas fa-user-plus"></i>
-                        <span>Registrarse en Messery</span>
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        // Cerrar loader y mostrar perfil
-        Swal.close();
-        
-        Swal.fire({
-            html: profileHTML,
-            showCloseButton: true,
-            showConfirmButton: false,
-            width: '700px',
-            customClass: {
-                popup: 'profile-modal',
-                closeButton: 'swal2-close'
-            },
-            background: 'white',
-            didOpen: () => {
-                // Agregar borde morado al contenedor
-                const popup = document.querySelector('.profile-modal .swal2-popup');
-                if (popup) {
-                    popup.style.border = '2px solid #764ba2';
-                    popup.style.borderRadius = '15px';
-                    popup.style.overflow = 'hidden';
-                }
-                
-                // Agregar estilo al título
-                const title = document.querySelector('.profile-modal .profile-title h2');
-                if (title) {
-                    title.style.color = '#764ba2';
-                }
-                
-                // Agregar borde morado a cada info-item
-                const infoItems = document.querySelectorAll('.profile-modal .info-item');
-                infoItems.forEach(item => {
-                    item.style.borderLeft = '4px solid #667eea';
-                });
-            }
-        });
+        mostrarPerfilDesdeDatos(usuario, usuarioId);
         
     } catch (error) {
         console.error('Error al cargar perfil:', error);
@@ -1444,58 +1122,247 @@ async function mostrarPerfilCompleto(usuarioId) {
         // Cerrar loader primero
         Swal.close();
         
-        // Mostrar error
-        Swal.fire({
-            icon: 'error',
-            title: 'Error al cargar perfil',
-            html: `
-                <div style="text-align: center; padding: 10px;">
-                    <div style="
-                        width: 70px; 
-                        height: 70px; 
-                        margin: 0 auto 20px; 
-                        border-radius: 50%; 
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                        display: flex; 
-                        align-items: center; 
-                        justify-content: center;
-                    ">
-                        <i class="fas fa-exclamation-triangle" style="font-size: 35px; color: white;"></i>
-                    </div>
-                    <h3 style="color: #764ba2; margin-bottom: 15px;">Error</h3>
-                    <p style="color: #5d6d7e; margin-bottom: 20px;">
-                        No se pudo cargar el perfil del usuario.<br>
-                        Posibles razones:
-                    </p>
-                    <div style="text-align: left; background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 0 auto 20px; max-width: 400px; border-left: 4px solid #667eea;">
-                        <p style="margin: 8px 0; color: #5d6d7e;">
-                            <i class="fas fa-circle" style="font-size: 8px; color: #667eea; margin-right: 10px;"></i>
-                            El usuario tiene su perfil configurado como privado
-                        </p>
-                        <p style="margin: 8px 0; color: #5d6d7e;">
-                            <i class="fas fa-circle" style="font-size: 8px; color: #667eea; margin-right: 10px;"></i>
-                            El usuario no existe en la plataforma
-                        </p>
-                        <p style="margin: 8px 0; color: #5d6d7e;">
-                            <i class="fas fa-circle" style="font-size: 8px; color: #667eea; margin-right: 10px;"></i>
-                            Problemas de conexión con el servidor
-                        </p>
-                        <p style="margin: 8px 0; color: #5d6d7e;">
-                            <i class="fas fa-circle" style="font-size: 8px; color: #667eea; margin-right: 10px;"></i>
-                            Restricciones de seguridad (RLS) en la base de datos
-                        </p>
-                    </div>
-                </div>
-            `,
-            confirmButtonText: 'Entendido',
-            confirmButtonColor: '#667eea',
-            width: '500px',
-            background: 'white',
-            customClass: {
-                popup: 'profile-modal'
+        // Intentar con datos locales como último recurso
+        try {
+            const storedKey = `user_${usuarioId}`;
+            const storedData = localStorage.getItem(storedKey);
+            if (storedData) {
+                const parsed = JSON.parse(storedData);
+                console.log('✅ Datos obtenidos de localStorage (fallback):', parsed);
+                mostrarPerfilDesdeDatos(parsed, usuarioId);
+                return;
             }
-        });
+        } catch (localError) {
+            console.log('⚠️ Error obteniendo de localStorage:', localError);
+        }
+        
+        // Mostrar error
+        mostrarErrorPerfil('Error inesperado al cargar el perfil: ' + error.message);
     }
+}
+
+// Función auxiliar para mostrar perfil desde datos
+function mostrarPerfilDesdeDatos(usuarioData, usuarioId) {
+    // Si no hay datos suficientes, mostrar mensaje básico
+    if (!usuarioData || (!usuarioData.nombre && !usuarioData.email)) {
+        Swal.close();
+        mostrarMensajePerfilPrivado();
+        return;
+    }
+    
+    // Datos del perfil
+    const nombreCompleto = `${usuarioData.nombre || ''} ${usuarioData.apellidos || ''}`.trim() || 
+                          (usuarioData.email ? usuarioData.email.split('@')[0] : 'Usuario Messery');
+    const ubicacion = formatearUbicacion(usuarioData.ciudad, usuarioData.pais);
+    const edad = usuarioData.fecha_nacimiento ? calcularEdad(usuarioData.fecha_nacimiento) : 'No especificada';
+    
+    // HTML del perfil
+    const profileHTML = `
+        <div class="profile-modal-content">
+            <div class="profile-header">
+                <div class="profile-avatar-large">
+                    ${usuarioData.avatar_url ? 
+                        `<img src="${usuarioData.avatar_url}" alt="${nombreCompleto}" onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<div style=\\'background: ${obtenerColorAvatar(nombreCompleto)}; color: white; font-size: 36px; border-radius: 20px; width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; font-weight: bold;\\'>${obtenerIniciales(nombreCompleto)}</div>';">
+                        ` :
+                        `<div style="background: ${obtenerColorAvatar(nombreCompleto)}; color: white; font-size: 36px; border-radius: 20px; width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                            ${obtenerIniciales(nombreCompleto)}
+                        </div>`
+                    }
+                </div>
+                <div class="profile-title">
+                    <h2 style="color: #764ba2;">${nombreCompleto}</h2>
+                    <p class="profile-subtitle">Perfil público</p>
+                </div>
+            </div>
+            
+            <div class="profile-info-grid">
+                ${usuarioData.email ? `
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-envelope"></i>
+                        <span>Email</span>
+                    </div>
+                    <div class="info-value">${usuarioData.email}</div>
+                </div>
+                ` : ''}
+                
+                ${ubicacion !== 'No especificada' ? `
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Ubicación</span>
+                    </div>
+                    <div class="info-value">${ubicacion}</div>
+                </div>
+                ` : ''}
+                
+                ${usuarioData.tipo_cuenta ? `
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-user-tag"></i>
+                        <span>Tipo de cuenta</span>
+                    </div>
+                    <div class="info-value">${usuarioData.tipo_cuenta === 'personal' ? 'Personal' : usuarioData.tipo_cuenta}</div>
+                </div>
+                ` : ''}
+                
+                ${edad !== 'No especificada' ? `
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-birthday-cake"></i>
+                        <span>Edad</span>
+                    </div>
+                    <div class="info-value">${edad}</div>
+                </div>
+                ` : ''}
+                
+                ${usuarioData.genero ? `
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-venus-mars"></i>
+                        <span>Género</span>
+                    </div>
+                    <div class="info-value">${usuarioData.genero}</div>
+                </div>
+                ` : ''}
+            </div>
+            
+            ${usuarioData.biografia ? `
+            <div class="profile-bio-section">
+                <h3 style="color: #764ba2;"><i class="fas fa-quote-left"></i> Biografía</h3>
+                <div class="bio-content">
+                    <p>${usuarioData.biografia}</p>
+                </div>
+            </div>
+            ` : ''}
+            
+            <div class="profile-actions">
+                <button class="btn-profile-action btn-send-message" onclick="window.open('index.html', '_blank')">
+                    <i class="fas fa-comment-dots"></i>
+                    <span>Iniciar sesión para enviar mensaje</span>
+                </button>
+                
+                <button class="btn-profile-action btn-send-request" onclick="window.open('registro.html', '_blank')">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Registrarse en Messery</span>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Cerrar loader y mostrar perfil
+    Swal.close();
+    
+    Swal.fire({
+        html: profileHTML,
+        showCloseButton: true,
+        showConfirmButton: false,
+        width: '700px',
+        customClass: {
+            popup: 'profile-modal',
+            closeButton: 'swal2-close'
+        },
+        background: 'white',
+        didOpen: () => {
+            // Agregar borde morado al contenedor
+            const popup = document.querySelector('.profile-modal .swal2-popup');
+            if (popup) {
+                popup.style.border = '2px solid #764ba2';
+                popup.style.borderRadius = '15px';
+                popup.style.overflow = 'hidden';
+            }
+            
+            // Agregar estilo al título
+            const title = document.querySelector('.profile-modal .profile-title h2');
+            if (title) {
+                title.style.color = '#764ba2';
+            }
+            
+            // Agregar borde morado a cada info-item
+            const infoItems = document.querySelectorAll('.profile-modal .info-item');
+            infoItems.forEach(item => {
+                item.style.borderLeft = '4px solid #667eea';
+            });
+        }
+    });
+}
+
+// Función auxiliar para mostrar mensaje de perfil privado
+function mostrarMensajePerfilPrivado() {
+    Swal.fire({
+        icon: 'info',
+        title: 'Perfil no disponible',
+        html: `
+            <div style="text-align: center; padding: 20px;">
+                <div style="
+                    width: 80px; 
+                    height: 80px; 
+                    margin: 0 auto 20px; 
+                    border-radius: 50%; 
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: center;
+                ">
+                    <i class="fas fa-user-lock" style="font-size: 40px; color: white;"></i>
+                </div>
+                <h3 style="color: #764ba2; margin-bottom: 15px;">Perfil Privado</h3>
+                <p style="color: #5d6d7e; font-size: 16px; line-height: 1.5;">
+                    Este usuario ha configurado su perfil como privado.<br>
+                    Solo los usuarios autenticados pueden ver perfiles privados.
+                </p>
+                <div style="margin-top: 25px; display: flex; gap: 15px; justify-content: center;">
+                    <button onclick="window.open('index.html', '_blank')" 
+                            style="padding: 12px 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600;">
+                        <i class="fas fa-sign-in-alt"></i> Iniciar sesión
+                    </button>
+                    <button onclick="window.open('registro.html', '_blank')"
+                            style="padding: 12px 25px; background: #f8f9fa; color: #2c3e50; border: 2px solid #e8edf2; border-radius: 10px; cursor: pointer; font-weight: 600;">
+                        <i class="fas fa-user-plus"></i> Registrarse
+                    </button>
+                </div>
+            </div>
+        `,
+        showConfirmButton: false,
+        showCloseButton: true,
+        width: '500px',
+        background: 'white',
+        customClass: {
+            popup: 'profile-modal'
+        }
+    });
+}
+
+// Función auxiliar para mostrar error
+function mostrarErrorPerfil(mensaje) {
+    Swal.fire({
+        icon: 'error',
+        title: 'Error al cargar perfil',
+        html: `
+            <div style="text-align: center; padding: 10px;">
+                <div style="
+                    width: 70px; 
+                    height: 70px; 
+                    margin: 0 auto 20px; 
+                    border-radius: 50%; 
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: center;
+                ">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 35px; color: white;"></i>
+                </div>
+                <h3 style="color: #764ba2; margin-bottom: 15px;">Error</h3>
+                <p style="color: #5d6d7e; margin-bottom: 20px;">
+                    ${mensaje}
+                </p>
+            </div>
+        `,
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#667eea',
+        width: '500px',
+        background: 'white'
+    });
 }
     
     // ======================
