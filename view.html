@@ -821,8 +821,8 @@
                 .from('usuarios')
                 .select('nombre, apellidos, avatar_url, email, pais, ciudad, biografia, fecha_nacimiento, created_at, tipo_cuenta, genero, perfil_publico')
                 .eq('id', usuarioId)
-                .eq('perfil_publico', true)  // Solo usuarios con perfil público
-                .maybeSingle();  // Usar maybeSingle para evitar error si no hay datos
+                .eq('perfil_publico', true)
+                .maybeSingle();
             
             if (error) {
                 console.error('Error Supabase:', error);
@@ -830,7 +830,6 @@
             }
             
             if (!usuario) {
-                // Si no hay datos o perfil no es público, mostrar mensaje
                 Swal.fire({
                     icon: 'info',
                     title: 'Perfil no disponible',
@@ -860,7 +859,6 @@
                 return;
             }
             
-            // Si el usuario existe y tiene perfil público, mostrar datos
             const nombreCompleto = `${usuario.nombre || ''} ${usuario.apellidos || ''}`.trim() || 'Usuario Messery';
             const ubicacion = formatearUbicacion(usuario.ciudad, usuario.pais);
             const edad = calcularEdad(usuario.fecha_nacimiento);
@@ -872,7 +870,6 @@
             
             console.log('✅ Datos del perfil público:', usuario);
             
-            // Crear HTML del perfil
             const profileHTML = `
                 <div class="profile-modal-content">
                     <div class="profile-header">
@@ -974,7 +971,6 @@
                 </div>
             `;
             
-            // Mostrar SweetAlert con el perfil
             Swal.fire({
                 html: profileHTML,
                 showCloseButton: true,
@@ -990,7 +986,6 @@
         } catch (error) {
             console.error('Error al cargar perfil:', error);
             
-            // Mensaje de error amigable
             Swal.fire({
                 icon: 'error',
                 title: 'Error al cargar perfil',
@@ -1024,20 +1019,73 @@
     }
     
     // ======================
+    // FUNCIÓN PARA OBTENER DATOS DE LA PUBLICACIÓN (PARA COMPARTIR)
+    // ======================
+    async function obtenerDatosParaCompartir() {
+        if (!publicacionActual) return null;
+        
+        try {
+            // Obtener datos del usuario para el mensaje
+            const usuarioData = await obtenerDatosUsuario(publicacionActual.usuario_id);
+            const nombreAutor = usuarioData.nombre ? 
+                (usuarioData.apellidos ? `${usuarioData.nombre} ${usuarioData.apellidos}` : usuarioData.nombre) :
+                'Usuario Messery';
+            
+            // Construir mensaje personalizado
+            let mensaje = `¡Mira esta publicación que encontré en Messery!\n\n`;
+            mensaje += `👤 Publicado por: ${nombreAutor}\n`;
+            
+            if (publicacionActual.contenido) {
+                const contenidoCorto = publicacionActual.contenido.length > 100 
+                    ? publicacionActual.contenido.substring(0, 100) + '...' 
+                    : publicacionActual.contenido;
+                mensaje += `📝 ${contenidoCorto}\n\n`;
+            }
+            
+            mensaje += `🔗 Enlace: ${window.location.href}\n\n`;
+            mensaje += `¡Me pareció increíble! 😃\n`;
+            mensaje += `#Messery #Compartir`;
+            
+            // Obtener imagen si existe
+            let imagenUrl = null;
+            if (publicacionActual.url_media && publicacionActual.tipo === 'imagen') {
+                imagenUrl = publicacionActual.url_media;
+            }
+            
+            return {
+                url: window.location.href,
+                mensaje: mensaje,
+                titulo: `Publicación de ${nombreAutor} en Messery`,
+                imagenUrl: imagenUrl,
+                autor: nombreAutor
+            };
+            
+        } catch (error) {
+            console.error('Error obteniendo datos para compartir:', error);
+            return {
+                url: window.location.href,
+                mensaje: '¡Mira esta publicación increíble que encontré en Messery! ' + window.location.href + '\n\n¡Me pareció impresionante! 😃\n#Messery #Compartir',
+                titulo: 'Publicación en Messery',
+                imagenUrl: null,
+                autor: 'Messery'
+            };
+        }
+    }
+    
+    // ======================
     // FUNCIÓN PARA MOSTRAR OPCIONES DE COMPARTIR
     // ======================
-    function mostrarOpcionesCompartir() {
+    async function mostrarOpcionesCompartir() {
         if (!publicacionActual) return;
         
-        const currentUrl = window.location.href;
-        const titulo = '¡Mira esta publicación de Messery!';
-        const texto = 'He encontrado esta publicación interesante en Messery';
+        // Obtener datos para compartir
+        const shareData = await obtenerDatosParaCompartir();
         
         const shareHTML = `
             <div style="text-align: center;">
                 <p style="margin-bottom: 20px; color: #2c3e50; font-size: 18px; font-weight: 600;">Compartir esta publicación</p>
                 
-                <input type="text" id="shareUrl" value="${currentUrl}" readonly 
+                <input type="text" id="shareUrl" value="${shareData.url}" readonly 
                        style="width:100%; padding:12px; border:2px solid #e8edf2; border-radius:8px; margin-bottom: 25px; font-size: 14px; background: #f8f9fa;">
                 
                 <div class="share-options">
@@ -1046,31 +1094,40 @@
                         <span>Copiar Link</span>
                     </div>
                     
-                    <div class="share-option whatsapp" onclick="compartirWhatsApp('${currentUrl}', '${texto}')">
+                    <div class="share-option whatsapp" onclick="compartirWhatsApp('${encodeURIComponent(shareData.mensaje)}')">
                         <i class="fab fa-whatsapp"></i>
                         <span>WhatsApp</span>
                     </div>
                     
-                    <div class="share-option facebook" onclick="compartirFacebook('${currentUrl}')">
+                    <div class="share-option facebook" onclick="compartirFacebook('${encodeURIComponent(shareData.url)}', '${encodeURIComponent(shareData.titulo)}')">
                         <i class="fab fa-facebook"></i>
                         <span>Facebook</span>
                     </div>
                     
-                    <div class="share-option txt" onclick="compartirTXT('${currentUrl}', '${titulo}')">
+                    <div class="share-option txt" onclick="compartirTXT('${shareData.url}', '${shareData.titulo}', '${shareData.autor}')">
                         <i class="fas fa-file-alt"></i>
                         <span>Guardar como TXT</span>
                     </div>
                     
-                    <div class="share-option gmail" onclick="compartirGmail('${currentUrl}', '${titulo}', '${texto}')">
+                    <div class="share-option gmail" onclick="compartirGmail('${shareData.url}', '${encodeURIComponent(shareData.titulo)}', '${encodeURIComponent(shareData.mensaje)}')">
                         <i class="fas fa-envelope"></i>
                         <span>Gmail</span>
                     </div>
                     
-                    <div class="share-option" onclick="window.open('${currentUrl}', '_blank')">
+                    <div class="share-option" onclick="window.open('${shareData.url}', '_blank')">
                         <i class="fas fa-external-link-alt"></i>
                         <span>Abrir en nueva pestaña</span>
                     </div>
                 </div>
+                
+                ${shareData.imagenUrl ? `
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e8edf2;">
+                    <p style="color: #5d6d7e; font-size: 14px; margin-bottom: 10px;">
+                        <i class="fas fa-info-circle" style="color: #667eea;"></i>
+                        Esta publicación incluye una imagen que se compartirá junto con el enlace.
+                    </p>
+                </div>
+                ` : ''}
             </div>
         `;
         
@@ -1087,7 +1144,7 @@
     }
     
     // ======================
-    // FUNCIONES DE COMPARTIR
+    // FUNCIONES DE COMPARTIR MEJORADAS
     // ======================
     function copiarEnlace() {
         const input = document.getElementById('shareUrl');
@@ -1118,23 +1175,75 @@
         }
     }
     
-    function compartirWhatsApp(url, texto) {
-        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(texto + ' ' + url)}`;
+    function compartirWhatsApp(mensajeCodificado) {
+        // WhatsApp Web directo (abre la app si está instalada, sino web)
+        let whatsappUrl;
+        
+        if (esMovil) {
+            // Para móviles - intenta abrir la app
+            whatsappUrl = `whatsapp://send?text=${mensajeCodificado}`;
+            
+            // Si falla, abre web.whatsapp.com
+            setTimeout(() => {
+                window.open(`https://web.whatsapp.com/send?text=${mensajeCodificado}`, '_blank');
+            }, 500);
+        } else {
+            // Para PC - usa web.whatsapp.com
+            whatsappUrl = `https://web.whatsapp.com/send?text=${mensajeCodificado}`;
+        }
+        
         window.open(whatsappUrl, '_blank');
     }
     
-    function compartirFacebook(url) {
-        const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
-        window.open(facebookUrl, '_blank');
+    function compartirFacebook(url, titulo) {
+        // Facebook Share Dialog
+        const facebookUrl = `https://www.facebook.com/dialog/share?app_id=1441693351700543&display=popup&href=${encodeURIComponent(url)}&quote=${titulo}`;
+        window.open(facebookUrl, '_blank', 'width=600,height=400');
     }
     
-    function compartirTXT(url, titulo) {
-        const contenido = `${titulo}\n\nURL: ${url}\nFecha: ${new Date().toLocaleDateString()}\n\nCompartido desde Messery\n\n---\nVisita Messery para más contenido interesante!`;
-        const blob = new Blob([contenido], { type: 'text/plain' });
+    function compartirTXT(url, titulo, autor) {
+        const fecha = new Date().toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        const contenido = `
+===============================
+PUBLICACIÓN DE MESSERY
+===============================
+
+Título: ${titulo}
+Autor: ${autor}
+Fecha de publicación: ${fecha}
+URL: ${url}
+
+---------------------------------
+MENSAJE PARA COMPARTIR:
+---------------------------------
+
+¡Mira esta publicación que encontré en Messery!
+
+Publicado por: ${autor}
+Enlace: ${url}
+
+¡Me pareció impresionante! 😃
+
+#Messery #Compartir
+
+===============================
+Compartido desde Messery
+Visita: https://messery.com
+===============================
+        `;
+        
+        const blob = new Blob([contenido], { type: 'text/plain;charset=utf-8' });
         const blobUrl = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = blobUrl;
-        a.download = 'Publicacion-Messery.txt';
+        a.download = `Publicacion-Messery-${Date.now()}.txt`;
         a.click();
         URL.revokeObjectURL(blobUrl);
         
@@ -1147,11 +1256,57 @@
         });
     }
     
-    function compartirGmail(url, titulo, texto) {
+    function compartirGmail(url, titulo, mensaje) {
+        // Gmail compose con HTML mejorado
         const subject = encodeURIComponent(titulo);
-        const body = encodeURIComponent(`${texto}\n\n${url}`);
-        const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`;
-        window.open(gmailUrl, '_blank');
+        
+        // Crear cuerpo HTML para Gmail
+        const cuerpoHTML = `
+<div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 10px; color: white; margin-bottom: 20px;">
+        <h2 style="margin: 0; font-size: 24px;">¡Mira esta publicación de Messery!</h2>
+        <p style="margin: 10px 0 0 0; opacity: 0.9;">Te comparto una publicación que me pareció increíble</p>
+    </div>
+    
+    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #667eea;">
+        <p style="margin: 0; font-size: 16px; font-style: italic;">
+            "¡Me pareció impresionante! 😃"
+        </p>
+    </div>
+    
+    <div style="margin-bottom: 20px;">
+        <p style="margin-bottom: 10px;"><strong>📝 Contenido:</strong></p>
+        <p style="background: #f5f5f5; padding: 15px; border-radius: 5px; border: 1px solid #e0e0e0;">
+            ${publicacionActual?.contenido ? publicacionActual.contenido.substring(0, 200) + (publicacionActual.contenido.length > 200 ? '...' : '') : 'Publicación interesante en Messery'}
+        </p>
+    </div>
+    
+    <div style="margin-bottom: 20px;">
+        <p style="margin-bottom: 10px;"><strong>🔗 Enlace directo:</strong></p>
+        <a href="${url}" style="color: #667eea; text-decoration: none; font-weight: bold; word-break: break-all;">
+            ${url}
+        </a>
+    </div>
+    
+    <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+        <p style="color: #666; font-size: 14px;">
+            Compartido desde <strong>Messery</strong> - La plataforma para compartir lo que te importa
+        </p>
+        <a href="https://messery.com" style="color: #667eea; text-decoration: none; font-weight: bold;">
+            🌐 Visita Messery
+        </a>
+    </div>
+</div>
+        `;
+        
+        // Codificar el cuerpo HTML
+        const body = encodeURIComponent(cuerpoHTML);
+        
+        // Crear URL para Gmail
+        const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=&su=${subject}&body=${body}&ui=2&tf=1`;
+        
+        // Abrir en nueva ventana
+        window.open(gmailUrl, '_blank', 'width=800,height=600');
     }
     
     // ======================
@@ -1166,7 +1321,6 @@
                 throw new Error('No se especificó ID de publicación');
             }
             
-            // PASO 1: Obtener la publicación básica
             const { data: publicacion, error } = await supabaseClient
                 .from('publicaciones')
                 .select('*')
@@ -1185,10 +1339,8 @@
                 throw new Error('Publicación no encontrada');
             }
             
-            // Guardar publicación actual
             publicacionActual = publicacion;
             
-            // Verificar que sea pública
             if (publicacion.visibilidad !== 'publico') {
                 mostrarError('🔒 Esta publicación es privada y no está disponible para ver públicamente');
                 return;
@@ -1196,14 +1348,11 @@
             
             console.log('✅ Publicación cargada:', publicacion);
             
-            // PASO 2: Obtener datos del usuario
             usuarioActual = await obtenerDatosUsuario(publicacion.usuario_id);
             console.log('👤 Datos finales del usuario:', usuarioActual);
             
-            // Mostrar la publicación
             mostrarPublicacion(publicacion, usuarioActual);
             
-            // Mostrar prompt de login después de 1 segundo
             setTimeout(() => {
                 document.getElementById('loginPrompt').style.display = 'block';
             }, 1000);
@@ -1218,10 +1367,8 @@
         const container = document.getElementById('publicacionContainer');
         const loading = document.getElementById('loading');
         
-        // Ocultar loading
         loading.style.display = 'none';
         
-        // Formatear fecha
         const fecha = new Date(publicacion.fecha_creacion).toLocaleDateString('es-ES', {
             year: 'numeric',
             month: 'long',
@@ -1230,31 +1377,24 @@
             minute: '2-digit'
         });
         
-        // ============================================
-        // PROCESAR DATOS DEL USUARIO
-        // ============================================
         let nombreAutor = 'Usuario Messery';
         let avatarUrl = null;
         
         if (usuarioData) {
-            // Obtener nombre completo
             if (usuarioData.nombre) {
                 nombreAutor = usuarioData.apellidos 
                     ? `${usuarioData.nombre} ${usuarioData.apellidos}`
                     : usuarioData.nombre;
             } else if (usuarioData.email) {
-                // Si no hay nombre, usar email
                 const nombreEmail = usuarioData.email.split('@')[0];
                 nombreAutor = nombreEmail.charAt(0).toUpperCase() + nombreEmail.slice(1);
             } else {
-                // Si no hay nada, usar el ID
                 nombreAutor = `Usuario_${publicacion.usuario_id.substring(0, 8)}`;
             }
             
             avatarUrl = usuarioData.avatar_url;
         }
         
-        // Generar contenido HTML según el tipo
         let mediaHTML = '';
         if (publicacion.url_media) {
             switch(publicacion.tipo) {
@@ -1326,9 +1466,6 @@
             }
         }
         
-        // ============================================
-        // HTML DEL AVATAR CON CLICK PARA PERFIL
-        // ============================================
         let avatarHTML = '';
 
         if (avatarUrl) {
@@ -1350,7 +1487,6 @@
             `;
         }
         
-        // Mostrar información adicional del usuario si está disponible
         let userInfoHTML = '';
         if (usuarioData && (usuarioData.pais || usuarioData.ciudad)) {
             const ubicacion = [];
@@ -1366,7 +1502,6 @@
             }
         }
         
-        // Crear HTML de la publicación
         const publicacionHTML = `
             <div class="publicacion-item" id="publicacion-${publicacion.id}">
                 <div class="publicacion-header">
@@ -1416,11 +1551,9 @@
             </div>
         `;
         
-        // Insertar en el contenedor
         container.innerHTML = publicacionHTML;
         container.style.display = 'block';
         
-        // Animación de entrada
         setTimeout(() => {
             const pubElement = document.getElementById(`publicacion-${publicacion.id}`);
             if (pubElement) {
@@ -1479,7 +1612,6 @@
     document.addEventListener('DOMContentLoaded', function() {
         console.log('🚀 Página view.html cargada');
         
-        // Obtener ID de publicación de la URL
         const urlParams = new URLSearchParams(window.location.search);
         publicacionId = urlParams.get('id');
         
@@ -1490,14 +1622,12 @@
         
         console.log('📌 ID de publicación:', publicacionId);
         
-        // Validar que sea un UUID válido
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
         if (!uuidRegex.test(publicacionId)) {
             mostrarError('❌ ID de publicación inválido');
             return;
         }
         
-        // Cargar la publicación después de 500ms
         setTimeout(() => {
             cargarPublicacion();
         }, 500);
