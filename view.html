@@ -370,6 +370,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // ======================
         // CONFIGURACIÓN SUPABASE (TUS CREDENCIALES)
@@ -392,6 +393,77 @@
         const esMovil = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
         // ======================
+        // FUNCIÓN PARA OBTENER DATOS DEL USUARIO (SIN SESIÓN)
+        // ======================
+        async function obtenerDatosUsuario(userId) {
+            console.log('🔍 Obteniendo datos del usuario ID:', userId);
+            
+            // PRIMERO: Intentar con la función RPC que crearemos
+            try {
+                console.log('🔄 Intentando obtener datos con RPC...');
+                const { data: rpcData, error: rpcError } = await supabaseClient.rpc(
+                    'get_public_user_data',
+                    { user_uuid: userId }
+                );
+                
+                if (!rpcError && rpcData && rpcData.length > 0) {
+                    console.log('✅ Datos obtenidos via RPC:', rpcData[0]);
+                    return rpcData[0];
+                } else if (rpcError) {
+                    console.log('⚠️ Función RPC no disponible:', rpcError.message);
+                }
+            } catch (rpcError) {
+                console.log('⚠️ Error en RPC:', rpcError.message);
+            }
+            
+            // SEGUNDO: Si RPC falla, intentar directamente (puede fallar por RLS)
+            try {
+                console.log('🔄 Intentando obtener datos directamente...');
+                const { data, error } = await supabaseClient
+                    .from('usuarios')
+                    .select('nombre, apellidos, avatar_url, email, pais, ciudad, biografia, perfil_publico')
+                    .eq('id', userId)
+                    .maybeSingle();
+                
+                if (!error && data) {
+                    console.log('✅ Datos obtenidos directamente:', data);
+                    // Guardar en localStorage para futuras visitas
+                    try {
+                        localStorage.setItem(`user_${userId}`, JSON.stringify(data));
+                    } catch (e) {
+                        console.log('⚠️ No se pudo guardar en localStorage');
+                    }
+                    return data;
+                } else if (error) {
+                    console.log('⚠️ Error directo (probablemente RLS):', error.message);
+                }
+            } catch (error) {
+                console.log('⚠️ Error en consulta directa:', error.message);
+            }
+            
+            // TERCERO: Verificar si hay datos almacenados localmente
+            try {
+                const storedKey = `user_${userId}`;
+                const storedData = localStorage.getItem(storedKey);
+                if (storedData) {
+                    const parsed = JSON.parse(storedData);
+                    console.log('✅ Datos obtenidos de localStorage:', parsed);
+                    return parsed;
+                }
+            } catch (error) {
+                console.log('⚠️ Error obteniendo de localStorage:', error.message);
+            }
+            
+            // CUARTO: Datos por defecto (fallback)
+            console.log('⚠️ Usando datos por defecto');
+            return {
+                nombre: `Usuario_${userId.substring(0, 8)}`,
+                avatar_url: null,
+                email: null
+            };
+        }
+        
+        // ======================
         // FUNCIONES PRINCIPALES
         // ======================
         async function cargarPublicacion() {
@@ -403,22 +475,10 @@
                     throw new Error('No se especificó ID de publicación');
                 }
                 
-                // CORRECCIÓN: Usar la misma consulta para PC y móvil
+                // PASO 1: Obtener la publicación básica (esto siempre debería funcionar)
                 const { data: publicacion, error } = await supabaseClient
                     .from('publicaciones')
-                    .select(`
-                        *,
-                        usuarios:usuario_id (
-                            id,
-                            nombre,
-                            apellidos,
-                            avatar_url,
-                            email,
-                            pais,
-                            ciudad,
-                            biografia
-                        )
-                    `)
+                    .select('*')
                     .eq('id', publicacionId)
                     .single();
                 
@@ -444,10 +504,13 @@
                 }
                 
                 console.log('✅ Publicación cargada:', publicacion);
-                console.log('👤 Datos del usuario desde la consulta:', publicacion.usuarios);
+                
+                // PASO 2: Obtener datos del usuario (usando RPC como primer método)
+                const usuarioData = await obtenerDatosUsuario(publicacion.usuario_id);
+                console.log('👤 Datos finales del usuario:', usuarioData);
                 
                 // Mostrar la publicación
-                mostrarPublicacion(publicacion);
+                mostrarPublicacion(publicacion, usuarioData);
                 
                 // Mostrar prompt de login después de 1 segundo
                 setTimeout(() => {
@@ -460,7 +523,7 @@
             }
         }
         
-        function mostrarPublicacion(publicacion) {
+        function mostrarPublicacion(publicacion, usuarioData) {
             const container = document.getElementById('publicacionContainer');
             const loading = document.getElementById('loading');
             
@@ -477,14 +540,10 @@
             });
             
             // ============================================
-            // OBTENER DATOS DEL USUARIO DESDE LA TABLA usuarios
+            // PROCESAR DATOS DEL USUARIO
             // ============================================
-            const usuarioData = publicacion.usuarios;
-            console.log('👤 Datos completos del usuario:', usuarioData);
-            
             let nombreAutor = 'Usuario Messery';
             let avatarUrl = null;
-            let emailUsuario = null;
             
             if (usuarioData) {
                 // Obtener nombre completo
@@ -496,21 +555,18 @@
                     // Si no hay nombre, usar email
                     const nombreEmail = usuarioData.email.split('@')[0];
                     nombreAutor = nombreEmail.charAt(0).toUpperCase() + nombreEmail.slice(1);
+                } else {
+                    // Si no hay nada, usar el ID
+                    nombreAutor = `Usuario_${publicacion.usuario_id.substring(0, 8)}`;
                 }
                 
                 avatarUrl = usuarioData.avatar_url;
-                emailUsuario = usuarioData.email;
-                
-                console.log('📊 Datos procesados:', {
-                    nombreCompleto: nombreAutor,
-                    avatarUrl: avatarUrl,
-                    email: emailUsuario
-                });
-            } else {
-                console.warn('⚠️ No se encontraron datos del usuario en la tabla usuarios');
-                // Intentar obtener datos alternativos
-                nombreAutor = `Usuario_${publicacion.usuario_id.substring(0, 8)}`;
             }
+            
+            console.log('🎨 Mostrando publicación con:', {
+                nombreAutor,
+                avatarUrl
+            });
             
             // Generar contenido HTML según el tipo
             let mediaHTML = '';
@@ -685,20 +741,6 @@
                     pubElement.style.transform = 'translateY(0)';
                 }
             }, 100);
-            
-            // Guardar datos del usuario en localStorage para uso futuro
-            if (usuarioData && usuarioData.email) {
-                try {
-                    const userDataKey = `messery_user_${publicacion.usuario_id}`;
-                    localStorage.setItem(userDataKey, JSON.stringify({
-                        nombre: nombreAutor,
-                        avatar_url: avatarUrl,
-                        email: usuarioData.email
-                    }));
-                } catch (e) {
-                    console.log('⚠️ No se pudo guardar en localStorage:', e);
-                }
-            }
         }
         
         function mostrarError(mensaje) {
@@ -807,11 +849,19 @@
             console.log('🖥️ Plataforma:', navigator.platform);
             console.log('📱 Es dispositivo móvil:', esMovil);
             
-            // Limpiar caché en móviles para prevenir problemas
+            // Limpiar caché específica en móviles si es necesario
             if (esMovil) {
-                console.log('📱 Dispositivo móvil detectado, aplicando optimizaciones');
+                console.log('📱 Dispositivo móvil detectado');
                 try {
-                    localStorage.removeItem('supabase.auth.token');
+                    // Limpiar solo items específicos, no todo
+                    const keysToRemove = [];
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key.startsWith('supabase.auth.')) {
+                            keysToRemove.push(key);
+                        }
+                    }
+                    keysToRemove.forEach(key => localStorage.removeItem(key));
                 } catch (e) {
                     console.log('⚠️ No se pudo limpiar caché:', e);
                 }
