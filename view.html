@@ -1753,7 +1753,302 @@
             width: '400px'
         });
     }
+
+
+
+     // ======================
+    // FUNCIONES DE COMPARTIR PUBLICACIONES
+    // ======================
+    async function mostrarOpcionesCompartir() {
+        if (!publicacionActual) return;
+        
+        // Obtener datos para compartir
+        const shareData = await obtenerDatosParaCompartir();
+        
+        const shareHTML = `
+            <div style="text-align: center;">
+                <p style="margin-bottom: 20px; color: #2c3e50; font-size: 18px; font-weight: 600;">Compartir esta publicación</p>
+                
+                <input type="text" id="shareUrl" value="${shareData.url}" readonly 
+                       style="width:100%; padding:12px; border:2px solid #e8edf2; border-radius:8px; margin-bottom: 25px; font-size: 14px; background: #f8f9fa;">
+                
+                <div class="share-options" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px;">
+                    <div class="share-option" onclick="copiarEnlace()" style="
+                        background: #f8f9fa;
+                        padding: 15px;
+                        border-radius: 10px;
+                        border: 2px solid #e8edf2;
+                        cursor: pointer;
+                        text-align: center;
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.backgroundColor='#e8edf2'; this.style.borderColor='#667eea'"
+                       onmouseout="this.style.backgroundColor='#f8f9fa'; this.style.borderColor='#e8edf2'">
+                        <i class="fas fa-copy" style="font-size: 24px; color: #667eea; margin-bottom: 8px;"></i>
+                        <span style="display: block; font-weight: 600; color: #2c3e50;">Copiar Link</span>
+                    </div>
+                    
+                    <div class="share-option" onclick="compartirWhatsApp('${encodeURIComponent(shareData.mensaje)}')" style="
+                        background: #f8f9fa;
+                        padding: 15px;
+                        border-radius: 10px;
+                        border: 2px solid #e8edf2;
+                        cursor: pointer;
+                        text-align: center;
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.backgroundColor='#25D366'; this.style.color='white'"
+                       onmouseout="this.style.backgroundColor='#f8f9fa'; this.style.color='inherit'">
+                        <i class="fab fa-whatsapp" style="font-size: 24px; margin-bottom: 8px;"></i>
+                        <span style="display: block; font-weight: 600;">WhatsApp</span>
+                    </div>
+                    
+                    <div class="share-option" onclick="compartirFacebook('${encodeURIComponent(shareData.url)}', '${encodeURIComponent(shareData.titulo)}')" style="
+                        background: #f8f9fa;
+                        padding: 15px;
+                        border-radius: 10px;
+                        border: 2px solid #e8edf2;
+                        cursor: pointer;
+                        text-align: center;
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.backgroundColor='#1877F2'; this.style.color='white'"
+                       onmouseout="this.style.backgroundColor='#f8f9fa'; this.style.color='inherit'">
+                        <i class="fab fa-facebook" style="font-size: 24px; margin-bottom: 8px;"></i>
+                        <span style="display: block; font-weight: 600;">Facebook</span>
+                    </div>
+                    
+                    <div class="share-option" onclick="compartirTXT('${shareData.url}', '${shareData.titulo}', '${shareData.autor}')" style="
+                        background: #f8f9fa;
+                        padding: 15px;
+                        border-radius: 10px;
+                        border: 2px solid #e8edf2;
+                        cursor: pointer;
+                        text-align: center;
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.backgroundColor='#f8f9fa'; this.style.borderColor='#667eea'"
+                       onmouseout="this.style.backgroundColor='#f8f9fa'; this.style.borderColor='#e8edf2'">
+                        <i class="fas fa-file-alt" style="font-size: 24px; color: #667eea; margin-bottom: 8px;"></i>
+                        <span style="display: block; font-weight: 600; color: #2c3e50;">Guardar como TXT</span>
+                    </div>
+                    
+                    <div class="share-option" onclick="compartirGmail()" style="
+                        background: #f8f9fa;
+                        padding: 15px;
+                        border-radius: 10px;
+                        border: 2px solid #e8edf2;
+                        cursor: pointer;
+                        text-align: center;
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.backgroundColor='#EA4335'; this.style.color='white'"
+                       onmouseout="this.style.backgroundColor='#f8f9fa'; this.style.color='inherit'">
+                        <i class="fas fa-envelope" style="font-size: 24px; margin-bottom: 8px;"></i>
+                        <span style="display: block; font-weight: 600;">Gmail</span>
+                    </div>
+                    
+                    <div class="share-option" onclick="window.open('${shareData.url}', '_blank')" style="
+                        background: #f8f9fa;
+                        padding: 15px;
+                        border-radius: 10px;
+                        border: 2px solid #e8edf2;
+                        cursor: pointer;
+                        text-align: center;
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.backgroundColor='#667eea'; this.style.color='white'"
+                       onmouseout="this.style.backgroundColor='#f8f9fa'; this.style.color='inherit'">
+                        <i class="fas fa-external-link-alt" style="font-size: 24px; margin-bottom: 8px;"></i>
+                        <span style="display: block; font-weight: 600;">Abrir nueva pestaña</span>
+                    </div>
+                </div>
+                
+                ${shareData.imagenUrl ? `
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e8edf2;">
+                    <p style="color: #5d6d7e; font-size: 14px; margin-bottom: 10px;">
+                        <i class="fas fa-info-circle" style="color: #667eea;"></i>
+                        Esta publicación incluye una imagen que se compartirá junto con el enlace.
+                    </p>
+                </div>
+                ` : ''}
+            </div>
+        `;
+        
+        Swal.fire({
+            title: 'Compartir Publicación',
+            html: shareHTML,
+            showCloseButton: true,
+            showConfirmButton: false,
+            width: 550,
+            customClass: {
+                popup: 'share-modal'
+            }
+        });
+    }
     
+    async function obtenerDatosParaCompartir() {
+        if (!publicacionActual) return null;
+        
+        try {
+            // Obtener datos del usuario para el mensaje
+            const usuarioData = await obtenerDatosUsuario(publicacionActual.usuario_id);
+            const nombreAutor = usuarioData.nombre ? 
+                (usuarioData.apellidos ? `${usuarioData.nombre} ${usuarioData.apellidos}` : usuarioData.nombre) :
+                'Usuario Messery';
+            
+            // Construir mensaje personalizado
+            let mensaje = `¡Mira esta publicación que encontré en Messery!\n\n`;
+            mensaje += `👤 Publicado por: ${nombreAutor}\n`;
+            
+            if (publicacionActual.contenido) {
+                const contenidoCorto = publicacionActual.contenido.length > 100 
+                    ? publicacionActual.contenido.substring(0, 100) + '...' 
+                    : publicacionActual.contenido;
+                mensaje += `📝 ${contenidoCorto}\n\n`;
+            }
+            
+            mensaje += `🔗 Enlace: ${window.location.href}\n\n`;
+            mensaje += `¡Me pareció increíble! 😃\n`;
+            mensaje += `#Messery #Compartir`;
+            
+            // Obtener imagen si existe
+            let imagenUrl = null;
+            if (publicacionActual.url_media && publicacionActual.tipo === 'imagen') {
+                imagenUrl = publicacionActual.url_media;
+            }
+            
+            return {
+                url: window.location.href,
+                mensaje: mensaje,
+                titulo: `Publicación de ${nombreAutor} en Messery`,
+                imagenUrl: imagenUrl,
+                autor: nombreAutor
+            };
+            
+        } catch (error) {
+            console.error('Error obteniendo datos para compartir:', error);
+            return {
+                url: window.location.href,
+                mensaje: '¡Mira esta publicación increíble que encontré en Messery! ' + window.location.href + '\n\n¡Me pareció impresionante! 😃\n#Messery #Compartir',
+                titulo: 'Publicación en Messery',
+                imagenUrl: null,
+                autor: 'Messery'
+            };
+        }
+    }
+    
+    function copiarEnlace() {
+        const input = document.getElementById('shareUrl');
+        if (!input) return;
+        
+        input.select();
+        input.setSelectionRange(0, 99999);
+        
+        try {
+            navigator.clipboard.writeText(input.value).then(() => {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Copiado!',
+                    text: 'Enlace copiado al portapapeles',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            });
+        } catch (err) {
+            document.execCommand('copy');
+            Swal.fire({
+                icon: 'success',
+                title: '¡Copiado!',
+                text: 'Enlace copiado al portapapeles',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        }
+    }
+    
+    function compartirWhatsApp(mensajeCodificado) {
+        // WhatsApp Web directo (abre la app si está instalada, sino web)
+        let whatsappUrl;
+        
+        if (esMovil) {
+            // Para móviles - intenta abrir la app
+            whatsappUrl = `whatsapp://send?text=${mensajeCodificado}`;
+            
+            // Si falla, abre web.whatsapp.com
+            setTimeout(() => {
+                window.open(`https://web.whatsapp.com/send?text=${mensajeCodificado}`, '_blank');
+            }, 500);
+        } else {
+            // Para PC - usa web.whatsapp.com
+            whatsappUrl = `https://web.whatsapp.com/send?text=${mensajeCodificado}`;
+        }
+        
+        window.open(whatsappUrl, '_blank');
+    }
+    
+    function compartirFacebook(url, titulo) {
+        // Facebook Share Dialog
+        const facebookUrl = `https://www.facebook.com/dialog/share?app_id=1441693351700543&display=popup&href=${encodeURIComponent(url)}&quote=${titulo}`;
+        window.open(facebookUrl, '_blank', 'width=600,height=400');
+    }
+    
+    function compartirTXT(url, titulo, autor) {
+        const fecha = new Date().toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        const contenido = `
+===============================
+PUBLICACIÓN DE MESSERY
+===============================
+
+Título: ${titulo}
+Autor: ${autor}
+Fecha de publicación: ${fecha}
+URL: ${url}
+
+---------------------------------
+MENSAJE PARA COMPARTIR:
+---------------------------------
+
+¡Mira esta publicación que encontré en Messery!
+
+Publicado por: ${autor}
+Enlace: ${url}
+
+¡Me pareció impresionante! 😃
+
+#Messery #Compartir
+
+===============================
+Compartido desde Messery
+Visita: https://messery.com
+===============================
+        `;
+        
+        const blob = new Blob([contenido], { type: 'text/plain;charset=utf-8' });
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = `Publicacion-Messery-${Date.now()}.txt`;
+        a.click();
+        URL.revokeObjectURL(blobUrl);
+        
+        Swal.fire({
+            icon: 'success',
+            title: 'Descargado',
+            text: 'El contenido se ha guardado como archivo TXT',
+            timer: 2000,
+            showConfirmButton: false
+        });
+    }
+    
+    function compartirGmail() {
+        // URL simple para Gmail - usuario puede personalizar
+        const currentUrl = window.location.href;
+        const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=&su=Mira%20esta%20publicaci%C3%B3n%20de%20Messery&body=%C2%A1Mira%20esta%20publicaci%C3%B3n%20que%20te%20va%20a%20encantar!%0D%0A%0D%0A${encodeURIComponent(currentUrl)}%0D%0A%0D%0AEspero%20que%20te%20guste%20tanto%20como%20a%20m%C3%AD.%20%C2%A1Saludos!`;
+        
+        window.open(gmailUrl, '_blank');
+    }
     // ======================
     // FUNCIONES PARA CARGAR LA PUBLICACIÓN
     // ======================
