@@ -5464,6 +5464,408 @@
     }
 }
 
+/* ======================
+   ESTILOS PARA PUBLICACIONES
+   ====================== */
+
+/* Contenedor principal */
+.publicaciones-content {
+    padding: 20px;
+}
+
+/* Filtros */
+.publicaciones-filtros {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    border: 1px solid #e8edf2;
+}
+
+.filtro-busqueda {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 0 15px;
+    border: 2px solid #e8edf2;
+    transition: all 0.3s ease;
+}
+
+.filtro-busqueda:focus-within {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.filtro-busqueda i {
+    color: #7f8c8d;
+    margin-right: 10px;
+}
+
+.filtro-busqueda input {
+    flex: 1;
+    padding: 12px 0;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    color: #2c3e50;
+    outline: none;
+}
+
+.filtro-busqueda input::placeholder {
+    color: #95a5a6;
+}
+
+.btn-buscar {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.3s ease;
+}
+
+.btn-buscar:hover {
+    background: #764ba2;
+}
+
+.filtros-avanzados {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.filtros-avanzados select {
+    padding: 10px 15px;
+    border: 2px solid #e8edf2;
+    border-radius: 8px;
+    background: white;
+    color: #2c3e50;
+    font-size: 14px;
+    cursor: pointer;
+    min-width: 150px;
+    transition: border-color 0.3s ease;
+}
+
+.filtros-avanzados select:focus {
+    border-color: #667eea;
+    outline: none;
+}
+
+/* Estadísticas */
+.publicaciones-estadisticas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.estadistica-item {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    border: 1px solid #e8edf2;
+    transition: transform 0.3s ease;
+}
+
+.estadistica-item:hover {
+    transform: translateY(-3px);
+    border-color: #667eea;
+}
+
+.estadistica-item i {
+    font-size: 32px;
+    color: #667eea;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.estadistica-numero {
+    display: block;
+    font-size: 24px;
+    font-weight: 700;
+    color: #2c3e50;
+    line-height: 1;
+}
+
+.estadistica-label {
+    display: block;
+    font-size: 14px;
+    color: #7f8c8d;
+    margin-top: 5px;
+}
+
+/* Feed de publicaciones */
+.publicaciones-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.publicacion-item {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    border: 1px solid #e8edf2;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.publicacion-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.12);
+    border-color: #667eea;
+}
+
+.publicacion-header {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #e8edf2;
+    background: #f8f9fa;
+}
+
+.publicacion-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 15px;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.publicacion-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.publicacion-avatar i {
+    font-size: 28px;
+    color: white;
+}
+
+.publicacion-info {
+    flex: 1;
+}
+
+.publicacion-autor {
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0 0 5px 0;
+    cursor: pointer;
+}
+
+.publicacion-autor:hover {
+    color: #667eea;
+}
+
+.publicacion-fecha {
+    color: #7f8c8d;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.publicacion-fecha i {
+    font-size: 12px;
+}
+
+.publicacion-contenido {
+    padding: 20px;
+}
+
+.publicacion-texto {
+    color: #2c3e50;
+    line-height: 1.6;
+    margin-bottom: 15px;
+    white-space: pre-line;
+}
+
+.publicacion-media {
+    margin: 15px 0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.publicacion-media img {
+    width: 100%;
+    max-height: 400px;
+    object-fit: contain;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.publicacion-media img:hover {
+    transform: scale(1.01);
+}
+
+.publicacion-enlace {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #2c3e50;
+    border: 1px solid #e8edf2;
+    transition: all 0.3s ease;
+}
+
+.publicacion-enlace:hover {
+    border-color: #667eea;
+    background: white;
+}
+
+.publicacion-enlace i {
+    font-size: 24px;
+    color: #667eea;
+}
+
+.publicacion-stats {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    border-top: 1px solid #e8edf2;
+    background: #f8f9fa;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: 25px;
+    color: #7f8c8d;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    font-size: 14px;
+}
+
+.stat-item:hover {
+    color: #667eea;
+}
+
+.stat-item.active {
+    color: #e74c3c;
+}
+
+.stat-item i {
+    font-size: 16px;
+}
+
+/* Estados */
+.cargando-publicaciones {
+    text-align: center;
+    padding: 40px;
+    color: #7f8c8d;
+}
+
+.cargando-publicaciones i {
+    font-size: 24px;
+    margin-right: 10px;
+}
+
+.sin-resultados {
+    text-align: center;
+    padding: 60px 20px;
+    color: #95a5a6;
+}
+
+.sin-resultados i {
+    font-size: 48px;
+    margin-bottom: 20px;
+    opacity: 0.7;
+}
+
+.sin-resultados h3 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+/* Paginación */
+.publicaciones-paginacion {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin-top: 30px;
+    padding: 20px;
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e8edf2;
+}
+
+.pagina-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: 2px solid #e8edf2;
+    background: white;
+    color: #2c3e50;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.pagina-btn:hover:not(:disabled) {
+    border-color: #667eea;
+    color: #667eea;
+}
+
+.pagina-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagina-info {
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .publicaciones-estadisticas {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .filtros-avanzados {
+        flex-direction: column;
+    }
+    
+    .filtros-avanzados select {
+        width: 100%;
+    }
+    
+    .publicacion-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .publicacion-avatar {
+        margin-right: 0;
+        margin-bottom: 15px;
+    }
+}
+
 
 
     </style>
@@ -5527,7 +5929,11 @@
                 <button class="nav-btn" id="btnMisAmigos">
                     <i class="fas fa-user-friends"></i> Mis Amigos
                 </button>
-       
+               <!-- NUEVO BOTÓN DE PUBLICACIONES -->
+                <button class="nav-btn" id="btnPublicaciones">
+                    <i class="fas fa-newspaper"></i> Publicaciones
+                    <span class="badge" id="contadorPublicaciones">0</span>
+                </button>
                 <button class="nav-btn" id="btnAfinidad">
                     <i class="fas fa-handshake"></i> Afinidad
                     <span class="badge" id="contadorAfinidades">0</span>
@@ -5693,6 +6099,118 @@
                         </div>
                     </div>
                 </div>
+<!-- Vista: Publicaciones -->
+<div class="section hidden" id="seccionPublicaciones">
+    <div class="section-header">
+        <h2><i class="fas fa-newspaper"></i> Publicaciones</h2>
+        <div class="section-actions">
+            <button class="btn-icon" id="btnRefreshPublicaciones">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+            <button class="btn-primary" id="btnCrearPublicacion">
+                <i class="fas fa-plus"></i> Nueva Publicación
+            </button>
+        </div>
+    </div>
+    
+    <div class="publicaciones-content">
+        <!-- Filtros de búsqueda -->
+        <div class="publicaciones-filtros">
+            <div class="filtro-busqueda">
+                <i class="fas fa-search"></i>
+                <input type="text" id="buscarPublicaciones" placeholder="Buscar publicaciones...">
+                <button class="btn-buscar" id="btnBuscarPublicaciones">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            
+            <div class="filtros-avanzados">
+                <select id="filtroTipoPublicacion">
+                    <option value="todas">Todos los tipos</option>
+                    <option value="texto">Texto</option>
+                    <option value="imagen">Imágenes</option>
+                    <option value="video">Videos</option>
+                    <option value="enlace">Enlaces</option>
+                </select>
+                
+                <select id="filtroOrdenPublicacion">
+                    <option value="recientes">Más recientes</option>
+                    <option value="populares">Más populares</option>
+                    <option value="antiguas">Más antiguas</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Estadísticas rápidas -->
+        <div class="publicaciones-estadisticas" id="estadisticasPublicaciones">
+            <div class="estadistica-item">
+                <i class="fas fa-newspaper"></i>
+                <div>
+                    <span class="estadistica-numero" id="totalPublicaciones">0</span>
+                    <span class="estadistica-label">Publicaciones</span>
+                </div>
+            </div>
+            <div class="estadistica-item">
+                <i class="fas fa-users"></i>
+                <div>
+                    <span class="estadistica-numero" id="usuariosPublicando">0</span>
+                    <span class="estadistica-label">Usuarios</span>
+                </div>
+            </div>
+            <div class="estadistica-item">
+                <i class="fas fa-heart"></i>
+                <div>
+                    <span class="estadistica-numero" id="totalLikes">0</span>
+                    <span class="estadistica-label">Likes totales</span>
+                </div>
+            </div>
+            <div class="estadistica-item">
+                <i class="fas fa-comment"></i>
+                <div>
+                    <span class="estadistica-numero" id="totalComentarios">0</span>
+                    <span class="estadistica-label">Comentarios</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Feed de publicaciones -->
+        <div class="publicaciones-feed" id="feedPublicaciones">
+            <div class="empty-state">
+                <i class="fas fa-newspaper fa-3x"></i>
+                <h3>No hay publicaciones</h3>
+                <p>¡Sé el primero en compartir algo!</p>
+                <button class="btn-primary" id="btnCrearPrimeraPublicacion">
+                    <i class="fas fa-plus"></i> Crear primera publicación
+                </button>
+            </div>
+        </div>
+        
+        <!-- Cargando -->
+        <div class="cargando-publicaciones" id="cargandoPublicaciones" style="display: none;">
+            <i class="fas fa-spinner fa-spin"></i> Cargando publicaciones...
+        </div>
+        
+        <!-- Sin resultados -->
+        <div class="sin-resultados" id="sinResultadosPublicaciones" style="display: none;">
+            <i class="fas fa-search fa-3x"></i>
+            <h3>No se encontraron publicaciones</h3>
+            <p>Intenta con otros filtros de búsqueda</p>
+        </div>
+        
+        <!-- Paginación -->
+        <div class="publicaciones-paginacion" id="paginacionPublicaciones" style="display: none;">
+            <button class="pagina-btn" id="btnPaginaAnterior">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <span class="pagina-info" id="infoPagina">Página 1</span>
+            <button class="pagina-btn" id="btnPaginaSiguiente">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
+                 
+</div>
 <!-- Vista: Afinidad -->
 <div class="section hidden" id="seccionAfinidad">
     <div class="section-header">
@@ -5926,17 +6444,26 @@
     <script src="modulos/eventos-afinidad.js"></script>
     <script src="modulos/opciones.js"></script>
     <script src="modulos/informacion.js"></script>
+    
 
   <script>
-    // Script de inicialización modificado para incluir el botón de información
+     // Script de inicialización
     const SUPABASE_URL = 'https://enmiomqkkdlmodrjmfak.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVubWlvbXFra2RsbW9kcmptZmFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MDA0OTEsImV4cCI6MjA4MDk3NjQ5MX0.HeiJGnnkUjutlZkMTopFK7AIRZzRLxBTXvWk96OcAxg';
-    window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    
+    // Crear cliente Supabase
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
         auth: {
             persistSession: true,
             autoRefreshToken: true
         }
     });
+    
+    // Hacerlo disponible globalmente de dos maneras para compatibilidad
+    window.supabase = supabaseClient;  // Para módulos nuevos
+    window.supabaseClient = supabaseClient; // Para módulos antiguos
+    
+    console.log("✅ Supabase inicializado como window.supabase y window.supabaseClient");
 
     // Variables globales
     window.usuarioActual = null;
@@ -5946,6 +6473,1228 @@
     window.listaUsuarios = [];
     window.gruposActuales = [];
 
+
+    // ======================
+// MÓDULO DE PUBLICACIONES EN PRINCIPAL
+// ======================
+
+// Variables globales para publicaciones
+let publicacionesPaginaActual = 1;
+let publicacionesTotalPaginas = 1;
+const publicacionesPorPagina = 10;
+let publicacionesFiltrosActuales = {
+    tipo: 'todas',
+    orden: 'recientes',
+    busqueda: ''
+};
+let publicacionesCargadas = false;
+
+// Sistema de notificaciones
+function mostrarNotificacion(tipo, mensaje) {
+    // Crear elemento de notificación
+    const notificacion = document.createElement('div');
+    notificacion.className = `notificacion notificacion-${tipo}`;
+    notificacion.innerHTML = `
+        <i class="fas fa-${tipo === 'exito' ? 'check-circle' : tipo === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+        <span>${mensaje}</span>
+    `;
+    
+    // Estilos para notificación
+    notificacion.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${tipo === 'exito' ? '#10b981' : tipo === 'error' ? '#ef4444' : '#3b82f6'};
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        z-index: 9999;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        animation: slideIn 0.3s ease;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    `;
+    
+    document.body.appendChild(notificacion);
+    
+    // Remover después de 3 segundos
+    setTimeout(() => {
+        notificacion.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notificacion.remove(), 300);
+    }, 3000);
+}
+
+// Añadir estilos CSS para animaciones
+if (!document.getElementById('notificaciones-styles')) {
+    const style = document.createElement('style');
+    style.id = 'notificaciones-styles';
+    style.textContent = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Función para inicializar publicaciones
+async function inicializarPublicaciones() {
+    console.log("📰 Inicializando sistema de publicaciones en principal...");
+    
+    try {
+        // Configurar eventos
+        configurarEventosPublicaciones();
+        
+        // Cargar estadísticas iniciales
+        await cargarEstadisticasPublicaciones();
+        
+        console.log("✅ Sistema de publicaciones inicializado");
+        return true;
+    } catch (error) {
+        console.error("❌ Error inicializando publicaciones:", error);
+        return false;
+    }
+}
+
+// Configurar eventos de publicaciones
+function configurarEventosPublicaciones() {
+    console.log("⚙️ Configurando eventos de publicaciones...");
+    
+    // Botón de publicaciones en sidebar
+    const btnPublicaciones = document.getElementById('btnPublicaciones');
+    if (btnPublicaciones) {
+        btnPublicaciones.addEventListener('click', function() {
+            mostrarSeccionPublicaciones();
+        });
+    }
+    
+    // Botón de refrescar
+    const btnRefresh = document.getElementById('btnRefreshPublicaciones');
+    if (btnRefresh) {
+        btnRefresh.addEventListener('click', function() {
+            recargarPublicaciones();
+        });
+    }
+    
+    // Botón de crear publicación
+    const btnCrear = document.getElementById('btnCrearPublicacion');
+    if (btnCrear) {
+        btnCrear.addEventListener('click', function() {
+            window.location.href = 'configuracion.html#publicaciones';
+        });
+    }
+    
+    // Botón crear primera publicación
+    const btnPrimeraPublicacion = document.getElementById('btnCrearPrimeraPublicacion');
+    if (btnPrimeraPublicacion) {
+        btnPrimeraPublicacion.addEventListener('click', function() {
+            window.location.href = 'configuracion.html#publicaciones';
+        });
+    }
+    
+    // Búsqueda en tiempo real
+    const inputBusqueda = document.getElementById('buscarPublicaciones');
+    if (inputBusqueda) {
+        let timeoutBusqueda;
+        inputBusqueda.addEventListener('input', function() {
+            clearTimeout(timeoutBusqueda);
+            timeoutBusqueda = setTimeout(() => {
+                filtrarPublicaciones();
+            }, 500);
+        });
+        
+        inputBusqueda.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                filtrarPublicaciones();
+            }
+        });
+    }
+    
+    // Botón de búsqueda
+    const btnBuscar = document.getElementById('btnBuscarPublicaciones');
+    if (btnBuscar) {
+        btnBuscar.addEventListener('click', filtrarPublicaciones);
+    }
+    
+    // Filtros
+    const filtroTipo = document.getElementById('filtroTipoPublicacion');
+    const filtroOrden = document.getElementById('filtroOrdenPublicacion');
+    
+    if (filtroTipo) {
+        filtroTipo.addEventListener('change', filtrarPublicaciones);
+    }
+    
+    if (filtroOrden) {
+        filtroOrden.addEventListener('change', filtrarPublicaciones);
+    }
+    
+    // Paginación
+    const btnPaginaAnterior = document.getElementById('btnPaginaAnterior');
+    const btnPaginaSiguiente = document.getElementById('btnPaginaSiguiente');
+    
+    if (btnPaginaAnterior) {
+        btnPaginaAnterior.addEventListener('click', function() {
+            cambiarPaginaPublicaciones(publicacionesPaginaActual - 1);
+        });
+    }
+    
+    if (btnPaginaSiguiente) {
+        btnPaginaSiguiente.addEventListener('click', function() {
+            cambiarPaginaPublicaciones(publicacionesPaginaActual + 1);
+        });
+    }
+}
+
+// Mostrar sección de publicaciones
+async function mostrarSeccionPublicaciones() {
+    try {
+        // Cambiar a sección de publicaciones
+        if (window.Interfaz && window.Interfaz.mostrarSeccion) {
+            window.Interfaz.mostrarSeccion('seccionPublicaciones');
+        }
+        
+        // Cargar publicaciones si no están cargadas
+        if (!publicacionesCargadas) {
+            await cargarPublicaciones();
+        }
+        
+        // Configurar actualización automática
+        configurarActualizacionAutomatica();
+        
+    } catch (error) {
+        console.error("Error mostrando sección publicaciones:", error);
+    }
+}
+
+// Configurar actualización automática de publicaciones
+function configurarActualizacionAutomatica() {
+    // Configurar intervalo para actualizar cada 30 segundos
+    if (window.actualizacionInterval) {
+        clearInterval(window.actualizacionInterval);
+    }
+    
+    window.actualizacionInterval = setInterval(async () => {
+        if (document.getElementById('seccionPublicaciones') && 
+            !document.getElementById('seccionPublicaciones').classList.contains('hidden')) {
+            await actualizarPublicacionesEnTiempoReal();
+        }
+    }, 30000); // 30 segundos
+}
+
+// Actualizar publicaciones en tiempo real
+async function actualizarPublicacionesEnTiempoReal() {
+    try {
+        const feedElement = document.getElementById('feedPublicaciones');
+        if (!feedElement) return;
+        
+        // Obtener última fecha de actualización
+        const publicacionesActuales = feedElement.querySelectorAll('.publicacion-item');
+        if (publicacionesActuales.length === 0) return;
+        
+        // Verificar si hay nuevas interacciones
+        await cargarEstadisticasPublicaciones();
+        
+        // Actualizar contadores de likes y comentarios
+        for (const publicacionElement of publicacionesActuales) {
+            const publicacionId = publicacionElement.dataset.id;
+            await actualizarContadoresPublicacion(publicacionId, publicacionElement);
+        }
+        
+    } catch (error) {
+        console.error("Error actualizando en tiempo real:", error);
+    }
+}
+
+// Actualizar contadores de una publicación específica
+async function actualizarContadoresPublicacion(publicacionId, publicacionElement) {
+    try {
+        // Obtener datos actualizados
+        const { data: publicacion, error } = await window.supabase
+            .from('publicaciones')
+            .select('likes_count, comentarios_count')
+            .eq('id', publicacionId)
+            .single();
+        
+        if (error) throw error;
+        
+        // Actualizar UI
+        const likeElement = publicacionElement.querySelector('.stat-item:nth-child(1) span');
+        const comentarioElement = publicacionElement.querySelector('.stat-item:nth-child(2) span');
+        
+        if (likeElement) {
+            likeElement.textContent = publicacion.likes_count || 0;
+        }
+        
+        if (comentarioElement) {
+            comentarioElement.textContent = publicacion.comentarios_count || 0;
+        }
+        
+        // Verificar si el usuario actual dio like
+        const usuarioActual = await obtenerUsuarioActual();
+        if (usuarioActual) {
+            const yaDioLike = await verificarLike(publicacionId, usuarioActual.id);
+            const likeButton = publicacionElement.querySelector('.stat-item:nth-child(1)');
+            if (likeButton) {
+                likeButton.classList.toggle('active', yaDioLike);
+            }
+        }
+        
+    } catch (error) {
+        console.error("Error actualizando contadores:", error);
+    }
+}
+
+// Cargar estadísticas de publicaciones
+async function cargarEstadisticasPublicaciones() {
+    try {
+        console.log("📊 Cargando estadísticas de publicaciones...");
+        
+        // Obtener total de publicaciones
+        const { count: totalPublicaciones, error: countError } = await window.supabase
+            .from('publicaciones')
+            .select('*', { count: 'exact', head: true })
+            .eq('visibilidad', 'publico');
+        
+        if (countError) throw countError;
+        
+        // Obtener estadísticas reales
+        const { data: statsData, error: statsError } = await window.supabase
+            .from('publicaciones')
+            .select('likes_count, comentarios_count')
+            .eq('visibilidad', 'publico');
+        
+        if (statsError) throw statsError;
+        
+        // Calcular totales
+        let totalLikes = 0;
+        let totalComentarios = 0;
+        if (statsData) {
+            totalLikes = statsData.reduce((sum, item) => sum + (item.likes_count || 0), 0);
+            totalComentarios = statsData.reduce((sum, item) => sum + (item.comentarios_count || 0), 0);
+        }
+        
+        // Actualizar UI
+        const totalPubElement = document.getElementById('totalPublicaciones');
+        const usuariosElement = document.getElementById('usuariosPublicando');
+        const likesElement = document.getElementById('totalLikes');
+        const comentariosElement = document.getElementById('totalComentarios');
+        
+        if (totalPubElement) totalPubElement.textContent = totalPublicaciones || 0;
+        
+        // Obtener usuarios únicos que publicaron
+        const { data: usuariosData, error: usuariosError } = await window.supabase
+            .from('publicaciones')
+            .select('usuario_id')
+            .eq('visibilidad', 'publico');
+        
+        if (usuariosError) throw usuariosError;
+        
+        const usuariosUnicos = new Set(usuariosData?.map(item => item.usuario_id) || []);
+        
+        if (usuariosElement) usuariosElement.textContent = usuariosUnicos.size || 0;
+        if (likesElement) likesElement.textContent = totalLikes;
+        if (comentariosElement) comentariosElement.textContent = totalComentarios;
+        
+        console.log("✅ Estadísticas cargadas");
+        
+    } catch (error) {
+        console.error("❌ Error cargando estadísticas:", error);
+        
+        // Mostrar valores por defecto
+        const elements = ['totalPublicaciones', 'usuariosPublicando', 'totalLikes', 'totalComentarios'];
+        elements.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) element.textContent = '0';
+        });
+    }
+}
+
+// Cargar publicaciones
+async function cargarPublicaciones() {
+    try {
+        console.log("🔄 Cargando publicaciones...");
+        mostrarCargandoPublicaciones(true);
+        ocultarSinResultadosPublicaciones();
+        
+        // Construir consulta
+        let query = window.supabase
+            .from('publicaciones')
+            .select('*, usuario:usuarios(nombre, apellidos, avatar_url, email, pais, ciudad)', { count: 'exact' })
+            .eq('visibilidad', 'publico');
+        
+        // Aplicar filtros
+        if (publicacionesFiltrosActuales.tipo !== 'todas') {
+            query = query.eq('tipo', publicacionesFiltrosActuales.tipo);
+        }
+        
+        if (publicacionesFiltrosActuales.busqueda.trim() !== '') {
+            const searchTerm = `%${publicacionesFiltrosActuales.busqueda}%`;
+            query = query.or(`contenido.ilike.${searchTerm}, usuario.nombre.ilike.${searchTerm}`);
+        }
+        
+        // Ordenar
+        if (publicacionesFiltrosActuales.orden === 'recientes') {
+            query = query.order('fecha_creacion', { ascending: false });
+        } else if (publicacionesFiltrosActuales.orden === 'populares') {
+            query = query.order('likes_count', { ascending: false });
+        } else if (publicacionesFiltrosActuales.orden === 'antiguas') {
+            query = query.order('fecha_creacion', { ascending: true });
+        }
+        
+        // Paginación
+        const desde = (publicacionesPaginaActual - 1) * publicacionesPorPagina;
+        const hasta = desde + publicacionesPorPagina - 1;
+        
+        query = query.range(desde, hasta);
+        
+        // Ejecutar consulta
+        const { data: publicaciones, error, count } = await query;
+        
+        if (error) throw error;
+        
+        // Actualizar paginación
+        publicacionesTotalPaginas = Math.ceil((count || 0) / publicacionesPorPagina);
+        actualizarPaginacionPublicaciones();
+        
+        // Mostrar resultados
+        if (!publicaciones || publicaciones.length === 0) {
+            mostrarSinResultadosPublicaciones();
+            return;
+        }
+        
+        // Renderizar publicaciones
+        await renderizarPublicaciones(publicaciones);
+        
+        // Actualizar estado
+        publicacionesCargadas = true;
+        
+    } catch (error) {
+        console.error("❌ Error cargando publicaciones:", error);
+        mostrarErrorPublicaciones(`Error: ${error.message || 'No se pudieron cargar las publicaciones'}`);
+    } finally {
+        mostrarCargandoPublicaciones(false);
+    }
+}
+
+// Renderizar publicaciones en el feed
+async function renderizarPublicaciones(publicaciones) {
+    const feedElement = document.getElementById('feedPublicaciones');
+    if (!feedElement) return;
+    
+    feedElement.innerHTML = '';
+    
+    for (const publicacion of publicaciones) {
+        const publicacionElement = await crearElementoPublicacion(publicacion);
+        if (publicacionElement) {
+            feedElement.appendChild(publicacionElement);
+        }
+    }
+}
+
+// Crear elemento HTML para una publicación
+async function crearElementoPublicacion(publicacion) {
+    try {
+        const usuario = publicacion.usuario || {};
+        const nombreCompleto = `${usuario.nombre || ''} ${usuario.apellidos || ''}`.trim() || 
+                              (usuario.email ? usuario.email.split('@')[0] : 'Usuario Messery');
+        
+        const tiempoTranscurrido = calcularTiempoTranscurrido(publicacion.fecha_creacion);
+        
+        // Obtener usuario actual para verificar permisos
+        const usuarioActual = await obtenerUsuarioActual();
+        const esPropietario = usuarioActual && usuarioActual.id === publicacion.usuario_id;
+        
+        // Crear elemento
+        const div = document.createElement('div');
+        div.className = 'publicacion-item';
+        div.dataset.id = publicacion.id;
+        
+        let contenidoHTML = `
+            <div class="publicacion-header">
+                <div class="publicacion-avatar" onclick="mostrarPerfilPublicaciones('${publicacion.usuario_id}', '${nombreCompleto}')">
+        `;
+        
+        // Avatar
+        if (usuario.avatar_url) {
+            contenidoHTML += `
+                <img src="${usuario.avatar_url}" 
+                     alt="${nombreCompleto}"
+                     onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<i class=\\'fas fa-user-circle\\'></i>';">
+            `;
+        } else {
+            contenidoHTML += `
+                <i class="fas fa-user-circle"></i>
+            `;
+        }
+        
+        contenidoHTML += `
+                </div>
+                <div class="publicacion-info">
+                    <h4 class="publicacion-autor" onclick="mostrarPerfilPublicaciones('${publicacion.usuario_id}', '${nombreCompleto}')">
+                        ${nombreCompleto}
+                    </h4>
+                    <div class="publicacion-fecha">
+                        <i class="far fa-clock"></i>
+                        <span>${tiempoTranscurrido}</span>
+                        <i class="fas fa-globe-americas"></i>
+                        <span>Pública</span>
+                    </div>
+                </div>
+        `;
+        
+        // Botón de eliminar para propietario
+        if (esPropietario) {
+            contenidoHTML += `
+                <div class="publicacion-acciones">
+                    <button class="btn-accion" onclick="eliminarPublicacion('${publicacion.id}')" title="Eliminar publicación">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+        }
+        
+        contenidoHTML += `
+            </div>
+            
+            <div class="publicacion-contenido">
+        `;
+        
+        // Contenido de texto
+        if (publicacion.contenido) {
+            contenidoHTML += `
+                <div class="publicacion-texto">${publicacion.contenido}</div>
+            `;
+        }
+        
+        // Media según tipo
+        if (publicacion.url_media) {
+            switch(publicacion.tipo) {
+                case 'imagen':
+                    contenidoHTML += `
+                        <div class="publicacion-media">
+                            <img src="${publicacion.url_media}" 
+                                 alt="Imagen publicada"
+                                 onclick="ampliarImagenPublicacion('${publicacion.url_media}')">
+                        </div>
+                    `;
+                    break;
+                    
+                case 'video':
+                    if (publicacion.url_media.includes('youtube.com') || publicacion.url_media.includes('youtu.be')) {
+                        const videoId = extraerIdYouTube(publicacion.url_media);
+                        if (videoId) {
+                            contenidoHTML += `
+                                <div class="publicacion-media">
+                                    <iframe 
+                                        width="100%" 
+                                        height="315" 
+                                        src="https://www.youtube.com/embed/${videoId}?rel=0" 
+                                        frameborder="0" 
+                                        allowfullscreen>
+                                    </iframe>
+                                </div>
+                            `;
+                        }
+                    } else {
+                        contenidoHTML += `
+                            <div class="publicacion-media">
+                                <video width="100%" controls>
+                                    <source src="${publicacion.url_media}" type="video/mp4">
+                                    Tu navegador no soporta el video.
+                                </video>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'enlace':
+                    let dominio = 'Enlace compartido';
+                    try {
+                        const urlObj = new URL(publicacion.url_media);
+                        dominio = urlObj.hostname.replace('www.', '');
+                    } catch (e) {}
+                    
+                    contenidoHTML += `
+                        <a href="${publicacion.url_media}" 
+                           target="_blank" 
+                           rel="noopener noreferrer" 
+                           class="publicacion-enlace">
+                            <i class="fas fa-external-link-alt"></i>
+                            <div>
+                                <strong>Enlace compartido</strong><br>
+                                <small>${dominio}</small>
+                            </div>
+                        </a>
+                    `;
+                    break;
+            }
+        }
+        
+        // Stats y acciones
+        const yaDioLike = usuarioActual ? await verificarLike(publicacion.id, usuarioActual.id) : false;
+        
+        contenidoHTML += `
+            </div>
+            
+            <div class="publicacion-stats">
+                <div class="stat-item ${yaDioLike ? 'active' : ''}" onclick="darLikePrincipal('${publicacion.id}', this)">
+                    <i class="fas fa-heart"></i>
+                    <span>${publicacion.likes_count || 0}</span>
+                </div>
+                <div class="stat-item" onclick="verComentariosPrincipal('${publicacion.id}')">
+                    <i class="fas fa-comment"></i>
+                    <span>${publicacion.comentarios_count || 0}</span>
+                </div>
+                <div class="stat-item" onclick="compartirPublicacionPrincipal('${publicacion.id}', '${nombreCompleto.replace(/'/g, "\\'")}')">
+                    <i class="fas fa-share-alt"></i>
+                    <span>Compartir</span>
+                </div>
+            </div>
+        `;
+        
+        div.innerHTML = contenidoHTML;
+        return div;
+        
+    } catch (error) {
+        console.error("Error creando elemento:", error);
+        return null;
+    }
+}
+
+// Funciones auxiliares para publicaciones
+function filtrarPublicaciones() {
+    const inputBusqueda = document.getElementById('buscarPublicaciones');
+    const filtroTipo = document.getElementById('filtroTipoPublicacion');
+    const filtroOrden = document.getElementById('filtroOrdenPublicacion');
+    
+    if (inputBusqueda) publicacionesFiltrosActuales.busqueda = inputBusqueda.value.trim();
+    if (filtroTipo) publicacionesFiltrosActuales.tipo = filtroTipo.value;
+    if (filtroOrden) publicacionesFiltrosActuales.orden = filtroOrden.value;
+    
+    publicacionesPaginaActual = 1;
+    cargarPublicaciones();
+}
+
+function recargarPublicaciones() {
+    publicacionesPaginaActual = 1;
+    cargarPublicaciones();
+    cargarEstadisticasPublicaciones();
+    mostrarNotificacion('exito', 'Publicaciones actualizadas');
+}
+
+function cambiarPaginaPublicaciones(nuevaPagina) {
+    if (nuevaPagina < 1 || nuevaPagina > publicacionesTotalPaginas) {
+        return;
+    }
+    
+    publicacionesPaginaActual = nuevaPagina;
+    cargarPublicaciones();
+}
+
+function actualizarPaginacionPublicaciones() {
+    const paginacionElement = document.getElementById('paginacionPublicaciones');
+    const btnAnterior = document.getElementById('btnPaginaAnterior');
+    const btnSiguiente = document.getElementById('btnPaginaSiguiente');
+    const infoPagina = document.getElementById('infoPagina');
+    
+    if (!paginacionElement) return;
+    
+    // Mostrar/ocultar paginación
+    if (publicacionesTotalPaginas <= 1) {
+        paginacionElement.style.display = 'none';
+        return;
+    }
+    
+    paginacionElement.style.display = 'flex';
+    
+    // Actualizar botones
+    if (btnAnterior) {
+        btnAnterior.disabled = publicacionesPaginaActual <= 1;
+    }
+    
+    if (btnSiguiente) {
+        btnSiguiente.disabled = publicacionesPaginaActual >= publicacionesTotalPaginas;
+    }
+    
+    // Actualizar información
+    if (infoPagina) {
+        infoPagina.textContent = `Página ${publicacionesPaginaActual} de ${publicacionesTotalPaginas}`;
+    }
+}
+
+function mostrarCargandoPublicaciones(mostrar) {
+    const feedElement = document.getElementById('feedPublicaciones');
+    const cargandoElement = document.getElementById('cargandoPublicaciones');
+    
+    if (mostrar) {
+        if (feedElement) feedElement.style.display = 'none';
+        if (cargandoElement) {
+            cargandoElement.style.display = 'block';
+            cargandoElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cargando publicaciones...';
+        }
+    } else {
+        if (feedElement) feedElement.style.display = 'flex';
+        if (cargandoElement) cargandoElement.style.display = 'none';
+    }
+}
+
+function mostrarSinResultadosPublicaciones() {
+    const feedElement = document.getElementById('feedPublicaciones');
+    const sinResultadosElement = document.getElementById('sinResultadosPublicaciones');
+    const paginacionElement = document.getElementById('paginacionPublicaciones');
+    
+    if (feedElement) feedElement.innerHTML = '';
+    if (sinResultadosElement) sinResultadosElement.style.display = 'block';
+    if (paginacionElement) paginacionElement.style.display = 'none';
+}
+
+function ocultarSinResultadosPublicaciones() {
+    const sinResultadosElement = document.getElementById('sinResultadosPublicaciones');
+    if (sinResultadosElement) {
+        sinResultadosElement.style.display = 'none';
+    }
+}
+
+function mostrarErrorPublicaciones(mensaje) {
+    const feedElement = document.getElementById('feedPublicaciones');
+    if (feedElement) {
+        feedElement.innerHTML = `
+            <div class="sin-resultados">
+                <i class="fas fa-exclamation-triangle fa-3x"></i>
+                <h3>Error al cargar publicaciones</h3>
+                <p>${mensaje || 'Intenta recargar la página'}</p>
+                <button class="btn-primary" onclick="recargarPublicaciones()" style="margin-top: 20px;">
+                    <i class="fas fa-redo"></i> Reintentar
+                </button>
+            </div>
+        `;
+    }
+}
+
+// Funciones de utilidad
+async function obtenerUsuarioActual() {
+    try {
+        const { data: { user } } = await window.supabase.auth.getUser();
+        return user;
+    } catch (error) {
+        return null;
+    }
+}
+
+async function verificarLike(publicacionId, usuarioId) {
+    try {
+        const { data } = await window.supabase
+            .from('likes')
+            .select('id')
+            .eq('publicacion_id', publicacionId)
+            .eq('usuario_id', usuarioId)
+            .maybeSingle();
+        
+        return !!data;
+    } catch (error) {
+        return false;
+    }
+}
+
+function calcularTiempoTranscurrido(fecha) {
+    const ahora = new Date();
+    const fechaPublicacion = new Date(fecha);
+    const diferencia = Math.floor((ahora - fechaPublicacion) / 1000);
+    
+    if (diferencia < 60) return 'Hace unos segundos';
+    if (diferencia < 3600) {
+        const minutos = Math.floor(diferencia / 60);
+        return `Hace ${minutos} ${minutos === 1 ? 'minuto' : 'minutos'}`;
+    }
+    if (diferencia < 86400) {
+        const horas = Math.floor(diferencia / 3600);
+        return `Hace ${horas} ${horas === 1 ? 'hora' : 'horas'}`;
+    }
+    if (diferencia < 604800) {
+        const dias = Math.floor(diferencia / 86400);
+        return `Hace ${dias} ${dias === 1 ? 'día' : 'días'}`;
+    }
+    
+    return fechaPublicacion.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    });
+}
+
+function extraerIdYouTube(url) {
+    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
+}
+
+// Funciones globales para interacción
+window.mostrarPerfilPublicaciones = function(usuarioId, nombre) {
+    if (typeof mostrarPerfilCompleto === 'function') {
+        mostrarPerfilCompleto(usuarioId);
+    } else {
+        Swal.fire({
+            title: `Perfil de ${nombre}`,
+            html: `<p>Redirigiendo al perfil completo...</p>`,
+            icon: 'info',
+            timer: 1500,
+            showConfirmButton: false
+        });
+        
+        setTimeout(() => {
+            window.open(`perfil.html?id=${usuarioId}`, '_blank');
+        }, 1500);
+    }
+};
+
+window.ampliarImagenPublicacion = function(url) {
+    Swal.fire({
+        imageUrl: url,
+        imageAlt: 'Imagen de la publicación',
+        showCloseButton: true,
+        showConfirmButton: false,
+        width: '90%',
+        imageWidth: '100%',
+        imageHeight: 'auto'
+    });
+};
+
+window.darLikePrincipal = async function(publicacionId, element) {
+    try {
+        const { data: { user } } = await window.supabase.auth.getUser();
+        
+        if (!user) {
+            Swal.fire({
+                icon: 'info',
+                title: 'Inicia sesión',
+                text: 'Debes iniciar sesión para dar like',
+                confirmButtonText: 'Iniciar sesión'
+            });
+            return;
+        }
+        
+        // Verificar si ya dio like
+        const { data: likeExistente } = await window.supabase
+            .from('likes')
+            .select('id')
+            .eq('publicacion_id', publicacionId)
+            .eq('usuario_id', user.id)
+            .maybeSingle();
+        
+        if (likeExistente) {
+            // Quitar like
+            await window.supabase
+                .from('likes')
+                .delete()
+                .eq('id', likeExistente.id);
+            
+            await window.supabase.rpc('decrement_likes', { publicacion_id: publicacionId });
+            
+            // Actualizar UI
+            const span = element.querySelector('span');
+            const likesActuales = parseInt(span.textContent) || 0;
+            span.textContent = likesActuales - 1;
+            element.classList.remove('active');
+            
+            // Mostrar notificación
+            mostrarNotificacion('info', 'Like eliminado');
+            
+        } else {
+            // Dar like
+            await window.supabase
+                .from('likes')
+                .insert({
+                    publicacion_id: publicacionId,
+                    usuario_id: user.id
+                });
+            
+            await window.supabase.rpc('increment_likes', { publicacion_id: publicacionId });
+            
+            // Actualizar UI
+            const span = element.querySelector('span');
+            const likesActuales = parseInt(span.textContent) || 0;
+            span.textContent = likesActuales + 1;
+            element.classList.add('active');
+            
+            // Mostrar notificación
+            mostrarNotificacion('exito', '¡Like agregado!');
+        }
+        
+        // Actualizar estadísticas en tiempo real
+        setTimeout(() => cargarEstadisticasPublicaciones(), 500);
+        
+    } catch (error) {
+        console.error("Error dando like:", error);
+        mostrarNotificacion('error', 'Error al dar like');
+    }
+};
+
+window.eliminarPublicacion = async function(publicacionId) {
+    try {
+        const { data: { user } } = await window.supabase.auth.getUser();
+        
+        if (!user) {
+            mostrarNotificacion('error', 'Debes iniciar sesión');
+            return;
+        }
+        
+        // Confirmar eliminación
+        const confirmacion = await Swal.fire({
+            title: '¿Eliminar publicación?',
+            text: 'Esta acción no se puede deshacer',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        });
+        
+        if (!confirmacion.isConfirmed) return;
+        
+        // Eliminar publicación
+        const { error } = await window.supabase
+            .from('publicaciones')
+            .delete()
+            .eq('id', publicacionId)
+            .eq('usuario_id', user.id); // Solo eliminar si es el propietario
+        
+        if (error) throw error;
+        
+        // Eliminar elemento del DOM
+        const publicacionElement = document.querySelector(`.publicacion-item[data-id="${publicacionId}"]`);
+        if (publicacionElement) {
+            publicacionElement.style.animation = 'fadeOut 0.3s ease';
+            setTimeout(() => publicacionElement.remove(), 300);
+        }
+        
+        // Mostrar notificación
+        mostrarNotificacion('exito', 'Publicación eliminada');
+        
+        // Recargar estadísticas
+        await cargarEstadisticasPublicaciones();
+        
+        // Recargar feed si está vacío
+        const feed = document.getElementById('feedPublicaciones');
+        if (feed && feed.children.length === 0) {
+            await cargarPublicaciones();
+        }
+        
+    } catch (error) {
+        console.error("Error eliminando publicación:", error);
+        mostrarNotificacion('error', 'No se pudo eliminar la publicación');
+    }
+};
+
+window.verComentariosPrincipal = async function(publicacionId) {
+    // Obtener usuario actual para verificar permisos
+    const usuarioActual = await obtenerUsuarioActual();
+    
+    Swal.fire({
+        title: 'Comentarios',
+        html: `<div id="comentariosContainer"></div>`,
+        showCloseButton: true,
+        showConfirmButton: false,
+        width: 600,
+        didOpen: () => {
+            cargarComentariosPrincipal(publicacionId, usuarioActual?.id);
+        }
+    });
+};
+
+async function cargarComentariosPrincipal(publicacionId, usuarioActualId) {
+    try {
+        const { data: comentarios, error } = await window.supabase
+            .from('comentarios')
+            .select('*, usuario:usuarios(id, nombre, apellidos, avatar_url)')
+            .eq('publicacion_id', publicacionId)
+            .order('fecha_creacion', { ascending: true });
+        
+        if (error) throw error;
+        
+        const container = document.getElementById('comentariosContainer');
+        if (!container) return;
+        
+        let comentariosHTML = '<div style="max-height: 400px; overflow-y: auto; padding-right: 10px;">';
+        
+        if (!comentarios || comentarios.length === 0) {
+            comentariosHTML += `
+                <div style="text-align: center; padding: 40px; color: #95a5a6;">
+                    <i class="fas fa-comments" style="font-size: 48px;"></i>
+                    <h3 style="color: #2c3e50; margin: 20px 0 10px;">Sin comentarios</h3>
+                    <p>Sé el primero en comentar</p>
+                </div>
+            `;
+        } else {
+            for (const comentario of comentarios) {
+                const usuario = comentario.usuario || {};
+                const nombre = `${usuario.nombre || ''} ${usuario.apellidos || ''}`.trim() || 'Usuario';
+                const fecha = new Date(comentario.fecha_creacion).toLocaleDateString('es-ES', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                const esPropietarioComentario = usuarioActualId === comentario.usuario_id;
+                
+                comentariosHTML += `
+                    <div id="comentario-${comentario.id}" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e8edf2; position: relative;">
+                        <div style="display: flex; align-items: flex-start; gap: 10px;">
+                            <div style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; flex-shrink: 0; background: #667eea;">
+                                ${usuario.avatar_url ? 
+                                    `<img src="${usuario.avatar_url}" style="width:100%;height:100%;object-fit:cover;">` :
+                                    `<i class="fas fa-user" style="color:white; display:flex; align-items:center; justify-content:center; height:100%;"></i>`
+                                }
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                    <div>
+                                        <strong style="color: #2c3e50;">${nombre}</strong>
+                                        ${esPropietarioComentario ? '<span style="background: #667eea; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 8px;">Tú</span>' : ''}
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <small style="color: #7f8c8d;">${fecha}</small>
+                                        ${esPropietarioComentario ? `
+                                            <button onclick="eliminarComentarioPrincipal('${comentario.id}', '${publicacionId}')" 
+                                                    style="background: none; border: none; color: #e74c3c; cursor: pointer; padding: 5px;" 
+                                                    title="Eliminar comentario">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                                <div style="color: #2c3e50; line-height: 1.5; padding-right: 20px;">
+                                    ${comentario.contenido}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        comentariosHTML += '</div>';
+        
+        // Agregar campo para nuevo comentario
+        comentariosHTML += `
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e8edf2;">
+                <textarea id="nuevoComentarioPrincipal" 
+                          placeholder="Escribe tu comentario..." 
+                          style="width:100%; padding:12px; border:2px solid #e8edf2; border-radius:8px; margin-bottom:10px; resize: vertical;"
+                          rows="3"></textarea>
+                <button onclick="agregarComentarioPrincipal('${publicacionId}')"
+                        style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; border:none; padding:10px 25px; border-radius:8px; cursor:pointer; font-weight:600;">
+                    <i class="fas fa-paper-plane"></i> Enviar comentario
+                </button>
+            </div>
+        `;
+        
+        container.innerHTML = comentariosHTML;
+        
+        // Enfocar el textarea automáticamente
+        setTimeout(() => {
+            const textarea = document.getElementById('nuevoComentarioPrincipal');
+            if (textarea) textarea.focus();
+        }, 100);
+        
+    } catch (error) {
+        console.error("Error cargando comentarios:", error);
+        const container = document.getElementById('comentariosContainer');
+        if (container) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 20px; color: #e74c3c;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Error al cargar los comentarios</p>
+                </div>
+            `;
+        }
+    }
+}
+
+window.agregarComentarioPrincipal = async function(publicacionId) {
+    try {
+        const textarea = document.getElementById('nuevoComentarioPrincipal');
+        const contenido = textarea.value.trim();
+        
+        if (!contenido) {
+            mostrarNotificacion('error', 'Escribe un comentario primero');
+            return;
+        }
+        
+        const { data: { user } } = await window.supabase.auth.getUser();
+        
+        if (!user) {
+            Swal.fire({
+                icon: 'info',
+                title: 'Inicia sesión',
+                text: 'Debes iniciar sesión para comentar',
+                confirmButtonText: 'Iniciar sesión'
+            });
+            return;
+        }
+        
+        // Insertar comentario
+        const { error } = await window.supabase
+            .from('comentarios')
+            .insert({
+                publicacion_id: publicacionId,
+                usuario_id: user.id,
+                contenido: contenido
+            });
+        
+        if (error) throw error;
+        
+        // Actualizar contador
+        await window.supabase.rpc('increment_comentarios', { publicacion_id: publicacionId });
+        
+        // Limpiar textarea
+        textarea.value = '';
+        
+        // Mostrar notificación
+        mostrarNotificacion('exito', '¡Comentario publicado!');
+        
+        // Recargar comentarios
+        cargarComentariosPrincipal(publicacionId, user.id);
+        
+        // Actualizar contador en la publicación
+        const publicacionElement = document.querySelector(`.publicacion-item[data-id="${publicacionId}"]`);
+        if (publicacionElement) {
+            const comentarioElement = publicacionElement.querySelector('.stat-item:nth-child(2) span');
+            if (comentarioElement) {
+                const comentariosActuales = parseInt(comentarioElement.textContent) || 0;
+                comentarioElement.textContent = comentariosActuales + 1;
+            }
+        }
+        
+        // Actualizar estadísticas
+        setTimeout(() => cargarEstadisticasPublicaciones(), 500);
+        
+    } catch (error) {
+        console.error("Error agregando comentario:", error);
+        mostrarNotificacion('error', 'No se pudo publicar el comentario');
+    }
+};
+
+window.eliminarComentarioPrincipal = async function(comentarioId, publicacionId) {
+    try {
+        const { data: { user } } = await window.supabase.auth.getUser();
+        
+        if (!user) {
+            mostrarNotificacion('error', 'Debes iniciar sesión');
+            return;
+        }
+        
+        // Confirmar eliminación
+        const confirmacion = await Swal.fire({
+            title: '¿Eliminar comentario?',
+            text: 'Esta acción no se puede deshacer',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        });
+        
+        if (!confirmacion.isConfirmed) return;
+        
+        // Eliminar comentario
+        const { error } = await window.supabase
+            .from('comentarios')
+            .delete()
+            .eq('id', comentarioId)
+            .eq('usuario_id', user.id); // Solo eliminar si es el propietario
+        
+        if (error) throw error;
+        
+        // Actualizar contador de la publicación
+        await window.supabase.rpc('decrement_comentarios', { publicacion_id: publicacionId });
+        
+        // Remover del DOM
+        const comentarioElement = document.getElementById(`comentario-${comentarioId}`);
+        if (comentarioElement) {
+            comentarioElement.style.animation = 'fadeOut 0.3s ease';
+            setTimeout(() => comentarioElement.remove(), 300);
+        }
+        
+        // Mostrar notificación
+        mostrarNotificacion('exito', 'Comentario eliminado');
+        
+        // Actualizar contador en la publicación principal
+        const publicacionElement = document.querySelector(`.publicacion-item[data-id="${publicacionId}"]`);
+        if (publicacionElement) {
+            const comentarioElement = publicacionElement.querySelector('.stat-item:nth-child(2) span');
+            if (comentarioElement) {
+                const comentariosActuales = parseInt(comentarioElement.textContent) || 0;
+                comentarioElement.textContent = Math.max(0, comentariosActuales - 1);
+            }
+        }
+        
+        // Actualizar estadísticas
+        setTimeout(() => cargarEstadisticasPublicaciones(), 500);
+        
+    } catch (error) {
+        console.error("Error eliminando comentario:", error);
+        mostrarNotificacion('error', 'No se pudo eliminar el comentario');
+    }
+};
+
+window.compartirPublicacionPrincipal = function(publicacionId, autorNombre) {
+    const url = `${window.location.origin}/view.html?id=${publicacionId}`;
+    const mensaje = `¡Mira esta publicación de ${autorNombre} en Messery! ${url}`;
+    
+    Swal.fire({
+        title: 'Compartir publicación',
+        html: `
+            <div style="text-align: center;">
+                <input type="text" value="${url}" readonly 
+                       style="width:100%; padding:12px; border:2px solid #e8edf2; border-radius:8px; margin-bottom: 20px; background: #f8f9fa;">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                    <button onclick="copiarEnlacePrincipal('${url}')"
+                            style="padding: 12px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        <i class="fas fa-copy"></i> Copiar enlace
+                    </button>
+                    <button onclick="window.open('https://web.whatsapp.com/send?text=${encodeURIComponent(mensaje)}', '_blank')"
+                            style="padding: 12px; background: #25D366; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        <i class="fab fa-whatsapp"></i> WhatsApp
+                    </button>
+                </div>
+            </div>
+        `,
+        showCloseButton: true,
+        showConfirmButton: false,
+        width: 500
+    });
+};
+
+window.copiarEnlacePrincipal = function(url) {
+    navigator.clipboard.writeText(url).then(() => {
+        mostrarNotificacion('exito', '¡Enlace copiado al portapapeles!');
+    }).catch(() => {
+        mostrarNotificacion('error', 'Error al copiar el enlace');
+    });
+};
+
+// ======================
+// FIN MÓDULO PUBLICACIONES
+// ======================
+// ======================
+// FIN MÓDULO PUBLICACIONES
+// ======================
    
     // FUNCIÓN PARA ACTUALIZAR LA INTERFAZ DEL USUARIO
     function actualizarUIUsuario(usuario) {
@@ -6358,63 +8107,7 @@
     // Hacer la función global
     window.enviarMensajeDirecto = enviarMensajeDirecto;
 
-    // Configurar eventos del modal
-    document.addEventListener('DOMContentLoaded', function() {
-        const modal = document.getElementById('modalPerfilAmigo');
-        if (modal) {
-            // Cerrar modal al hacer clic fuera
-            modal.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    cerrarModalPerfil();
-                }
-            });
-            
-            // Cerrar modal con Escape
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    cerrarModalPerfil();
-                }
-            });
-        }
-    });
-
-    // Función para eliminar amigo
-    async function eliminarAmigo(amigoId) {
-        try {
-            const confirmacion = await Swal.fire({
-                title: '¿Eliminar amigo?',
-                text: 'Esta acción eliminará la amistad con este usuario.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Sí, eliminar',
-                cancelButtonText: 'Cancelar',
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6'
-            });
-            
-            if (confirmacion.isConfirmed) {
-                // Lógica para eliminar amigo
-                if (window.Amigos && window.Amigos.eliminarAmigo) {
-                    await window.Amigos.eliminarAmigo(amigoId);
-                }
-                
-                // Recargar amigos
-                if (window.Amigos && window.Amigos.cargarAmigos) {
-                    await window.Amigos.cargarAmigos();
-                }
-                
-                Swal.fire('¡Eliminado!', 'El amigo ha sido eliminado.', 'success');
-            }
-        } catch (error) {
-            console.error('Error al eliminar amigo:', error);
-            Swal.fire('Error', 'No se pudo eliminar el amigo.', 'error');
-        }
-    }
-
-    // Hacer la función global
-    window.eliminarAmigo = eliminarAmigo;
-
-// INICIALIZACIÓN DE LA APLICACIÓN
+    // INICIALIZACIÓN DE LA APLICACIÓN
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         // 1. DETECTAR SI ES UNA RECONEXIÓN POR INACTIVIDAD
@@ -6612,9 +8305,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log('✅ Grupos cargados');
         }
 
-        // 14. CONFIGURAR BOTÓN DE AFINIDAD EN LA INTERFAZ
+        // 14. INICIALIZAR PUBLICACIONES DIRECTAMENTE
         if (!esReconexion) {
-            actualizarBannerCarga('configurando_botones', 80);
+            actualizarBannerCarga('inicializando_publicaciones', 80);
+        }
+        
+        console.log("📰 Inicializando sistema de publicaciones...");
+        // Inicializar publicaciones directamente (sin módulo externo)
+        await inicializarPublicaciones();
+        console.log('✅ Publicaciones inicializadas');
+
+        // 15. CONFIGURAR BOTÓN DE AFINIDAD EN LA INTERFAZ
+        if (!esReconexion) {
+            actualizarBannerCarga('configurando_botones', 82);
         }
         
         console.log("⚙️ Configurando botón de afinidad...");
@@ -6640,9 +8343,33 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log("⚠️ Botón de afinidad no encontrado");
         }
 
-        // 15. INICIALIZAR MÓDULO DE OPCIONES/AJUSTES
+        // 16. CONFIGURAR BOTÓN DE PUBLICACIONES EN LA INTERFAZ
         if (!esReconexion) {
-            actualizarBannerCarga('configurando_opciones', 85);
+            actualizarBannerCarga('configurando_publicaciones_ui', 84);
+        }
+        
+        console.log("⚙️ Configurando botón de publicaciones...");
+        const btnPublicaciones = document.getElementById('btnPublicaciones');
+        if (btnPublicaciones) {
+            btnPublicaciones.addEventListener('click', async () => {
+                if (window.Interfaz && window.Interfaz.mostrarSeccion) {
+                    window.Interfaz.mostrarSeccion('seccionPublicaciones');
+                    
+                    // Cargar publicaciones cuando se active la sección
+                    if (window.Publicaciones && window.Publicaciones.cargarPublicacionesTodosUsuarios) {
+                        setTimeout(() => {
+                            window.Publicaciones.cargarPublicacionesTodosUsuarios();
+                        }, 100);
+                    }
+                }
+            });
+        } else {
+            console.log("⚠️ Botón de publicaciones no encontrado");
+        }
+
+        // 17. INICIALIZAR MÓDULO DE OPCIONES/AJUSTES
+        if (!esReconexion) {
+            actualizarBannerCarga('configurando_opciones', 86);
         }
         
         if (window.Opciones && window.Opciones.inicializar) {
@@ -6652,9 +8379,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log("⚠️ Módulo de opciones no disponible");
         }
 
-        // 16. INICIALIZAR MÓDULO DE INFORMACIÓN
+        // 18. INICIALIZAR MÓDULO DE INFORMACIÓN
         if (!esReconexion) {
-            actualizarBannerCarga('configurando_informacion', 90);
+            actualizarBannerCarga('configurando_informacion', 88);
         }
         
         if (window.Informacion && window.Informacion.inicializar) {
@@ -6664,17 +8391,48 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log("⚠️ Módulo de información no disponible");
         }
 
-        // 17. CONFIGURAR INTERFAZ Y EVENTOS
+        // 19. INICIALIZAR MÓDULO DE PUBLICACIONES PARA USUARIO
         if (!esReconexion) {
-            actualizarBannerCarga('configurando_interfaz', 95);
+            actualizarBannerCarga('inicializando_publicaciones_usuario', 90);
+        }
+        
+        if (window.PublicacionesUsuario && window.PublicacionesUsuario.inicializar) {
+            console.log("📝 Inicializando módulo de publicaciones de usuario...");
+            await window.PublicacionesUsuario.inicializar();
+            
+            // Cargar publicaciones del usuario actual
+            if (window.PublicacionesUsuario.cargarMisPublicaciones) {
+                await window.PublicacionesUsuario.cargarMisPublicaciones();
+            }
+        } else {
+            console.log("⚠️ Módulo de publicaciones de usuario no disponible");
+        }
+
+        // 20. CONFIGURAR INTERFAZ Y EVENTOS
+        if (!esReconexion) {
+            actualizarBannerCarga('configurando_interfaz', 92);
         }
         
         if (window.Interfaz && window.Interfaz.configurarEventos) {
             console.log("⚙️ Configurando eventos de interfaz...");
             window.Interfaz.configurarEventos();
         }
+
+        // 21. CONFIGURAR SUSCRIPCIONES EN TIEMPO REAL PARA PUBLICACIONES
+        if (!esReconexion) {
+            actualizarBannerCarga('configurando_suscripciones', 94);
+        }
         
-        // 18. CONFIGURAR LOGOUT
+        console.log("🔔 Configurando suscripciones en tiempo real...");
+        if (window.Publicaciones && window.Publicaciones.configurarSuscripcionesTiempoReal) {
+            window.Publicaciones.configurarSuscripcionesTiempoReal();
+        }
+        
+        // 22. CONFIGURAR LOGOUT
+        if (!esReconexion) {
+            actualizarBannerCarga('configurando_logout', 96);
+        }
+        
         const btnLogout = document.getElementById('btnLogout');
         if (btnLogout) {
             btnLogout.addEventListener('click', async () => {
@@ -6686,7 +8444,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
-        // 19. COMPLETAR CARGA - OCULTAR BANNER
+        // 23. COMPLETAR CARGA - OCULTAR BANNER
         if (!esReconexion) {
             actualizarBannerCarga('completado', 100);
         } else {
@@ -6702,7 +8460,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }, 1000);
         }
         
-        // 20. OCULTAR MENSAJE DE BIENVENIDA DESPUÉS DE 5 SEGUNDOS
+        // 24. OCULTAR MENSAJE DE BIENVENIDA DESPUÉS DE 5 SEGUNDOS
         setTimeout(() => {
             const welcomeMsg = document.getElementById('welcomeMessage');
             if (welcomeMsg) {
@@ -6714,7 +8472,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }, 5000);
 
-        // 21. CONFIGURAR SUSCRIPCIÓN A CAMBIOS DE AUTENTICACIÓN
+        // 25. CONFIGURAR SUSCRIPCIÓN A CAMBIOS DE AUTENTICACIÓN
         supabase.auth.onAuthStateChange((event, session) => {
             console.log('🔄 Cambio en estado de autenticación:', event);
             
@@ -6723,8 +8481,23 @@ document.addEventListener('DOMContentLoaded', async () => {
                 window.location.href = 'index.html';
             } else if (event === 'TOKEN_REFRESHED') {
                 console.log('🔄 Token refrescado');
+            } else if (event === 'SIGNED_IN' && window.Publicaciones) {
+                // Si el usuario acaba de iniciar sesión, cargar publicaciones
+                setTimeout(() => {
+                    if (window.Publicaciones.cargarPublicacionesTodosUsuarios) {
+                        window.Publicaciones.cargarPublicacionesTodosUsuarios();
+                    }
+                }, 1000);
             }
         });
+
+        // 26. CARGAR PUBLICACIONES DE TODOS LOS USUARIOS EN SEGUNDO PLANO
+        setTimeout(() => {
+            if (window.Publicaciones && window.Publicaciones.cargarPublicacionesTodosUsuarios) {
+                console.log("🔄 Cargando publicaciones en segundo plano...");
+                window.Publicaciones.cargarPublicacionesTodosUsuarios();
+            }
+        }, 2000);
 
         console.log("🎉 Aplicación Messery inicializada correctamente");
 
@@ -7070,7 +8843,9 @@ window.mostrarSeleccionAmigosAfinidad = mostrarSeleccionAmigosAfinidad;
         });
     }
 
-   
+
+
+
 </script>
 </body>
 </html>
