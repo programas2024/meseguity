@@ -5866,7 +5866,253 @@
     }
 }
 
+/* Estilos para comentarios separados */
+.comentario-item {
+    border: 2px solid #e8edf2;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+    background: white;
+    animation: fadeIn 0.3s ease;
+    transition: all 0.3s ease;
+    position: relative;
+}
 
+.comentario-item.propio {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+    border-left-width: 4px;
+    border-left-color: #667eea;
+}
+
+.comentario-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.comentario-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 16px;
+}
+
+.comentario-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.comentario-info {
+    flex: 1;
+    margin-left: 12px;
+}
+
+.comentario-autor {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.comentario-autor span.propio {
+    background: #667eea;
+    color: white;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.comentario-fecha {
+    color: #7f8c8d;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 3px;
+}
+
+.comentario-contenido {
+    color: #2c3e50;
+    line-height: 1.6;
+    padding: 10px 0;
+    font-size: 14px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.comentario-acciones {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #f5f5f5;
+}
+
+.btn-eliminar-comentario {
+    background: none;
+    border: 2px solid #ff6b6b;
+    color: #ff6b6b;
+    padding: 6px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-eliminar-comentario:hover {
+    background: #ff6b6b;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
+/* Formulario de nuevo comentario */
+.form-nuevo-comentario {
+    margin-top: 25px;
+    padding-top: 25px;
+    border-top: 3px solid #e8edf2;
+}
+
+.form-nuevo-comentario h4 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.form-nuevo-comentario h4 i {
+    color: #667eea;
+}
+
+.textarea-comentario {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid #e8edf2;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+    min-height: 100px;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+}
+
+.textarea-comentario:focus {
+    outline: none;
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.btn-enviar-comentario {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+}
+
+.btn-enviar-comentario:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-enviar-comentario:active {
+    transform: translateY(0);
+}
+
+/* Contador de comentarios */
+.comentarios-count {
+    background: #667eea;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Estado vacío */
+.comentarios-vacio {
+    text-align: center;
+    padding: 50px 20px;
+    color: #95a5a6;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 2px dashed #e8edf2;
+}
+
+.comentarios-vacio i {
+    font-size: 48px;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.comentarios-vacio h3 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+
+.comentarios-vacio p {
+    color: #7f8c8d;
+    font-size: 14px;
+}
+
+/* Animación para nuevos comentarios */
+@keyframes highlightComment {
+    0% {
+        background: #e3f2fd;
+        transform: translateY(10px);
+        opacity: 0;
+    }
+    100% {
+        background: white;
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.comentario-item.nuevo {
+    animation: highlightComment 0.5s ease;
+}
+
+/* Separador entre comentarios */
+.comentario-separador {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #e8edf2, transparent);
+    margin: 20px 0;
+}
 
     </style>
 </head>
@@ -7422,7 +7668,7 @@ async function cargarComentariosPrincipal(publicacionId, usuarioActualId) {
     try {
         const { data: comentarios, error } = await window.supabase
             .from('comentarios')
-            .select('*, usuario:usuarios(id, nombre, apellidos, avatar_url)')
+            .select('*, usuario:usuarios(id, nombre, apellidos, avatar_url, email)')
             .eq('publicacion_id', publicacionId)
             .order('fecha_creacion', { ascending: true });
         
@@ -7431,75 +7677,115 @@ async function cargarComentariosPrincipal(publicacionId, usuarioActualId) {
         const container = document.getElementById('comentariosContainer');
         if (!container) return;
         
-        let comentariosHTML = '<div style="max-height: 400px; overflow-y: auto; padding-right: 10px;">';
+        let comentariosHTML = '';
         
         if (!comentarios || comentarios.length === 0) {
-            comentariosHTML += `
-                <div style="text-align: center; padding: 40px; color: #95a5a6;">
-                    <i class="fas fa-comments" style="font-size: 48px;"></i>
-                    <h3 style="color: #2c3e50; margin: 20px 0 10px;">Sin comentarios</h3>
-                    <p>Sé el primero en comentar</p>
+            comentariosHTML = `
+                <div class="comentarios-vacio">
+                    <i class="fas fa-comments"></i>
+                    <h3>No hay comentarios todavía</h3>
+                    <p>Sé el primero en comentar esta publicación</p>
                 </div>
             `;
         } else {
-            for (const comentario of comentarios) {
+            // Mostrar contador
+            comentariosHTML = `
+                <div style="margin-bottom: 25px; display: flex; align-items: center; gap: 10px;">
+                    <h4 style="margin: 0; color: #2c3e50;">
+                        <i class="fas fa-comments"></i> Comentarios
+                    </h4>
+                    <span class="comentarios-count">
+                        <i class="fas fa-hashtag"></i> ${comentarios.length}
+                    </span>
+                </div>
+            `;
+            
+            // Agregar cada comentario
+            for (let i = 0; i < comentarios.length; i++) {
+                const comentario = comentarios[i];
                 const usuario = comentario.usuario || {};
-                const nombre = `${usuario.nombre || ''} ${usuario.apellidos || ''}`.trim() || 'Usuario';
-                const fecha = new Date(comentario.fecha_creacion).toLocaleDateString('es-ES', {
+                
+                // Obtener nombre
+                let nombre = usuario.nombre || '';
+                let apellidos = usuario.apellidos || '';
+                let nombreCompleto = `${nombre} ${apellidos}`.trim();
+                
+                if (!nombreCompleto && usuario.email) {
+                    nombreCompleto = usuario.email.split('@')[0];
+                }
+                
+                if (!nombreCompleto) {
+                    nombreCompleto = 'Usuario';
+                }
+                
+                // Formatear fecha
+                const fecha = new Date(comentario.fecha_creacion);
+                const fechaFormateada = fecha.toLocaleDateString('es-ES', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
                     hour: '2-digit',
                     minute: '2-digit'
                 });
                 
+                // Verificar si es del usuario actual
                 const esPropietarioComentario = usuarioActualId === comentario.usuario_id;
                 
+                // Generar HTML del comentario
                 comentariosHTML += `
-                    <div id="comentario-${comentario.id}" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e8edf2; position: relative;">
-                        <div style="display: flex; align-items: flex-start; gap: 10px;">
-                            <div style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; flex-shrink: 0; background: #667eea;">
-                                ${usuario.avatar_url ? 
-                                    `<img src="${usuario.avatar_url}" style="width:100%;height:100%;object-fit:cover;">` :
-                                    `<i class="fas fa-user" style="color:white; display:flex; align-items:center; justify-content:center; height:100%;"></i>`
-                                }
-                            </div>
-                            <div style="flex: 1;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                                    <div>
-                                        <strong style="color: #2c3e50;">${nombre}</strong>
-                                        ${esPropietarioComentario ? '<span style="background: #667eea; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 8px;">Tú</span>' : ''}
-                                    </div>
-                                    <div style="display: flex; align-items: center; gap: 10px;">
-                                        <small style="color: #7f8c8d;">${fecha}</small>
-                                        ${esPropietarioComentario ? `
-                                            <button onclick="eliminarComentarioPrincipal('${comentario.id}', '${publicacionId}')" 
-                                                    style="background: none; border: none; color: #e74c3c; cursor: pointer; padding: 5px;" 
-                                                    title="Eliminar comentario">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        ` : ''}
-                                    </div>
+                    <div id="comentario-${comentario.id}" class="comentario-item ${esPropietarioComentario ? 'propio' : ''}">
+                        <div class="comentario-header">
+                            <div style="display: flex; align-items: center; flex: 1;">
+                                <div class="comentario-avatar" onclick="mostrarPerfilPublicaciones('${usuario.id}', '${nombreCompleto}')">
+                                    ${usuario.avatar_url ? 
+                                        `<img src="${usuario.avatar_url}" alt="${nombreCompleto}">` :
+                                        `<i class="fas fa-user"></i>`
+                                    }
                                 </div>
-                                <div style="color: #2c3e50; line-height: 1.5; padding-right: 20px;">
-                                    ${comentario.contenido}
+                                <div class="comentario-info">
+                                    <div class="comentario-autor">
+                                        ${nombreCompleto}
+                                        ${esPropietarioComentario ? '<span class="propio">Tú</span>' : ''}
+                                    </div>
+                                    <div class="comentario-fecha">
+                                        <i class="far fa-clock"></i>
+                                        ${fechaFormateada}
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        
+                        <div class="comentario-contenido">
+                            ${comentario.contenido.replace(/\n/g, '<br>')}
+                        </div>
+                        
+                        ${esPropietarioComentario ? `
+                            <div class="comentario-acciones">
+                                <button class="btn-eliminar-comentario" 
+                                        onclick="eliminarComentarioPrincipal('${comentario.id}', '${publicacionId}')"
+                                        title="Eliminar este comentario">
+                                    <i class="fas fa-trash"></i>
+                                    Eliminar
+                                </button>
+                            </div>
+                        ` : ''}
                     </div>
+                    
+                    ${i < comentarios.length - 1 ? '<div class="comentario-separador"></div>' : ''}
                 `;
             }
         }
         
-        comentariosHTML += '</div>';
-        
-        // Agregar campo para nuevo comentario
+        // Agregar formulario para nuevo comentario
         comentariosHTML += `
-            <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e8edf2;">
+            <div class="form-nuevo-comentario">
+                <h4><i class="fas fa-edit"></i> Agregar comentario</h4>
                 <textarea id="nuevoComentarioPrincipal" 
-                          placeholder="Escribe tu comentario..." 
-                          style="width:100%; padding:12px; border:2px solid #e8edf2; border-radius:8px; margin-bottom:10px; resize: vertical;"
-                          rows="3"></textarea>
+                          class="textarea-comentario"
+                          placeholder="Escribe tu comentario aquí..."></textarea>
                 <button onclick="agregarComentarioPrincipal('${publicacionId}')"
-                        style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; border:none; padding:10px 25px; border-radius:8px; cursor:pointer; font-weight:600;">
-                    <i class="fas fa-paper-plane"></i> Enviar comentario
+                        class="btn-enviar-comentario">
+                    <i class="fas fa-paper-plane"></i> Publicar comentario
                 </button>
             </div>
         `;
@@ -7509,7 +7795,15 @@ async function cargarComentariosPrincipal(publicacionId, usuarioActualId) {
         // Enfocar el textarea automáticamente
         setTimeout(() => {
             const textarea = document.getElementById('nuevoComentarioPrincipal');
-            if (textarea) textarea.focus();
+            if (textarea) {
+                textarea.focus();
+                
+                // Hacer que el textarea crezca automáticamente
+                textarea.addEventListener('input', function() {
+                    this.style.height = 'auto';
+                    this.style.height = (this.scrollHeight) + 'px';
+                });
+            }
         }, 100);
         
     } catch (error) {
@@ -7517,9 +7811,14 @@ async function cargarComentariosPrincipal(publicacionId, usuarioActualId) {
         const container = document.getElementById('comentariosContainer');
         if (container) {
             container.innerHTML = `
-                <div style="text-align: center; padding: 20px; color: #e74c3c;">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p>Error al cargar los comentarios</p>
+                <div style="text-align: center; padding: 40px; color: #e74c3c;">
+                    <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    <h3 style="color: #e74c3c; margin: 20px 0 10px;">Error al cargar comentarios</h3>
+                    <p>${error.message || 'Intenta nuevamente'}</p>
+                    <button onclick="verComentariosPrincipal('${publicacionId}')"
+                            style="margin-top: 20px; background: #667eea; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">
+                        <i class="fas fa-redo"></i> Reintentar
+                    </button>
                 </div>
             `;
         }
@@ -7533,6 +7832,7 @@ window.agregarComentarioPrincipal = async function(publicacionId) {
         
         if (!contenido) {
             mostrarNotificacion('error', 'Escribe un comentario primero');
+            textarea.focus();
             return;
         }
         
@@ -7548,30 +7848,41 @@ window.agregarComentarioPrincipal = async function(publicacionId) {
             return;
         }
         
+        // Mostrar estado de carga
+        const btnEnviar = textarea.nextElementSibling;
+        const originalHTML = btnEnviar.innerHTML;
+        btnEnviar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Publicando...';
+        btnEnviar.disabled = true;
+        
         // Insertar comentario
-        const { error } = await window.supabase
+        const { data: nuevoComentario, error } = await window.supabase
             .from('comentarios')
             .insert({
                 publicacion_id: publicacionId,
                 usuario_id: user.id,
                 contenido: contenido
-            });
+            })
+            .select('*, usuario:usuarios(id, nombre, apellidos, avatar_url, email)')
+            .single();
         
         if (error) throw error;
         
-        // Actualizar contador
+        // Actualizar contador de la publicación
         await window.supabase.rpc('increment_comentarios', { publicacion_id: publicacionId });
         
-        // Limpiar textarea
+        // Limpiar textarea y restaurar botón
         textarea.value = '';
+        textarea.style.height = 'auto';
+        btnEnviar.innerHTML = originalHTML;
+        btnEnviar.disabled = false;
         
         // Mostrar notificación
         mostrarNotificacion('exito', '¡Comentario publicado!');
         
-        // Recargar comentarios
-        cargarComentariosPrincipal(publicacionId, user.id);
+        // Recargar comentarios con animación
+        await cargarComentariosPrincipal(publicacionId, user.id);
         
-        // Actualizar contador en la publicación
+        // Actualizar contador en la publicación principal
         const publicacionElement = document.querySelector(`.publicacion-item[data-id="${publicacionId}"]`);
         if (publicacionElement) {
             const comentarioElement = publicacionElement.querySelector('.stat-item:nth-child(2) span');
@@ -7581,11 +7892,19 @@ window.agregarComentarioPrincipal = async function(publicacionId) {
             }
         }
         
-        // Actualizar estadísticas
+        // Actualizar estadísticas generales
         setTimeout(() => cargarEstadisticasPublicaciones(), 500);
         
     } catch (error) {
         console.error("Error agregando comentario:", error);
+        
+        // Restaurar botón
+        const btnEnviar = document.querySelector('.btn-enviar-comentario');
+        if (btnEnviar) {
+            btnEnviar.innerHTML = '<i class="fas fa-paper-plane"></i> Publicar comentario';
+            btnEnviar.disabled = false;
+        }
+        
         mostrarNotificacion('error', 'No se pudo publicar el comentario');
     }
 };
@@ -7601,56 +7920,102 @@ window.eliminarComentarioPrincipal = async function(comentarioId, publicacionId)
         
         // Confirmar eliminación
         const confirmacion = await Swal.fire({
-            title: '¿Eliminar comentario?',
-            text: 'Esta acción no se puede deshacer',
-            icon: 'warning',
+            title: '<i class="fas fa-trash" style="color: #ff6b6b; font-size: 48px;"></i>',
+            html: `
+                <div style="text-align: center;">
+                    <h3 style="color: #2c3e50; margin: 20px 0 10px;">¿Eliminar comentario?</h3>
+                    <p style="color: #7f8c8d;">Esta acción no se puede deshacer</p>
+                </div>
+            `,
             showCancelButton: true,
             confirmButtonText: 'Sí, eliminar',
-            cancelButtonText: 'Cancelar'
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#ff6b6b',
+            cancelButtonColor: '#95a5a6',
+            showCloseButton: true,
+            width: 400,
+            customClass: {
+                popup: 'animated fadeIn'
+            }
         });
         
         if (!confirmacion.isConfirmed) return;
+        
+        // Mostrar carga
+        const comentarioElement = document.getElementById(`comentario-${comentarioId}`);
+        if (comentarioElement) {
+            comentarioElement.style.opacity = '0.5';
+            comentarioElement.style.pointerEvents = 'none';
+        }
         
         // Eliminar comentario
         const { error } = await window.supabase
             .from('comentarios')
             .delete()
             .eq('id', comentarioId)
-            .eq('usuario_id', user.id); // Solo eliminar si es el propietario
+            .eq('usuario_id', user.id);
         
         if (error) throw error;
         
-        // Actualizar contador de la publicación
-        await window.supabase.rpc('decrement_comentarios', { publicacion_id: publicacionId });
+        // 🔴 CORREGIDO: Actualizar contador REAL en la tabla publicaciones
+        const nuevoContador = await actualizarContadorComentariosReal(publicacionId);
         
-        // Remover del DOM
-        const comentarioElement = document.getElementById(`comentario-${comentarioId}`);
-        if (comentarioElement) {
-            comentarioElement.style.animation = 'fadeOut 0.3s ease';
-            setTimeout(() => comentarioElement.remove(), 300);
-        }
+        // Actualizar la publicación con el contador correcto
+        await window.supabase
+            .from('publicaciones')
+            .update({ comentarios_count: nuevoContador })
+            .eq('id', publicacionId);
         
         // Mostrar notificación
         mostrarNotificacion('exito', 'Comentario eliminado');
         
-        // Actualizar contador en la publicación principal
+        // Recargar comentarios
+        await cargarComentariosPrincipal(publicacionId, user.id);
+        
+        // 🔴 CORREGIDO: Actualizar contador en la publicación principal usando el valor REAL
         const publicacionElement = document.querySelector(`.publicacion-item[data-id="${publicacionId}"]`);
         if (publicacionElement) {
             const comentarioElement = publicacionElement.querySelector('.stat-item:nth-child(2) span');
             if (comentarioElement) {
-                const comentariosActuales = parseInt(comentarioElement.textContent) || 0;
-                comentarioElement.textContent = Math.max(0, comentariosActuales - 1);
+                comentarioElement.textContent = nuevoContador;
             }
         }
         
-        // Actualizar estadísticas
+        // Actualizar estadísticas generales
         setTimeout(() => cargarEstadisticasPublicaciones(), 500);
         
     } catch (error) {
         console.error("Error eliminando comentario:", error);
+        
+        // Restaurar elemento
+        const comentarioElement = document.getElementById(`comentario-${comentarioId}`);
+        if (comentarioElement) {
+            comentarioElement.style.opacity = '1';
+            comentarioElement.style.pointerEvents = 'auto';
+        }
+        
         mostrarNotificacion('error', 'No se pudo eliminar el comentario');
     }
 };
+
+
+// Función para actualizar el contador real desde la base de datos
+async function actualizarContadorComentariosReal(publicacionId) {
+    try {
+        // Obtener el número REAL de comentarios desde la base de datos
+        const { data, error } = await window.supabase
+            .from('comentarios')
+            .select('id', { count: 'exact', head: true })
+            .eq('publicacion_id', publicacionId);
+        
+        if (error) throw error;
+        
+        return data ? data.length : 0;
+    } catch (error) {
+        console.error("Error obteniendo contador real:", error);
+        return 0;
+    }
+}
 
 window.compartirPublicacionPrincipal = function(publicacionId, autorNombre) {
     const url = `${window.location.origin}/view.html?id=${publicacionId}`;
