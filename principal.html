@@ -7080,20 +7080,41 @@ async function cargarPublicaciones() {
         mostrarCargandoPublicaciones(true);
         ocultarSinResultadosPublicaciones();
         
-        // Construir consulta
+        // Primero buscar usuarios si hay búsqueda
+        let userIds = [];
+        const busqueda = publicacionesFiltrosActuales.busqueda.trim();
+        
+        if (busqueda !== '') {
+            // Buscar usuarios por nombre o apellidos
+            const { data: usuarios, error: errorUsuarios } = await window.supabase
+                .from('usuarios')
+                .select('id')
+                .or(`nombre.ilike.%${busqueda}%,apellidos.ilike.%${busqueda}%`);
+            
+            if (!errorUsuarios && usuarios) {
+                userIds = usuarios.map(u => u.id);
+            }
+        }
+        
+        // Construir consulta principal
         let query = window.supabase
             .from('publicaciones')
             .select('*, usuario:usuarios(nombre, apellidos, avatar_url, email, pais, ciudad)', { count: 'exact' })
             .eq('visibilidad', 'publico');
         
-        // Aplicar filtros
+        // Aplicar filtro de tipo
         if (publicacionesFiltrosActuales.tipo !== 'todas') {
             query = query.eq('tipo', publicacionesFiltrosActuales.tipo);
         }
         
-        if (publicacionesFiltrosActuales.busqueda.trim() !== '') {
-            const searchTerm = `%${publicacionesFiltrosActuales.busqueda}%`;
-            query = query.or(`contenido.ilike.${searchTerm}, usuario.nombre.ilike.${searchTerm}`);
+        // Aplicar búsqueda
+        if (busqueda !== '') {
+            // Buscar en contenido O en usuarios (usando los IDs encontrados)
+            if (userIds.length > 0) {
+                query = query.or(`contenido.ilike.%${busqueda}%,usuario_id.in.(${userIds.join(',')})`);
+            } else {
+                query = query.ilike('contenido', `%${busqueda}%`);
+            }
         }
         
         // Ordenar
@@ -7108,7 +7129,6 @@ async function cargarPublicaciones() {
         // Paginación
         const desde = (publicacionesPaginaActual - 1) * publicacionesPorPagina;
         const hasta = desde + publicacionesPorPagina - 1;
-        
         query = query.range(desde, hasta);
         
         // Ejecutar consulta
@@ -8017,42 +8037,1147 @@ async function actualizarContadorComentariosReal(publicacionId) {
     }
 }
 
-window.compartirPublicacionPrincipal = function(publicacionId, autorNombre) {
-    const url = `${window.location.origin}/view.html?id=${publicacionId}`;
-    const mensaje = `¡Mira esta publicación de ${autorNombre} en Messery! ${url}`;
+// 1. PRIMERO define APP_CONFIG
+const APP_CONFIG = {
+    generateShareUrl: function(publicacionId) {
+        const baseUrl = 'https://programas2024.github.io/meseguity/';
+        return `${baseUrl}view.html?id=${publicacionId}`;
+    }
+};
+
+// 2. Función principal para compartir publicación
+function compartirPublicacionPrincipal(publicacionId, autorNombre = '') {
+    console.log('DEBUG compartirPublicacionPrincipal llamada con:', { publicacionId, autorNombre });
     
-    Swal.fire({
-        title: 'Compartir publicación',
-        html: `
-            <div style="text-align: center;">
-                <input type="text" value="${url}" readonly 
-                       style="width:100%; padding:12px; border:2px solid #e8edf2; border-radius:8px; margin-bottom: 20px; background: #f8f9fa;">
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
-                    <button onclick="copiarEnlacePrincipal('${url}')"
-                            style="padding: 12px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer;">
-                        <i class="fas fa-copy"></i> Copiar enlace
-                    </button>
-                    <button onclick="window.open('https://web.whatsapp.com/send?text=${encodeURIComponent(mensaje)}', '_blank')"
-                            style="padding: 12px; background: #25D366; color: white; border: none; border-radius: 8px; cursor: pointer;">
-                        <i class="fab fa-whatsapp"></i> WhatsApp
+    if (!APP_CONFIG) {
+        console.error('ERROR: APP_CONFIG no está definida');
+        return;
+    }
+    
+    const urlCompartir = APP_CONFIG.generateShareUrl(publicacionId);
+    const mensajeBase = autorNombre ? 
+        `¡Mira esta publicación de ${autorNombre} en Messery!\n\nDale al enlace te va a gustar:\n${urlCompartir}` : 
+        `¡Mira esta publicación en Messery!\n\nDale al enlace te va a gustar:\n${urlCompartir}`;
+    
+    mostrarModalCompartirMejorado(urlCompartir, mensajeBase, autorNombre);
+}
+
+// 3. Función para mostrar modal mejorado
+function mostrarModalCompartirMejorado(urlCompartir, mensajeCompleto, autorNombre = '') {
+    const modalHTML = `
+        <div class="share-modal-overlay" id="shareModal">
+            <div class="share-modal">
+                <div class="share-modal-header">
+                    <h3><i class="fas fa-share-alt"></i> Compartir Publicación</h3>
+                    <p>Comparte esta publicación en tus redes favoritas</p>
+                </div>
+                
+                <div class="share-url-container">
+                    <!-- Enlace destacado en morado -->
+                    <div class="highlighted-link">
+                        <p style="color: #5d6d7e; font-weight: 600; margin-bottom: 8px;">
+                            <i class="fas fa-link"></i> Enlace para compartir:
+                        </p>
+                        <div class="link-morado" onclick="copiarUrlCompartir()" style="cursor: pointer;">
+                            <span class="link-text">${urlCompartir}</span>
+                            <i class="fas fa-copy copy-icon"></i>
+                        </div>
+                        <p class="copy-hint" style="color: #7e8c9a; font-size: 13px; margin-top: 8px; text-align: center;">
+                            <i class="fas fa-mouse-pointer"></i> Haz clic en el enlace para copiarlo
+                        </p>
+                    </div>
+                    
+                    <!-- Botones de redes sociales -->
+                    <div class="social-share-section">
+                        <p style="color: #5d6d7e; font-weight: 600; margin: 25px 0 15px; text-align: center;">
+                            <i class="fas fa-share-square"></i> Compartir directamente en:
+                        </p>
+                        
+                        <div class="social-grid">
+                            <!-- WhatsApp -->
+                            <button class="social-btn whatsapp" onclick="compartirWhatsApp('${encodeURIComponent(mensajeCompleto)}')">
+                                <div class="social-icon">
+                                    <i class="fab fa-whatsapp"></i>
+                                </div>
+                                <span>WhatsApp</span>
+                            </button>
+                            
+                            <!-- Facebook -->
+                            <button class="social-btn facebook" onclick="compartirFacebook('${encodeURIComponent(urlCompartir)}', '${encodeURIComponent(autorNombre ? `Publicación de ${autorNombre}` : 'Publicación en Messery')}')">
+                                <div class="social-icon">
+                                    <i class="fab fa-facebook-f"></i>
+                                </div>
+                                <span>Facebook</span>
+                            </button>
+                            
+                            <!-- Twitter -->
+                            <button class="social-btn twitter" onclick="compartirTwitter('${encodeURIComponent(urlCompartir)}', '${encodeURIComponent(autorNombre ? `Mira esta publicación de ${autorNombre} en Messery` : 'Mira esta publicación en Messery')}')">
+                                <div class="social-icon">
+                                    <i class="fab fa-twitter"></i>
+                                </div>
+                                <span>Twitter</span>
+                            </button>
+                            
+                            <!-- Instagram -->
+                            <button class="social-btn instagram" onclick="abrirInstagram()">
+                                <div class="social-icon">
+                                    <i class="fab fa-instagram"></i>
+                                </div>
+                                <span>Instagram</span>
+                            </button>
+                            
+                            <!-- Gmail -->
+                            <button class="social-btn gmail" onclick="compartirGmail('${encodeURIComponent(mensajeCompleto)}')">
+                                <div class="social-icon">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <span>Gmail</span>
+                            </button>
+                            
+                            <!-- Telegram -->
+                            <button class="social-btn telegram" onclick="compartirTelegram('${encodeURIComponent(urlCompartir)}', '${encodeURIComponent(autorNombre ? `Publicación de ${autorNombre}` : 'Publicación en Messery')}')">
+                                <div class="social-icon">
+                                    <i class="fab fa-telegram"></i>
+                                </div>
+                                <span>Telegram</span>
+                            </button>
+                            
+                            <!-- GitHub -->
+                            <button class="social-btn github" onclick="abrirGitHub()">
+                                <div class="social-icon">
+                                    <i class="fab fa-github"></i>
+                                </div>
+                                <span>GitHub</span>
+                            </button>
+                            
+                            <!-- Google -->
+                            <button class="social-btn google" onclick="abrirNuevaVentana('${urlCompartir}')">
+                                <div class="social-icon">
+                                    <i class="fab fa-google"></i>
+                                </div>
+                                <span>Abrir enlace</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Mensaje predeterminado -->
+                    <div class="default-message">
+                        <p style="color: #5d6d7e; font-weight: 600; margin: 20px 0 10px;">
+                            <i class="fas fa-comment-alt"></i> Mensaje predeterminado:
+                        </p>
+                        <div class="message-box" onclick="copiarTextoCompleto('${mensajeCompleto.replace(/'/g, "\\'")}')">
+                            <p>${mensajeCompleto.replace(/\n/g, '<br>')}</p>
+                            <i class="fas fa-copy"></i>
+                        </div>
+                        <p class="copy-hint" style="color: #7e8c9a; font-size: 13px; margin-top: 8px;">
+                            <i class="fas fa-mouse-pointer"></i> Haz clic para copiar el mensaje completo
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="share-actions">
+                    <button class="btn-close-share" onclick="cerrarModalCompartir()">
+                        <i class="fas fa-times"></i> Cerrar
                     </button>
                 </div>
             </div>
+        </div>
+    `;
+    
+    // Remover modal anterior si existe
+    const modalAnterior = document.getElementById('shareModal');
+    if (modalAnterior) {
+        modalAnterior.remove();
+    }
+    
+    // Agregar nuevo modal
+    const modalContainer = document.createElement('div');
+    modalContainer.innerHTML = modalHTML;
+    document.body.appendChild(modalContainer);
+    
+    // Agregar estilos
+    agregarEstilosCompartirMejorado();
+    
+    // Mostrar con animación
+    setTimeout(() => {
+        const modal = document.getElementById('shareModal');
+        if (modal) modal.classList.add('active');
+    }, 10);
+}
+
+// 4. Funciones para GitHub
+function abrirGitHub() {
+    // Obtener la URL del enlace
+    const linkElement = document.querySelector('.link-text');
+    const urlCompartir = linkElement ? linkElement.textContent : '';
+    
+    // Obtener el mensaje completo
+    const messageElement = document.querySelector('.message-box p');
+    let mensajeCompleto = '';
+    
+    if (messageElement) {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = messageElement.innerHTML;
+        mensajeCompleto = tempDiv.textContent || tempDiv.innerText || '';
+    }
+    
+    // Si no hay mensaje, crear uno por defecto
+    if (!mensajeCompleto) {
+        mensajeCompleto = `Publicación compartida desde Messery\n\nEnlace: ${urlCompartir}\n\nCompartido el: ${new Date().toLocaleDateString()}`;
+    }
+    
+    // Crear el contenido para el Gist
+    const titulo = "Publicación de Messery.md";
+    const contenido = `# Publicación compartida desde Messery
+
+## Información
+- **Plataforma:** Messery
+- **Fecha:** ${new Date().toLocaleDateString()}
+- **Hora:** ${new Date().toLocaleTimeString()}
+
+## Contenido compartido
+${mensajeCompleto}
+
+## Enlace directo
+${urlCompartir}
+
+---
+
+*Compartido desde Messery - Plataforma de publicaciones sociales*`;
+    
+    // Mostrar opciones para GitHub
+    mostrarOpcionesGitHub(urlCompartir, contenido, titulo);
+}
+
+function mostrarOpcionesGitHub(url, contenido, titulo) {
+    Swal.fire({
+        title: 'Guardar en GitHub',
+        html: `
+            <div style="text-align: center;">
+                <div style="font-size: 48px; color: #333; margin: 15px 0;">
+                    <i class="fab fa-github"></i>
+                </div>
+                <p style="color: #5d6d7e; margin-bottom: 20px;">
+                    Guarda esta publicación en tu GitHub como:
+                </p>
+                
+                <div style="display: flex; flex-direction: column; gap: 15px; margin: 20px 0;">
+                    <!-- Opción 1: Gist -->
+                    <button onclick="crearNuevoGist('${encodeURIComponent(contenido.replace(/'/g, "\\'"))}', '${encodeURIComponent(titulo.replace(/'/g, "\\'"))}')"
+                            style="display: flex; align-items: center; gap: 15px; width: 100%; padding: 15px; background: #f8f9fa; border: 2px solid #e8edf2; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; text-align: left;">
+                        <div style="width: 40px; height: 40px; background: #333; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <h4 style="margin: 0 0 5px 0; color: #2C3E50;">Crear Gist</h4>
+                            <p style="margin: 0; color: #7e8c9a; font-size: 13px;">Guarda como archivo .md en GitHub Gist</p>
+                        </div>
+                        <i class="fas fa-chevron-right" style="color: #667eea;"></i>
+                    </button>
+                    
+                    <!-- Opción 2: Nuevo repositorio -->
+                    <button onclick="crearNuevoRepositorio('${encodeURIComponent(contenido.replace(/'/g, "\\'"))}', '${encodeURIComponent(titulo.replace(/'/g, "\\'"))}')"
+                            style="display: flex; align-items: center; gap: 15px; width: 100%; padding: 15px; background: #f8f9fa; border: 2px solid #e8edf2; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; text-align: left;">
+                        <div style="width: 40px; height: 40px; background: #667eea; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-folder-plus"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <h4 style="margin: 0 0 5px 0; color: #2C3E50;">Crear Repositorio</h4>
+                            <p style="margin: 0; color: #7e8c9a; font-size: 13px;">Nuevo repositorio con esta publicación</p>
+                        </div>
+                        <i class="fas fa-chevron-right" style="color: #667eea;"></i>
+                    </button>
+                    
+                    <!-- Opción 3: Solo abrir GitHub -->
+                    <button onclick="abrirGitHubSimple('${encodeURIComponent(url.replace(/'/g, "\\'"))}', '${encodeURIComponent(contenido.substring(0, 100).replace(/'/g, "\\'"))}')"
+                            style="display: flex; align-items: center; gap: 15px; width: 100%; padding: 15px; background: #f8f9fa; border: 2px solid #e8edf2; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; text-align: left;">
+                        <div style="width: 40px; height: 40px; background: #4285f4; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="fab fa-github"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <h4 style="margin: 0 0 5px 0; color: #2C3E50;">Abrir GitHub</h4>
+                            <p style="margin: 0; color: #7e8c9a; font-size: 13px;">Abrir GitHub.com en nueva ventana</p>
+                        </div>
+                        <i class="fas fa-external-link-alt" style="color: #667eea;"></i>
+                    </button>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 15px; background: rgba(102, 126, 234, 0.05); border-radius: 10px; text-align: left;">
+                    <p style="margin: 0 0 10px 0; color: #5d6d7e; font-size: 14px;">
+                        <i class="fas fa-info-circle" style="color: #667eea;"></i>
+                        <strong>Recomendación:</strong> Usa "Crear Gist" para guardar rápido
+                    </p>
+                    <p style="margin: 0; color: #7e8c9a; font-size: 13px;">
+                        Los Gists son perfectos para compartir código y texto. Se guardan en tu cuenta de GitHub.
+                    </p>
+                </div>
+            </div>
         `,
-        showCloseButton: true,
         showConfirmButton: false,
-        width: 500
+        showCloseButton: true,
+        width: 500,
+        customClass: {
+            popup: 'no-scrollbar-swal'
+        }
     });
-};
+}
 
-window.copiarEnlacePrincipal = function(url) {
-    navigator.clipboard.writeText(url).then(() => {
-        mostrarNotificacion('exito', '¡Enlace copiado al portapapeles!');
+function crearNuevoGist(contenidoCodificado, tituloCodificado) {
+    const contenidoOriginal = decodeURIComponent(contenidoCodificado);
+    const titulo = decodeURIComponent(tituloCodificado);
+    
+    // Obtener la URL del enlace
+    const linkElement = document.querySelector('.link-text');
+    const urlCompartir = linkElement ? linkElement.textContent : '';
+    
+    // Crear contenido mejorado para el Gist con el enlace
+    const gistContent = `# 🔗 Enlace a la publicación original
+${urlCompartir}
+
+## 📝 Contenido compartido
+${contenidoOriginal}
+
+---
+
+*Compartido desde Messery el ${new Date().toLocaleDateString()} a las ${new Date().toLocaleTimeString()}*`;
+    
+    // URL para crear nuevo Gist
+    const gistUrl = `https://gist.github.com/`;
+    
+    // Primero copiar el contenido mejorado
+    navigator.clipboard.writeText(gistContent).then(() => {
+        // Luego abrir GitHub Gist
+        const nuevaVentana = window.open(gistUrl, '_blank', 'width=1000,height=700');
+        
+        // Mostrar instrucciones
+        setTimeout(() => {
+            Swal.fire({
+                icon: 'success',
+                title: '¡Listo para GitHub Gist!',
+                html: `
+                    <div style="text-align: center;">
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 15px 0; text-align: left;">
+                            <p style="margin: 0 0 10px 0; color: #2C3E50; font-weight: 600;">
+                                <i class="fas fa-check-circle" style="color: #2ecc71;"></i>
+                                Contenido copiado (incluye el enlace)
+                            </p>
+                            <div style="background: white; padding: 12px; border-radius: 8px; border: 1px solid #e8edf2; max-height: 150px; overflow-y: auto; font-family: monospace; font-size: 12px;">
+                                ${gistContent.substring(0, 300)}...
+                            </div>
+                        </div>
+                        <p style="color: #5d6d7e; margin-bottom: 15px;">
+                            <strong>Sigue estos pasos en GitHub Gist:</strong>
+                        </p>
+                        <ol style="text-align: left; margin: 0 0 15px 20px; color: #5d6d7e;">
+                            <li><strong>Descripción:</strong> "Publicación de Messery"</li>
+                            <li><strong>Archivo:</strong> ${titulo}</li>
+                            <li><strong>Contenido:</strong> Ya está copiado (Ctrl+V / Cmd+V)</li>
+                            <li><strong>Crear:</strong> "Create public gist"</li>
+                        </ol>
+                        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                            <button onclick="copiarContenidoGitHub('${encodeURIComponent(gistContent.replace(/'/g, "\\'"))}')" 
+                                    style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                <i class="fas fa-redo"></i> Volver a copiar
+                            </button>
+                            <button onclick="window.open('${gistUrl}', '_blank', 'width=1000,height=700')" 
+                                    style="padding: 10px 20px; background: #333; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                <i class="fas fa-external-link-alt"></i> Abrir Gist
+                            </button>
+                        </div>
+                    </div>
+                `,
+                confirmButtonText: '¡Entendido!',
+                confirmButtonColor: '#333',
+                showCloseButton: true,
+                width: 500
+            });
+        }, 1000);
+    }).catch(err => {
+        console.error('Error al copiar:', err);
+        // Si falla, abrir sin copiar
+        window.open(gistUrl, '_blank', 'width=1000,height=700');
+    });
+}
+
+function crearNuevoRepositorio(contenidoCodificado, tituloCodificado) {
+    const contenido = decodeURIComponent(contenidoCodificado);
+    const titulo = decodeURIComponent(tituloCodificado);
+    
+    // Obtener la URL del enlace
+    const linkElement = document.querySelector('.link-text');
+    const urlCompartir = linkElement ? linkElement.textContent : '';
+    
+    // Extraer el título limpio para el repositorio
+    const tituloLimpio = titulo.replace('.md', '').replace(/[^a-zA-Z0-9_-]/g, '-').toLowerCase();
+    const repoName = `messery-publicacion-${Date.now()}`;
+    
+    // Crear contenido mejorado para el README.md
+    const readmeContent = `# 📱 Publicación compartida desde Messery
+
+## 🔗 Enlace directo a la publicación
+**[👉 VER PUBLICACIÓN ORIGINAL](${urlCompartir})**
+
+## 📋 Información de la publicación
+- **Plataforma:** Messery
+- **Fecha de compartido:** ${new Date().toLocaleDateString()}
+- **Hora:** ${new Date().toLocaleTimeString()}
+- **ID de publicación:** ${urlCompartir.split('id=')[1] || 'N/A'}
+
+## 📝 Contenido compartido
+${contenido}
+
+## 🌐 Cómo acceder
+1. Haz clic en el enlace azul arriba para ver la publicación original
+2. La publicación se abrirá en tu navegador
+3. Si tienes la app Messery, puede abrirse automáticamente
+
+## 📲 Acerca de Messery
+Messery es una plataforma para compartir publicaciones, pensamientos y contenido multimedia.
+
+---
+
+*Este archivo se generó automáticamente al compartir desde Messery.*  
+*¡Gracias por compartir!*`;
+
+    // URL para crear nuevo repositorio en GitHub con README prellenado
+    const repoUrl = `https://github.com/new?name=${encodeURIComponent(repoName)}&description=${encodeURIComponent(`Publicación compartida desde Messery - ${new Date().toLocaleDateString()}`)}&readme=1`;
+    
+    // Mostrar instrucciones mejoradas
+    Swal.fire({
+        icon: 'info',
+        title: 'Crear repositorio en GitHub',
+        html: `
+            <div style="text-align: left;">
+                <div style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
+                    <h4 style="margin: 0; font-weight: 600;">
+                        <i class="fas fa-rocket"></i> Todo listo para GitHub
+                    </h4>
+                    <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 14px;">
+                        Se creará automáticamente con el enlace a la publicación
+                    </p>
+                </div>
+                
+                <p style="color: #5d6d7e; margin-bottom: 15px;">
+                    <strong>Configuración automática:</strong>
+                </p>
+                
+                <div style="background: #f8f9fa; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span style="font-weight: 600; color: #2C3E50;">Nombre:</span>
+                        <code style="background: white; padding: 2px 8px; border-radius: 4px;">${repoName}</code>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span style="font-weight: 600; color: #2C3E50;">Descripción:</span>
+                        <span style="color: #667eea;">Publicación de Messery</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="font-weight: 600; color: #2C3E50;">README:</span>
+                        <span style="color: #2ecc71;">✓ Incluido con enlace</span>
+                    </div>
+                </div>
+                
+                <p style="color: #5d6d7e; margin: 15px 0 10px; font-weight: 600;">
+                    <i class="fas fa-link"></i> Enlace que se incluirá:
+                </p>
+                <div style="background: white; padding: 10px; border-radius: 6px; border: 1px solid #e8edf2; margin-bottom: 15px; word-break: break-all;">
+                    <a href="${urlCompartir}" target="_blank" style="color: #667eea; text-decoration: none;">
+                        ${urlCompartir}
+                    </a>
+                </div>
+                
+                <div style="background: rgba(102, 126, 234, 0.1); padding: 12px; border-radius: 8px; margin: 15px 0; text-align: center;">
+                    <p style="margin: 0; color: #667eea; font-size: 14px;">
+                        <i class="fas fa-lightbulb"></i> <strong>Pro tip:</strong> Después de crear el repositorio, 
+                        puedes editar el README.md para personalizarlo
+                    </p>
+                </div>
+                
+                <button onclick="copiarContenidoGitHub('${encodeURIComponent(readmeContent.replace(/'/g, "\\'"))}')" 
+                        style="width: 100%; padding: 12px; background: #333; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <i class="fas fa-copy"></i> Copiar contenido del README.md
+                </button>
+                
+                <button onclick="copiarEnlacePublicacion('${urlCompartir.replace(/'/g, "\\'")}')" 
+                        style="width: 100%; padding: 10px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <i class="fas fa-link"></i> Copiar solo el enlace
+                </button>
+            </div>
+        `,
+        confirmButtonText: 'Crear repositorio en GitHub',
+        confirmButtonColor: '#333',
+        showCancelButton: true,
+        cancelButtonText: 'Cancelar',
+        width: 500,
+        customClass: {
+            popup: 'no-scrollbar-swal'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Primero copiar el contenido del README
+            navigator.clipboard.writeText(readmeContent).then(() => {
+                // Luego abrir GitHub
+                window.open(repoUrl, '_blank', 'width=1200,height=800');
+                
+                // Mostrar instrucciones después de un momento
+                setTimeout(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Contenido copiado!',
+                        html: `
+                            <div style="text-align: center;">
+                                <div style="font-size: 48px; color: #2ecc71; margin: 10px 0;">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <p style="color: #5d6d7e; margin-bottom: 20px;">
+                                    El README.md con el enlace ya está en tu portapapeles
+                                </p>
+                                
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; text-align: left; margin-bottom: 20px;">
+                                    <h4 style="margin: 0 0 10px 0; color: #2C3E50;">
+                                        <i class="fas fa-list-ol"></i> Pasos a seguir:
+                                    </h4>
+                                    <ol style="color: #5d6d7e; margin: 0; padding-left: 20px;">
+                                        <li style="margin-bottom: 8px;">GitHub ya está abierto</li>
+                                        <li style="margin-bottom: 8px;">Confirma la creación del repositorio</li>
+                                        <li style="margin-bottom: 8px;">Cuando se cree, edita el README.md</li>
+                                        <li>Pega el contenido (Ctrl+V / Cmd+V)</li>
+                                    </ol>
+                                </div>
+                                
+                                <p style="color: #7e8c9a; font-size: 14px; margin-bottom: 0;">
+                                    <i class="fas fa-external-link-alt"></i> El enlace a la publicación está incluido en el README
+                                </p>
+                            </div>
+                        `,
+                        confirmButtonText: 'Abrir GitHub',
+                        confirmButtonColor: '#333',
+                        showCloseButton: true,
+                        width: 500
+                    }).then((result2) => {
+                        if (result2.isConfirmed) {
+                            window.open(repoUrl, '_blank', 'width=1200,height=800');
+                        }
+                    });
+                }, 1000);
+            }).catch(err => {
+                console.error('Error al copiar:', err);
+                // Si falla, al menos abrir GitHub
+                window.open(repoUrl, '_blank', 'width=1200,height=800');
+            });
+        }
+    });
+}
+
+function abrirGitHubSimple(urlCodificado, contenidoCodificado) {
+    const url = decodeURIComponent(urlCodificado);
+    const contenidoPreview = decodeURIComponent(contenidoCodificado);
+    
+    // Abrir GitHub principal
+    window.open('https://github.com/', '_blank', 'width=1200,height=800');
+    
+    // Mostrar mensaje rápido
+    setTimeout(() => {
+        Swal.fire({
+            icon: 'info',
+            title: 'GitHub abierto',
+            text: 'Ya puedes crear un nuevo repositorio o gist',
+            timer: 2000,
+            showConfirmButton: false,
+            position: 'top-end',
+            toast: true
+        });
+    }, 500);
+}
+
+function copiarContenidoGitHub(contenidoCodificado) {
+    const contenido = decodeURIComponent(contenidoCodificado);
+    
+    navigator.clipboard.writeText(contenido).then(() => {
+        mostrarNotificacion('¡Contenido copiado para GitHub!', 'success');
     }).catch(() => {
-        mostrarNotificacion('error', 'Error al copiar el enlace');
+        // Fallback
+        const textArea = document.createElement('textarea');
+        textArea.value = contenido;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        mostrarNotificacion('¡Contenido copiado!', 'success');
     });
-};
+}
 
+// 5. Funciones para compartir en redes
+function compartirWhatsApp(mensaje) {
+    const decodedMsg = decodeURIComponent(mensaje);
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(decodedMsg)}`;
+    window.open(whatsappUrl, '_blank', 'width=600,height=600');
+}
+
+function compartirFacebook(url, texto) {
+    const decodedUrl = decodeURIComponent(url);
+    const decodedText = decodeURIComponent(texto);
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(decodedUrl)}&quote=${encodeURIComponent(decodedText)}`;
+    window.open(facebookUrl, '_blank', 'width=600,height=500');
+}
+
+function compartirTwitter(url, texto) {
+    const decodedUrl = decodeURIComponent(url);
+    const decodedText = decodeURIComponent(texto);
+    const twitterUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(decodedUrl)}&text=${encodeURIComponent(decodedText)}`;
+    window.open(twitterUrl, '_blank', 'width=600,height=400');
+}
+
+function compartirTelegram(url, texto) {
+    const decodedUrl = decodeURIComponent(url);
+    const decodedText = decodeURIComponent(texto);
+    const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(decodedUrl)}&text=${encodeURIComponent(decodedText)}`;
+    window.open(telegramUrl, '_blank', 'width=600,height=500');
+}
+
+function compartirGmail(mensaje) {
+    const decodedMsg = decodeURIComponent(mensaje);
+    const subject = '¡Mira esta publicación en Messery!';
+    const body = decodedMsg;
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(gmailUrl, '_blank', 'width=800,height=600');
+}
+
+function abrirInstagram() {
+    // Obtener la URL actual del enlace morado
+    const linkElement = document.querySelector('.link-text');
+    const urlCompartir = linkElement ? linkElement.textContent : '';
+    
+    // Obtener el mensaje del cuadro de mensaje
+    const messageElement = document.querySelector('.message-box p');
+    let mensajeCompleto = '¡Mira esta publicación en Messery!';
+    
+    if (messageElement) {
+        // Extraer el texto del mensaje (quitando etiquetas HTML)
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = messageElement.innerHTML;
+        mensajeCompleto = tempDiv.textContent || tempDiv.innerText || '';
+    }
+    
+    // Construir la URL para Instagram
+    // Instagram no tiene una API directa para compartir desde web
+    // Pero podemos abrir la app o mostrar opciones
+    
+    // Opción 1: Intentar abrir la app nativa de Instagram (si está instalada)
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+        // Para móviles: intentar abrir la app nativa
+        const instagramAppUrl = `instagram://library?AssetPath=${encodeURIComponent(urlCompartir)}`;
+        const instagramWebUrl = `https://www.instagram.com/`;
+        
+        // Intentar abrir la app
+        window.location.href = instagramAppUrl;
+        
+        // Si falla, abrir en navegador
+        setTimeout(() => {
+            if (document.hidden || document.webkitHidden) {
+                // El usuario salió de la app, no hacer nada
+                return;
+            }
+            window.open(instagramWebUrl, '_blank');
+        }, 500);
+        
+        // Mostrar instrucciones para el usuario
+        setTimeout(() => {
+            Swal.fire({
+                icon: 'info',
+                title: 'Instagram',
+                html: `
+                    <p>Para compartir en Instagram:</p>
+                    <ol style="text-align: left; margin: 10px 0 10px 20px;">
+                        <li>El enlace ya está copiado</li>
+                        <li>En Instagram, crea una nueva publicación</li>
+                        <li>Pega el enlace en la descripción</li>
+                        <li>Agrega las imágenes que desees</li>
+                    </ol>
+                `,
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#667eea',
+                customClass: {
+                    popup: 'no-scrollbar-swal'
+                }
+            });
+        }, 1000);
+        
+    } else {
+        // Para desktop: abrir Instagram en nueva ventana
+        window.open('https://www.instagram.com/', '_blank', 'width=1000,height=700');
+        
+        // Mostrar instrucciones y copiar automáticamente
+        if (urlCompartir) {
+            navigator.clipboard.writeText(urlCompartir).then(() => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Listo para Instagram',
+                    html: `
+                        <p>El enlace se ha copiado automáticamente:</p>
+                        <div style="background: #f8f9fa; padding: 10px; border-radius: 8px; margin: 15px 0; font-family: monospace; font-size: 12px; word-break: break-all;">
+                            ${urlCompartir}
+                        </div>
+                        <p>Ahora en Instagram:</p>
+                        <ol style="text-align: left; margin: 10px 0 10px 20px;">
+                            <li>Crea una nueva publicación</li>
+                            <li>Pega el enlace en la descripción</li>
+                            <li>Comparte como desees</li>
+                        </ol>
+                    `,
+                    confirmButtonText: '¡Entendido!',
+                    confirmButtonColor: '#667eea',
+                    customClass: {
+                        popup: 'no-scrollbar-swal'
+                    }
+                });
+            });
+        }
+    }
+}
+
+function abrirNuevaVentana(url) {
+    window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+// 6. Funciones de utilidad
+function copiarUrlCompartir() {
+    const urlElement = document.querySelector('.link-text');
+    if (urlElement) {
+        const url = urlElement.textContent;
+        navigator.clipboard.writeText(url).then(() => {
+            mostrarNotificacion('¡Enlace copiado!', 'success');
+            
+            // Animación en el icono de copiar
+            const copyIcon = document.querySelector('.copy-icon');
+            if (copyIcon) {
+                copyIcon.className = 'fas fa-check copy-icon';
+                setTimeout(() => {
+                    copyIcon.className = 'fas fa-copy copy-icon';
+                }, 2000);
+            }
+        });
+    }
+}
+
+function copiarTextoCompleto(texto) {
+    const decodedText = decodeURIComponent(texto);
+    navigator.clipboard.writeText(decodedText).then(() => {
+        mostrarNotificacion('¡Mensaje copiado!', 'success');
+    });
+}
+
+function copiarEnlacePublicacion(urlCompartir) {
+    const url = decodeURIComponent(urlCompartir);
+    navigator.clipboard.writeText(url).then(() => {
+        mostrarNotificacion('¡Enlace copiado!', 'success');
+    }).catch(err => {
+        console.error('Error al copiar enlace:', err);
+    });
+}
+
+function mostrarNotificacion(mensaje, tipo = 'success') {
+    // Crear notificación
+    const notification = document.createElement('div');
+    notification.className = `notification ${tipo}`;
+    notification.innerHTML = `
+        <i class="fas fa-${tipo === 'success' ? 'check-circle' : 'info-circle'}"></i>
+        <span>${mensaje}</span>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Mostrar
+    setTimeout(() => notification.classList.add('show'), 10);
+    
+    // Ocultar después de 3 segundos
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
+}
+
+// 7. Estilos CSS
+function agregarEstilosCompartirMejorado() {
+    if (!document.getElementById('share-modal-styles')) {
+        const style = document.createElement('style');
+        style.id = 'share-modal-styles';
+        style.textContent = `
+            .share-modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.85);
+                backdrop-filter: blur(10px);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 9999;
+                opacity: 0;
+                visibility: hidden;
+                transition: all 0.3s ease;
+            }
+            
+            .share-modal-overlay.active {
+                opacity: 1;
+                visibility: visible;
+            }
+            
+            .share-modal {
+                background: white;
+                border-radius: 20px;
+                padding: 30px;
+                max-width: 600px;
+                width: 95%;
+                max-height: 90vh;
+                overflow-y: auto;
+                position: relative;
+                transform: translateY(30px) scale(0.95);
+                opacity: 0;
+                transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                border: 1px solid rgba(102, 126, 234, 0.1);
+            }
+            
+            /* OCULTAR BARRA DE DESPLAZAMIENTO PERO MANTENER SCROLL */
+            .share-modal::-webkit-scrollbar {
+                width: 0px;
+                height: 0px;
+                background: transparent;
+            }
+            
+            .share-modal::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            
+            .share-modal::-webkit-scrollbar-thumb {
+                background: transparent;
+            }
+            
+            .share-modal::-webkit-scrollbar-thumb:hover {
+                background: transparent;
+            }
+            
+            /* Para Firefox */
+            .share-modal {
+                scrollbar-width: none;
+            }
+            
+            /* Para Internet Explorer y Edge */
+            .share-modal {
+                -ms-overflow-style: none;
+            }
+            
+            .share-modal-overlay.active .share-modal {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+            
+            .share-modal-header {
+                text-align: center;
+                margin-bottom: 25px;
+                padding-bottom: 20px;
+                border-bottom: 2px solid rgba(102, 126, 234, 0.1);
+            }
+            
+            .share-modal-header h3 {
+                color: #2C3E50;
+                font-size: 24px;
+                font-weight: 700;
+                margin-bottom: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 12px;
+            }
+            
+            .share-modal-header p {
+                color: #7e8c9a;
+                font-size: 14px;
+                margin: 0;
+            }
+            
+            .link-morado {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 16px;
+                border-radius: 12px;
+                font-family: 'Consolas', 'Monaco', monospace;
+                font-size: 14px;
+                font-weight: 500;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin: 10px 0;
+                word-break: break-all;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+            }
+            
+            .link-morado:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            }
+            
+            .link-morado .link-text {
+                flex: 1;
+                padding-right: 10px;
+            }
+            
+            .link-morado .copy-icon {
+                font-size: 18px;
+                opacity: 0.9;
+                transition: all 0.3s ease;
+            }
+            
+            .link-morado:hover .copy-icon {
+                opacity: 1;
+                transform: scale(1.1);
+            }
+            
+            .social-grid {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 12px;
+                margin: 20px 0;
+            }
+            
+            .social-btn {
+                background: white;
+                border: 2px solid #e8edf2;
+                border-radius: 12px;
+                padding: 15px 10px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 8px;
+                font-weight: 600;
+                font-size: 13px;
+                color: #2C3E50;
+            }
+            
+            .social-btn:hover {
+                transform: translateY(-3px);
+                border-color: transparent;
+                box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            }
+            
+            .social-btn .social-icon {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 18px;
+                color: white;
+            }
+            
+            .social-btn.whatsapp:hover { background: #25d366; color: white; border-color: #25d366; }
+            .social-btn.facebook:hover { background: #1877f2; color: white; border-color: #1877f2; }
+            .social-btn.twitter:hover { background: #1da1f2; color: white; border-color: #1da1f2; }
+            .social-btn.instagram:hover { background: linear-gradient(45deg, #405de6, #5851db, #833ab4, #c13584, #e1306c, #fd1d1d); color: white; border-color: transparent; }
+            .social-btn.gmail:hover { background: #d44638; color: white; border-color: #d44638; }
+            .social-btn.telegram:hover { background: #0088cc; color: white; border-color: #0088cc; }
+            .social-btn.github:hover { background: #333; color: white; border-color: #333; }
+            .social-btn.google:hover { background: #4285f4; color: white; border-color: #4285f4; }
+            
+            .social-btn.whatsapp .social-icon { background: #25d366; }
+            .social-btn.facebook .social-icon { background: #1877f2; }
+            .social-btn.twitter .social-icon { background: #1da1f2; }
+            .social-btn.instagram .social-icon { background: linear-gradient(45deg, #405de6, #5851db, #833ab4, #c13584, #e1306c, #fd1d1d); }
+            .social-btn.gmail .social-icon { background: #d44638; }
+            .social-btn.telegram .social-icon { background: #0088cc; }
+            .social-btn.github .social-icon { background: #333; }
+            .social-btn.google .social-icon { background: #4285f4; }
+            
+            .message-box {
+                background: #f8f9fa;
+                border: 2px solid #e8edf2;
+                border-radius: 12px;
+                padding: 16px;
+                margin: 10px 0;
+                position: relative;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+            
+            .message-box:hover {
+                background: #f0f2f5;
+                border-color: #667eea;
+            }
+            
+            .message-box p {
+                margin: 0;
+                color: #5d6d7e;
+                font-size: 14px;
+                line-height: 1.5;
+            }
+            
+            .message-box i {
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                color: #667eea;
+                opacity: 0.7;
+                transition: all 0.3s ease;
+            }
+            
+            .message-box:hover i {
+                opacity: 1;
+                transform: scale(1.1);
+            }
+            
+            .share-actions {
+                margin-top: 25px;
+                padding-top: 20px;
+                border-top: 2px solid rgba(102, 126, 234, 0.1);
+                text-align: center;
+            }
+            
+            .btn-close-share {
+                background: #f8f9fa;
+                color: #5d6d7e;
+                border: 2px solid #e8edf2;
+                padding: 12px 30px;
+                border-radius: 10px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                font-size: 15px;
+            }
+            
+            .btn-close-share:hover {
+                background: #667eea;
+                color: white;
+                border-color: #667eea;
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+            }
+            
+            .notification {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: white;
+                color: #2C3E50;
+                padding: 15px 25px;
+                border-radius: 10px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                z-index: 10000;
+                transform: translateX(120%);
+                transition: transform 0.3s ease;
+                border-left: 4px solid;
+            }
+            
+            .notification.success {
+                border-left-color: #2ecc71;
+            }
+            
+            .notification.show {
+                transform: translateX(0);
+            }
+            
+            .notification i {
+                font-size: 20px;
+            }
+            
+            .notification.success i {
+                color: #2ecc71;
+            }
+            
+            @media (max-width: 768px) {
+                .social-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+                
+                .share-modal {
+                    padding: 20px;
+                    width: 90%;
+                }
+                
+                .link-morado {
+                    font-size: 13px;
+                    padding: 12px;
+                }
+                
+                /* Ocultar scrollbar también en móvil */
+                .share-modal::-webkit-scrollbar {
+                    display: none;
+                }
+            }
+            
+            @media (max-width: 480px) {
+                .social-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+                
+                .share-modal {
+                    padding: 15px;
+                    width: 95%;
+                }
+                
+                .link-morado {
+                    font-size: 12px;
+                    flex-direction: column;
+                    text-align: center;
+                    gap: 10px;
+                }
+                
+                .link-morado .link-text {
+                    padding-right: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+}
+
+// 8. Función para cerrar modal
+function cerrarModalCompartir() {
+    const modal = document.getElementById('shareModal');
+    if (modal) {
+        modal.classList.remove('active');
+        setTimeout(() => {
+            if (modal.parentNode) {
+                modal.parentNode.removeChild(modal);
+            }
+        }, 300);
+    }
+}
+
+// 9. Exponer funciones al ámbito global
+window.APP_CONFIG = APP_CONFIG;
+window.compartirPublicacionPrincipal = compartirPublicacionPrincipal;
+window.copiarUrlCompartir = copiarUrlCompartir;
+window.cerrarModalCompartir = cerrarModalCompartir;
+window.compartirWhatsApp = compartirWhatsApp;
+window.compartirFacebook = compartirFacebook;
+window.compartirTwitter = compartirTwitter;
+window.compartirTelegram = compartirTelegram;
+window.compartirGmail = compartirGmail;
+window.abrirInstagram = abrirInstagram;
+window.abrirNuevaVentana = abrirNuevaVentana;
+window.copiarTextoCompleto = copiarTextoCompleto;
+window.copiarEnlacePublicacion = copiarEnlacePublicacion;
+window.abrirGitHub = abrirGitHub;
+window.mostrarOpcionesGitHub = mostrarOpcionesGitHub;
+window.crearNuevoGist = crearNuevoGist;
+window.crearNuevoRepositorio = crearNuevoRepositorio;
+window.abrirGitHubSimple = abrirGitHubSimple;
+window.copiarContenidoGitHub = copiarContenidoGitHub;
 // ======================
 // FIN MÓDULO PUBLICACIONES
 // ======================
