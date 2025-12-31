@@ -7513,10 +7513,37 @@ function extraerIdYouTube(url) {
 }
 
 // Funciones globales para interacción
-window.mostrarPerfilPublicaciones = function(usuarioId, nombre) {
+window.mostrarPerfilPublicaciones = async function(usuarioId, nombre) {
+    console.log('🔄 Mostrando perfil desde publicación para:', nombre, 'ID:', usuarioId);
+    
+    // Mostrar un loader mientras se cargan los datos
+    Swal.fire({
+        title: `Cargando perfil...`,
+        html: `
+            <div style="text-align: center; padding: 20px;">
+                <div style="width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; margin: 0 auto 20px; animation: spin 1s linear infinite;"></div>
+                <p>Obteniendo datos de ${nombre}</p>
+            </div>
+            <style>
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            </style>
+        `,
+        showConfirmButton: false,
+        timer: 2000
+    });
+    
+    // Esperar un momento para que el loader se muestre
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Llamar a la función principal de perfil completo
     if (typeof mostrarPerfilCompleto === 'function') {
         mostrarPerfilCompleto(usuarioId);
     } else {
+        // Fallback si no está definida la función principal
+        Swal.close();
         Swal.fire({
             title: `Perfil de ${nombre}`,
             html: `<p>Redirigiendo al perfil completo...</p>`,
@@ -7530,6 +7557,914 @@ window.mostrarPerfilPublicaciones = function(usuarioId, nombre) {
         }, 1500);
     }
 };
+
+// ======================
+// FUNCIÓN MEJORADA PARA OBTENER DATOS COMPLETOS
+// ======================
+async function obtenerDatosUsuarioCompletos(userId) {
+    console.log('🔍 Obteniendo datos COMPLETOS del usuario ID:', userId);
+    
+    // PRIMERO: Intentar con la función RPC actualizada
+    try {
+        console.log('🔄 Intentando obtener datos con RPC get_public_user_data...');
+        const { data: rpcData, error: rpcError } = await supabaseClient.rpc(
+            'get_public_user_data',
+            { user_uuid: userId }
+        );
+        
+        if (!rpcError && rpcData && rpcData.length > 0) {
+            console.log('✅ Datos completos obtenidos via RPC:', rpcData[0]);
+            
+            // Guardar en localStorage para uso futuro
+            try {
+                localStorage.setItem(`user_complete_${userId}`, JSON.stringify(rpcData[0]));
+                localStorage.setItem(`user_${userId}`, JSON.stringify({
+                    nombre: rpcData[0].nombre,
+                    apellidos: rpcData[0].apellidos,
+                    avatar_url: rpcData[0].avatar_url,
+                    email: rpcData[0].email,
+                    pais: rpcData[0].pais,
+                    ciudad: rpcData[0].ciudad,
+                    biografia: rpcData[0].biografia
+                }));
+            } catch (e) {
+                console.log('⚠️ No se pudo guardar en localStorage');
+            }
+            
+            return rpcData[0];
+        } else if (rpcError) {
+            console.log('⚠️ Función RPC no disponible:', rpcError.message);
+        }
+    } catch (rpcError) {
+        console.log('⚠️ Error en RPC:', rpcError.message);
+    }
+    
+    // SEGUNDO: Si RPC falla, verificar datos locales
+    try {
+        const storedKey = `user_complete_${userId}`;
+        const storedData = localStorage.getItem(storedKey);
+        if (storedData) {
+            const parsed = JSON.parse(storedData);
+            console.log('✅ Datos obtenidos de localStorage:', parsed);
+            return parsed;
+        }
+    } catch (error) {
+        console.log('⚠️ Error obteniendo de localStorage:', error.message);
+    }
+    
+    // TERCERO: Intentar obtener datos básicos (fallback)
+    try {
+        const { data, error } = await supabaseClient
+            .from('usuarios')
+            .select('nombre, apellidos, avatar_url, email, pais, ciudad, biografia, perfil_publico')
+            .eq('id', userId)
+            .maybeSingle();
+        
+        if (!error && data) {
+            console.log('✅ Datos básicos obtenidos directamente:', data);
+            return data;
+        }
+    } catch (error) {
+        console.log('⚠️ Error en consulta directa:', error.message);
+    }
+    
+    // CUARTO: Datos por defecto
+    console.log('⚠️ Usando datos por defecto');
+    return {
+        nombre: `Usuario_${userId.substring(0, 8)}`,
+        avatar_url: null,
+        email: null,
+        perfil_publico: false
+    };
+}
+
+// ======================
+// FUNCIÓN AUXILIAR PARA OBTENER DATOS BÁSICOS
+// ======================
+async function obtenerDatosUsuario(userId) {
+    console.log('🔍 Obteniendo datos básicos del usuario ID:', userId);
+    
+    try {
+        const { data: rpcData, error: rpcError } = await supabaseClient.rpc(
+            'get_public_user_data',
+            { user_uuid: userId }
+        );
+        
+        if (!rpcError && rpcData && rpcData.length > 0) {
+            const datos = rpcData[0];
+            return {
+                nombre: datos.nombre,
+                apellidos: datos.apellidos,
+                avatar_url: datos.avatar_url,
+                email: datos.email,
+                pais: datos.pais,
+                ciudad: datos.ciudad,
+                biografia: datos.biografia,
+                perfil_publico: datos.perfil_publico
+            };
+        }
+    } catch (error) {
+        console.log('⚠️ Error en RPC:', error.message);
+    }
+    
+    // Fallback a datos locales
+    try {
+        const storedKey = `user_${userId}`;
+        const storedData = localStorage.getItem(storedKey);
+        if (storedData) return JSON.parse(storedData);
+    } catch (error) {
+        console.log('⚠️ Error obteniendo de localStorage:', error.message);
+    }
+    
+    return {
+        nombre: `Usuario_${userId.substring(0, 8)}`,
+        avatar_url: null,
+        email: null
+    };
+}
+
+// ======================
+// FUNCIONES AUXILIARES PARA FORMATEO
+// ======================
+function formatearUbicacion(ciudad, pais) {
+    if (ciudad && pais) return `${ciudad}, ${pais}`;
+    if (ciudad) return ciudad;
+    if (pais) return pais;
+    return 'No especificada';
+}
+
+function calcularEdad(fechaNacimiento) {
+    const hoy = new Date();
+    const nacimiento = new Date(fechaNacimiento);
+    let edad = hoy.getFullYear() - nacimiento.getFullYear();
+    const mes = hoy.getMonth() - nacimiento.getMonth();
+    
+    if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+        edad--;
+    }
+    return edad;
+}
+
+function formatearFecha(fecha) {
+    return new Date(fecha).toLocaleDateString('es-ES');
+}
+
+function formatearFechaCompleta(fecha) {
+    return new Date(fecha).toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+}
+
+function calcularTiempoEnPlataforma(fechaRegistro) {
+    const registro = new Date(fechaRegistro);
+    const hoy = new Date();
+    const difMeses = (hoy.getFullYear() - registro.getFullYear()) * 12 + 
+                    (hoy.getMonth() - registro.getMonth());
+    
+    if (difMeses < 1) return 'Menos de 1 mes';
+    if (difMeses === 1) return '1 mes';
+    if (difMeses < 12) return `${difMeses} meses`;
+    
+    const años = Math.floor(difMeses / 12);
+    const meses = difMeses % 12;
+    
+    if (meses === 0) return `${años} año${años > 1 ? 's' : ''}`;
+    return `${años} año${años > 1 ? 's' : ''} y ${meses} mes${meses > 1 ? 'es' : ''}`;
+}
+
+function obtenerColorAvatar(nombre) {
+    const colores = [
+        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+        'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+        'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+        'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
+    ];
+    
+    // Generar un índice basado en el nombre para consistencia
+    let hash = 0;
+    for (let i = 0; i < nombre.length; i++) {
+        hash = nombre.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % colores.length;
+    return colores[index];
+}
+
+function obtenerIniciales(nombre) {
+    return nombre
+        .split(' ')
+        .map(word => word[0])
+        .join('')
+        .toUpperCase()
+        .substring(0, 2);
+}
+
+function mostrarMensajePerfilPrivado() {
+    Swal.fire({
+        title: 'Perfil Privado',
+        html: `
+            <div style="text-align: center; padding: 20px;">
+                <i class="fas fa-lock" style="font-size: 60px; color: #667eea; margin-bottom: 20px;"></i>
+                <h3 style="color: #2c3e50; margin-bottom: 15px;">Este perfil es privado</h3>
+                <p style="color: #5d6d7e; line-height: 1.6;">
+                    El usuario ha configurado su perfil como privado.<br>
+                    Para ver su información completa, necesitas iniciar sesión.
+                </p>
+                <div style="margin-top: 25px;">
+                    <button onclick="window.open('index.html', '_blank')" 
+                            style="padding: 12px 30px; background: #667eea; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600;">
+                        Iniciar Sesión
+                    </button>
+                </div>
+            </div>
+        `,
+        showConfirmButton: false,
+        showCloseButton: true,
+        width: '500px'
+    });
+}
+
+function mostrarErrorPerfil(mensaje) {
+    Swal.fire({
+        icon: 'error',
+        title: 'Error al cargar perfil',
+        text: mensaje,
+        confirmButtonText: 'Reintentar',
+        showCancelButton: true,
+        cancelButtonText: 'Cerrar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            location.reload();
+        }
+    });
+}
+
+function compartirPerfil(nombre, ubicacion) {
+    const texto = `¡Mira el perfil de ${nombre} en Messery!`;
+    const url = window.location.href;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: `Perfil de ${nombre}`,
+            text: texto,
+            url: url
+        });
+    } else {
+        navigator.clipboard.writeText(`${texto}\n${url}`).then(() => {
+            Swal.fire({
+                icon: 'success',
+                title: 'Enlace copiado',
+                text: 'El enlace al perfil ha sido copiado al portapapeles',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        });
+    }
+}
+
+// ======================
+// FUNCIÓN PRINCIPAL PARA MOSTRAR PERFIL COMPLETO
+// ======================
+async function mostrarPerfilCompleto(usuarioId) {
+    // Usar el loader personalizado que ya tienes
+    const loaderHTML = `
+        <div style="
+            text-align: center; 
+            padding: 40px 20px; 
+            background: white; 
+            border-radius: 15px; 
+            border: 2px solid #667eea;
+            box-shadow: 0 5px 30px rgba(102, 126, 234, 0.15);
+            max-width: 500px;
+            margin: 0 auto;
+        ">
+            <div style="
+                width: 80px; 
+                height: 80px; 
+                margin: 0 auto 25px; 
+                border-radius: 50%; 
+                border: 4px solid #f0f0f0; 
+                border-top: 4px solid #764ba2; 
+                animation: spin 1s linear infinite;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            ">
+                <i class="fas fa-user" style="font-size: 30px; color: #764ba2;"></i>
+            </div>
+            
+            <h3 style="
+                color: #764ba2; 
+                font-size: 24px; 
+                margin-bottom: 15px; 
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+            ">
+                <i class="fas fa-user-circle"></i>
+                Cargando perfil completo...
+            </h3>
+            
+            <p style="color: #5d6d7e; margin-bottom: 20px;">
+                Obteniendo todos los datos públicos del usuario
+            </p>
+            
+            <div style="
+                margin: 25px 0 15px 0; 
+                height: 6px; 
+                background: #f0f0f0; 
+                border-radius: 3px; 
+                overflow: hidden;
+            ">
+                <div id="profileLoaderBar" style="
+                    height: 100%; 
+                    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); 
+                    width: 30%; 
+                    border-radius: 3px;
+                    animation: loadingBar 2s ease-in-out infinite;
+                "></div>
+            </div>
+            
+            <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px; flex-wrap: wrap;">
+                <div style="text-align: center; min-width: 100px;">
+                    <div style="
+                        width: 12px; 
+                        height: 12px; 
+                        background: #667eea; 
+                        border-radius: 50%; 
+                        margin: 0 auto 8px;
+                        animation: pulse 1.5s infinite;
+                    "></div>
+                    <span style="color: #2c3e50; font-size: 12px; font-weight: 500;">Datos personales</span>
+                </div>
+                
+                <div style="text-align: center; min-width: 100px;">
+                    <div style="
+                        width: 12px; 
+                        height: 12px; 
+                        background: #764ba2; 
+                        border-radius: 50%; 
+                        margin: 0 auto 8px;
+                        animation: pulse 1.5s infinite 0.3s;
+                    "></div>
+                    <span style="color: #2c3e50; font-size: 12px; font-weight: 500;">Información</span>
+                </div>
+                
+                <div style="text-align: center; min-width: 100px;">
+                    <div style="
+                        width: 12px; 
+                        height: 12px; 
+                        background: #9f7aea; 
+                        border-radius: 50%; 
+                        margin: 0 auto 8px;
+                        animation: pulse 1.5s infinite 0.6s;
+                    "></div>
+                    <span style="color: #2c3e50; font-size: 12px; font-weight: 500;">Estadísticas</span>
+                </div>
+            </div>
+            
+            <style>
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                
+                @keyframes loadingBar {
+                    0% { width: 30%; transform: translateX(-100%); }
+                    50% { width: 60%; }
+                    100% { width: 30%; transform: translateX(250%); }
+                }
+                
+                @keyframes pulse {
+                    0%, 100% { opacity: 1; transform: scale(1); }
+                    50% { opacity: 0.5; transform: scale(0.9); }
+                }
+            </style>
+        </div>
+    `;
+    
+    Swal.fire({
+        html: loaderHTML,
+        showConfirmButton: false,
+        showCloseButton: true,
+        width: '600px',
+        backdrop: 'rgba(0,0,0,0.4)',
+        customClass: {
+            popup: 'profile-loader-popup'
+        },
+        didOpen: () => {
+            const loaderBar = document.getElementById('profileLoaderBar');
+            if (loaderBar) {
+                loaderBar.style.animation = 'loadingBar 2s ease-in-out infinite';
+            }
+        }
+    });
+    
+    try {
+        console.log('🔍 Cargando perfil completo del usuario ID:', usuarioId);
+        
+        // Obtener datos COMPLETOS del usuario
+        const usuario = await obtenerDatosUsuarioCompletos(usuarioId);
+        console.log('✅ Datos completos obtenidos:', usuario);
+        
+        // Verificar si el perfil es público
+        if (usuario.perfil_publico === false) {
+            Swal.close();
+            mostrarMensajePerfilPrivado();
+            return;
+        }
+        
+        // Si no hay datos suficientes, mostrar error
+        if (!usuario || (!usuario.nombre && !usuario.email)) {
+            Swal.close();
+            mostrarErrorPerfil('No se pudieron cargar los datos del perfil');
+            return;
+        }
+        
+        // Generar HTML del perfil con TODOS los datos (usar la función generarHTMLPerfilCompleto que ya tienes)
+        const perfilHTML = generarHTMLPerfilCompleto(usuario);
+        
+        // Cerrar loader y mostrar perfil
+        Swal.close();
+        
+        Swal.fire({
+            html: perfilHTML,
+            showCloseButton: true,
+            showConfirmButton: false,
+            width: '750px',
+            customClass: {
+                popup: 'profile-complete-modal'
+            },
+            background: 'white',
+            didOpen: () => {
+                // Agregar estilos adicionales
+                const popup = document.querySelector('.profile-complete-modal .swal2-popup');
+                if (popup) {
+                    popup.style.border = '2px solid #764ba2';
+                    popup.style.borderRadius = '15px';
+                    popup.style.overflow = 'hidden';
+                }
+            }
+        });
+        
+    } catch (error) {
+        console.error('❌ Error al cargar perfil completo:', error);
+        Swal.close();
+        mostrarErrorPerfil('Error inesperado: ' + error.message);
+    }
+}
+
+// ======================
+// FUNCIÓN PARA GENERAR HTML DEL PERFIL COMPLETO
+// ======================
+function generarHTMLPerfilCompleto(usuario) {
+    // Datos básicos
+    const nombreCompleto = `${usuario.nombre || ''} ${usuario.apellidos || ''}`.trim() || 
+                          (usuario.email ? usuario.email.split('@')[0] : 'Usuario Messery');
+    const email = usuario.email || 'No especificado';
+    const ubicacion = formatearUbicacion(usuario.ciudad, usuario.pais);
+    const edad = usuario.fecha_nacimiento ? calcularEdad(usuario.fecha_nacimiento) : 'No especificada';
+    const fechaNacimiento = usuario.fecha_nacimiento ? formatearFecha(usuario.fecha_nacimiento) : 'No especificada';
+    const genero = usuario.genero || 'No especificado';
+    const tipoCuenta = usuario.tipo_cuenta === 'personal' ? 'Personal' : 
+                      usuario.tipo_cuenta === 'empresa' ? 'Empresa' : 
+                      usuario.tipo_cuenta || 'No especificado';
+    
+    // Estadísticas
+    const puntos = usuario.puntos || 0;
+    const fechaRegistro = usuario.created_at ? formatearFechaCompleta(usuario.created_at) : 'No disponible';
+    const tiempoEnPlataforma = usuario.created_at ? calcularTiempoEnPlataforma(usuario.created_at) : 'No disponible';
+    const estadoEnLinea = usuario.mostrar_en_linea ? 'En línea' : 'Desconectado';
+    
+    // HTML del perfil
+    return `
+        <div class="perfil-completo-container">
+            <!-- HEADER DEL PERFIL -->
+            <div class="perfil-header" style="
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                padding: 40px 30px;
+                border-radius: 15px 15px 0 0;
+                color: white;
+                text-align: center;
+                margin-bottom: 30px;
+                position: relative;
+                min-height: 250px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            ">
+                <!-- Contenedor principal del header -->
+                <div style="display: flex; align-items: center; justify-content: center; gap: 30px; margin-bottom: 40px;">
+                    <!-- Avatar -->
+                    <div class="perfil-avatar-grande" onclick="ampliarAvatar('${usuario.avatar_url}', '${nombreCompleto}')" 
+                         style="
+                            width: 140px;
+                            height: 140px;
+                            flex-shrink: 0;
+                            border-radius: 50%;
+                            border: 6px solid rgba(255,255,255,0.4);
+                            overflow: hidden;
+                            cursor: pointer;
+                            background: ${obtenerColorAvatar(nombreCompleto)};
+                            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+                         ">
+                        ${usuario.avatar_url ? 
+                            `<img src="${usuario.avatar_url}" 
+                                  alt="${nombreCompleto}" 
+                                  style="width: 100%; height: 100%; object-fit: cover;"
+                                  onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<div style=\\'color: white; font-size: 56px; display: flex; align-items: center; justify-content: center; height: 100%; font-weight: bold;\\'>${obtenerIniciales(nombreCompleto)}</div>';">
+                            ` :
+                            `<div style="color: white; font-size: 56px; display: flex; align-items: center; justify-content: center; height: 100%; font-weight: bold;">
+                                ${obtenerIniciales(nombreCompleto)}
+                            </div>`
+                        }
+                    </div>
+                    
+                    <!-- Contenedor de información a la derecha del avatar -->
+                    <div style="text-align: left; max-width: 400px;">
+                        <!-- Nombre y título -->
+                        <h2 style="margin: 0 0 15px 0; font-size: 32px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">${nombreCompleto}</h2>
+                       
+                        <p style="margin: 0 0 25px 0; opacity: 0.95; font-size: 16px; display: flex; align-items: center;">
+                            <i class="fas fa-user-check" style="margin-right: 10px; font-size: 18px;"></i>
+                            Perfil público verificado
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Estadísticas rápidas -->
+                <div style="display: flex; justify-content: center; gap: 40px; margin-top: 10px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.2);">
+                    <div style="text-align: center;">
+                        <div style="font-size: 28px; font-weight: 700; margin-bottom: 5px;">${puntos}</div>
+                        <div style="font-size: 14px; opacity: 0.9; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                            <i class="fas fa-star"></i> Puntos
+                        </div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 28px; font-weight: 700; margin-bottom: 5px;">
+                            <i class="fas fa-circle" style="color: ${estadoEnLinea === 'En línea' ? '#43e97b' : '#e74c3c'};"></i>
+                        </div>
+                        <div style="font-size: 14px; opacity: 0.9; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                            <i class="fas fa-signal"></i> ${estadoEnLinea}
+                        </div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 28px; font-weight: 700; margin-bottom: 5px;">
+                            <i class="fas fa-${tipoCuenta === 'Empresa' ? 'building' : 'user'}"></i>
+                        </div>
+                        <div style="font-size: 14px; opacity: 0.9; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                            <i class="fas fa-tag"></i> ${tipoCuenta}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Resto del código se mantiene igual -->
+            <!-- SECCIÓN DE INFORMACIÓN PERSONAL -->
+            <div class="perfil-seccion" style="padding: 20px; margin-bottom: 20px;">
+                <h3 style="color: #764ba2; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-id-card"></i>
+                    Información Personal
+                </h3>
+                
+                <div class="info-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">
+                    <!-- Columna 1 -->
+                    <div class="info-col">
+                        <!-- Email -->
+                        <div class="info-item" style="
+                            background: #f8f9fa;
+                            padding: 15px;
+                            border-radius: 10px;
+                            border-left: 4px solid #667eea;
+                            margin-bottom: 10px;
+                        ">
+                            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                                <i class="fas fa-envelope" style="color: #667eea; margin-right: 10px; font-size: 18px;"></i>
+                                <strong style="color: #2c3e50;">Email</strong>
+                            </div>
+                            <div style="color: #5d6d7e; font-size: 15px; word-break: break-all;">${email}</div>
+                        </div>
+                        
+                        <!-- Ubicación -->
+                        <div class="info-item" style="
+                            background: #f8f9fa;
+                            padding: 15px;
+                            border-radius: 10px;
+                            border-left: 4px solid #9f7aea;
+                            margin-bottom: 10px;
+                        ">
+                            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                                <i class="fas fa-map-marker-alt" style="color: #9f7aea; margin-right: 10px; font-size: 18px;"></i>
+                                <strong style="color: #2c3e50;">Ubicación</strong>
+                            </div>
+                            <div style="color: #5d6d7e; font-size: 15px;">${ubicacion}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Columna 2 -->
+                    <div class="info-col">
+                        <!-- Edad y Fecha de Nacimiento -->
+                        <div class="info-item" style="
+                            background: #f8f9fa;
+                            padding: 15px;
+                            border-radius: 10px;
+                            border-left: 4px solid #f093fb;
+                            margin-bottom: 10px;
+                        ">
+                            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                                <i class="fas fa-birthday-cake" style="color: #f093fb; margin-right: 10px; font-size: 18px;"></i>
+                                <strong style="color: #2c3e50;">Edad / Fecha de Nacimiento</strong>
+                            </div>
+                            <div style="color: #5d6d7e; font-size: 15px;">
+                                ${edad} (${fechaNacimiento})
+                            </div>
+                        </div>
+                        
+                        <!-- Género -->
+                        <div class="info-item" style="
+                            background: #f8f9fa;
+                            padding: 15px;
+                            border-radius: 10px;
+                            border-left: 4px solid #4facfe;
+                            margin-bottom: 10px;
+                        ">
+                            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                                <i class="fas fa-venus-mars" style="color: #4facfe; margin-right: 10px; font-size: 18px;"></i>
+                                <strong style="color: #2c3e50;">Género</strong>
+                            </div>
+                            <div style="color: #5d6d7e; font-size: 15px;">${genero}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- SECCIÓN DE INFORMACIÓN DE LA CUENTA -->
+            <div class="perfil-seccion" style="padding: 20px; margin-bottom: 20px;">
+                <h3 style="color: #764ba2; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-user-cog"></i>
+                    Información de la Cuenta
+                </h3>
+                
+                <div class="account-info-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <!-- Tipo de Cuenta -->
+                    <div class="account-item" style="
+                        background: #fff;
+                        padding: 15px;
+                        border-radius: 10px;
+                        border: 2px solid #e8edf2;
+                        text-align: center;
+                    ">
+                        <div style="margin-bottom: 10px;">
+                            <i class="fas fa-${tipoCuenta === 'Empresa' ? 'building' : 'user'}" 
+                               style="font-size: 30px; color: #667eea;"></i>
+                        </div>
+                        <div style="font-weight: 600; color: #2c3e50; margin-bottom: 5px;">Tipo de Cuenta</div>
+                        <div style="color: #5d6d7e; font-size: 14px;">${tipoCuenta}</div>
+                    </div>
+                    
+                    <!-- Fecha de Registro -->
+                    <div class="account-item" style="
+                        background: #fff;
+                        padding: 15px;
+                        border-radius: 10px;
+                        border: 2px solid #e8edf2;
+                        text-align: center;
+                    ">
+                        <div style="margin-bottom: 10px;">
+                            <i class="fas fa-calendar-plus" style="font-size: 30px; color: #764ba2;"></i>
+                        </div>
+                        <div style="font-weight: 600; color: #2c3e50; margin-bottom: 5px;">Fecha de Registro</div>
+                        <div style="color: #5d6d7e; font-size: 14px;">${fechaRegistro}</div>
+                    </div>
+                    
+                    <!-- Tiempo en Plataforma -->
+                    <div class="account-item" style="
+                        background: #fff;
+                        padding: 15px;
+                        border-radius: 10px;
+                        border: 2px solid #e8edf2;
+                        text-align: center;
+                    ">
+                        <div style="margin-bottom: 10px;">
+                            <i class="fas fa-clock" style="font-size: 30px; color: #9f7aea;"></i>
+                        </div>
+                        <div style="font-weight: 600; color: #2c3e50; margin-bottom: 5px;">Tiempo en Messery</div>
+                        <div style="color: #5d6d7e; font-size: 14px;">${tiempoEnPlataforma}</div>
+                    </div>
+                    
+                    <!-- Estado -->
+                    <div class="account-item" style="
+                        background: #fff;
+                        padding: 15px;
+                        border-radius: 10px;
+                        border: 2px solid #e8edf2;
+                        text-align: center;
+                    ">
+                        <div style="margin-bottom: 10px;">
+                            <i class="fas fa-circle" style="font-size: 30px; color: ${estadoEnLinea === 'En línea' ? '#43e97b' : '#e74c3c'};"></i>
+                        </div>
+                        <div style="font-weight: 600; color: #2c3e50; margin-bottom: 5px;">Estado</div>
+                        <div style="color: #5d6d7e; font-size: 14px;">${estadoEnLinea}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- SECCIÓN DE BIOGRAFÍA -->
+            ${usuario.biografia ? `
+            <div class="perfil-seccion" style="padding: 20px; margin-bottom: 20px;">
+                <h3 style="color: #764ba2; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-quote-left"></i>
+                    Biografía
+                </h3>
+                <div style="
+                    background: linear-gradient(135deg, #f8f9fa 0%, #e8edf2 100%);
+                    padding: 20px;
+                    border-radius: 10px;
+                    border-left: 4px solid #764ba2;
+                    font-style: italic;
+                    color: #5d6d7e;
+                    line-height: 1.6;
+                    font-size: 16px;
+                ">
+                    <i class="fas fa-quote-right" style="float: right; color: #667eea; font-size: 20px; opacity: 0.5;"></i>
+                    ${usuario.biografia}
+                </div>
+            </div>
+            ` : ''}
+            
+            <!-- SECCIÓN DE PUNTOS Y LOGROS -->
+            <div class="perfil-seccion" style="padding: 20px;">
+                <h3 style="color: #764ba2; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-trophy"></i>
+                    Puntos y Participación
+                </h3>
+                <div style="
+                    background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+                    padding: 20px;
+                    border-radius: 10px;
+                    border: 2px solid #e8edf2;
+                    text-align: center;
+                ">
+                    <div style="font-size: 48px; font-weight: 700; color: #764ba2; margin-bottom: 10px;">
+                        ${puntos}
+                    </div>
+                    <div style="color: #5d6d7e; margin-bottom: 20px;">
+                        Puntos acumulados en Messery
+                    </div>
+                    
+                    ${puntos > 0 ? `
+                    <div style="
+                        width: 100%;
+                        height: 20px;
+                        background: #e8edf2;
+                        border-radius: 10px;
+                        overflow: hidden;
+                        margin-bottom: 20px;
+                    ">
+                        <div style="
+                            height: 100%;
+                            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+                            width: ${Math.min(puntos / 1000 * 100, 100)}%;
+                            border-radius: 10px;
+                            transition: width 1s ease;
+                        "></div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; font-size: 12px; color: #7f8c8d;">
+                        <span>Nuevo</span>
+                        <span>Activo</span>
+                        <span>Experto</span>
+                        <span>Líder</span>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+            
+            <!-- ACCIONES -->
+            <div class="perfil-acciones" style="
+                padding: 30px 20px 20px;
+                border-top: 2px solid #e8edf2;
+                display: flex;
+                gap: 15px;
+                flex-wrap: wrap;
+                justify-content: center;
+            ">
+                <button onclick="window.open('index.html', '_blank')" 
+                        style="
+                            padding: 12px 25px;
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            color: white;
+                            border: none;
+                            border-radius: 10px;
+                            cursor: pointer;
+                            font-weight: 600;
+                            display: flex;
+                            align-items: center;
+                            gap: 10px;
+                            transition: transform 0.3s ease;
+                        "
+                        onmouseover="this.style.transform='translateY(-2px)'"
+                        onmouseout="this.style.transform='translateY(0)'">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Iniciar sesión en Messery
+                </button>
+                
+                <button onclick="window.open('registro.html', '_blank')"
+                        style="
+                            padding: 12px 25px;
+                            background: #fff;
+                            color: #2c3e50;
+                            border: 2px solid #e8edf2;
+                            border-radius: 10px;
+                            cursor: pointer;
+                            font-weight: 600;
+                            display: flex;
+                            align-items: center;
+                            gap: 10px;
+                            transition: all 0.3s ease;
+                        "
+                        onmouseover="this.style.borderColor='#667eea'; this.style.backgroundColor='#f8f9fa'"
+                        onmouseout="this.style.borderColor='#e8edf2'; this.style.backgroundColor='#fff'">
+                    <i class="fas fa-user-plus"></i>
+                    Registrarse gratis
+                </button>
+                
+                <button onclick="compartirPerfil('${nombreCompleto}', '${ubicacion}')"
+                        style="
+                            padding: 12px 25px;
+                            background: #43e97b;
+                            color: white;
+                            border: none;
+                            border-radius: 10px;
+                            cursor: pointer;
+                            font-weight: 600;
+                            display: flex;
+                            align-items: center;
+                            gap: 10px;
+                            transition: transform 0.3s ease;
+                        "
+                        onmouseover="this.style.transform='translateY(-2px)'"
+                        onmouseout="this.style.transform='translateY(0)'">
+                    <i class="fas fa-share-alt"></i>
+                    Compartir perfil
+                </button>
+            </div>
+            
+            <!-- FOOTER -->
+            <div style="
+                text-align: center;
+                padding: 20px;
+                color: #7f8c8d;
+                font-size: 12px;
+                border-top: 1px solid #e8edf2;
+                margin-top: 20px;
+            ">
+                <p>
+                    <i class="fas fa-shield-alt" style="color: #667eea; margin-right: 5px;"></i>
+                    Perfil verificado y seguro • Todos los datos son públicos y verificados
+                </p>
+                <p style="margin-top: 10px;">
+                    ¿Te gusta este perfil? 
+                    <a href="registro.html" target="_blank" style="color: #667eea; text-decoration: none; font-weight: 600;">
+                        ¡Únete a Messery hoy mismo!
+                    </a>
+                </p>
+            </div>
+        </div>
+        
+        <style>
+            .perfil-completo-container {
+                max-height: 580vh;
+                overflow-y: auto;
+                padding-right: 10px;
+                scrollbar-width: none;
+            }
+            
+            .perfil-completo-container::-webkit-scrollbar {
+                width: 8px;
+                display: none; 
+            }
+            
+            .perfil-completo-container::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border-radius: 4px;
+            }
+            
+            .perfil-completo-container::-webkit-scrollbar-thumb {
+                background: #667eea;
+                border-radius: 4px;
+            }
+            
+            .perfil-completo-container::-webkit-scrollbar-thumb:hover {
+                background: #764ba2;
+            }
+        </style>
+    `;
+}
 
 window.ampliarImagenPublicacion = function(url) {
     Swal.fire({
