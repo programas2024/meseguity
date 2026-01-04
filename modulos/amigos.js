@@ -4186,8 +4186,36 @@ mostrarNotificacion(tipo, mensaje) {
     } else {
         window.Utilidades.mostrarAlerta('Información', mensaje, 'info');
     }
+},
+
+async eliminarAmigo(amistadId) {
+    const confirmacion = await window.Utilidades.mostrarConfirmacion(
+        '¿Eliminar amigo?',
+        'Esta acción no se puede deshacer',
+        'Sí, eliminar'
+    );
+    
+    if (confirmacion.isConfirmed) {
+        try {
+            const { error } = await window.supabase
+                .from('amistades')
+                .delete()
+                .eq('id', amistadId);
+            
+            if (error) throw error;
+            
+            await this.cargarAmigos();
+            window.Utilidades.mostrarAlerta('Amigo eliminado', 'El amigo ha sido eliminado', 'success');
+            
+        } catch (error) {
+            console.error('Error al eliminar amigo:', error);
+            window.Utilidades.mostrarAlerta('Error', 'No se pudo eliminar el amigo', 'error');
+        }
+    }
 }
 };
+
+
 
 
 let mensajeModalAbierto = false;
