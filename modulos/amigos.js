@@ -2,7 +2,7 @@
 const Amigos = {
     // Variable para controlar si ya se mostró la notificación
     notificacionLikesMostrada: false,
-
+  
     // ======================
     // FUNCIONES DE UTILIDAD
     // ======================
@@ -3755,7 +3755,6 @@ mostrarListaAmigos() {
     }
 },
 
-// Versión de fallback que muestra 3 botones
 mostrarListaAmigosFallback() {
     const seccionAmigos = document.getElementById('seccionAmigosLista');
     let html = '';
@@ -3764,10 +3763,6 @@ mostrarListaAmigosFallback() {
         const nombreCompleto = `${amigo.nombre} ${amigo.apellidos}`;
         const iniciales = this.obtenerIniciales(nombreCompleto);
         const ubicacion = this.formatearUbicacion(amigo.ciudad, amigo.pais);
-        
-        // Escapar comillas simples en las cadenas para evitar errores de JavaScript
-        const emailEscapado = amigo.email.replace(/'/g, "\\'");
-        const nombreEscapado = amigo.nombre.replace(/'/g, "\\'");
         
         html += `
             <div class="friend-item" data-amigo-id="${amigo.id}">
@@ -3784,13 +3779,13 @@ mostrarListaAmigosFallback() {
                     </div>
                     <p class="friend-description">${ubicacion}</p>
                     <div class="friend-actions">
-                        <button class="friend-btn friend-btn-chat" onclick="window.Amigos.enviarMensajeAAmigo('${emailEscapado}', '${nombreEscapado}')">
+                        <button class="friend-btn friend-btn-chat" data-email="${amigo.email}" data-nombre="${amigo.nombre}">
                             <i class="fas fa-paper-plane"></i> Mensaje
                         </button>
-                        <button class="friend-btn friend-btn-info" onclick="window.Amigos.mostrarPerfilAmigo('${amigo.id}')">
+                        <button class="friend-btn friend-btn-info" data-amigo-id="${amigo.id}">
                             <i class="fas fa-user-circle"></i> Ver Perfil
                         </button>
-                        <button class="friend-btn friend-btn-remove" onclick="window.Amigos.eliminarAmigo('${amigo.amistad_id}')">
+                        <button class="friend-btn friend-btn-remove" data-amistad-id="${amigo.amistad_id}">
                             <i class="fas fa-user-times"></i> Eliminar
                         </button>
                     </div>
@@ -3800,48 +3795,151 @@ mostrarListaAmigosFallback() {
     });
     
     seccionAmigos.innerHTML = html;
+    
+    // Añadir event listeners después de renderizar
+    this.configurarEventListenersAmigos();
 },
 
-enviarMensajeAAmigo(email, nombre) {
-    if (window.Interfaz && window.Interfaz.mostrarSeccion) {
-        window.Interfaz.mostrarSeccion('seccionNuevoMensaje');
-    }
+configurarEventListenersAmigos() {
+    const seccionAmigos = document.getElementById('seccionAmigosLista');
     
-    const destinatarioInput = document.getElementById('destinatario');
-    const asuntoInput = document.getElementById('asunto');
-    const contenidoInput = document.getElementById('contenido');
-    
-    if (destinatarioInput) destinatarioInput.value = email;
-    if (asuntoInput) asuntoInput.value = `Hola ${nombre}`;
-    if (contenidoInput) {
-        contenidoInput.value = `Hola ${nombre},\n\n`;
-        contenidoInput.focus();
-    }
+    // Delegación de eventos para los botones
+    seccionAmigos.addEventListener('click', (e) => {
+        const target = e.target.closest('button');
+        if (!target) return;
+        
+        const parent = target.closest('.friend-item');
+        
+        if (target.classList.contains('friend-btn-chat')) {
+            const email = target.dataset.email;
+            const nombre = target.dataset.nombre;
+            this.enviarMensajeAAmigo(email, nombre);
+        }
+        else if (target.classList.contains('friend-btn-info')) {
+            const amigoId = target.dataset.amigoId;
+            this.mostrarPerfilAmigo(amigoId);
+        }
+        else if (target.classList.contains('friend-btn-remove')) {
+            const amistadId = target.dataset.amistadId;
+            this.eliminarAmigo(amistadId);
+        }
+    });
 },
 
-async eliminarAmigo(amistadId) {
+// ======================
+// FUNCIÓN PARA ELIMINAR AMIGO (AÑADE ESTA)
+// ======================
+async eliminarAmigo(idRecibido) {
+    console.log('🔄 ID recibido para eliminar:', idRecibido);
+    
     const confirmacion = await window.Utilidades.mostrarConfirmacion(
         '¿Eliminar amigo?',
-        'Esta acción no se puede deshacer',
-        'Sí, eliminar'
+        'Esta acción eliminará la amistad de ambos usuarios.',
+        'Sí, eliminar',
+        'Cancelar'
     );
     
     if (confirmacion.isConfirmed) {
         try {
-            const { error } = await window.supabase
+            let relacionId;
+            
+            // Si el ID recibido tiene 36 caracteres (UUID), asumimos que es de amistad
+            // Si no, necesitamos buscar la relación
+            if (idRecibido && idRecibido.length === 36) {
+                // Verificar si es un ID de amistad válido
+                const { data: relacion, error } = await window.supabase
+                    .from('amistades')
+                    .select('id')
+                    .eq('id', idRecibido)
+                    .single();
+                
+                if (!error && relacion) {
+                    // Es un ID de amistad válido
+                    relacionId = idRecibido;
+                } else {
+                    // No es ID de amistad, buscar por ID de usuario
+                    relacionId = await this.buscarRelacionPorUsuarioId(idRecibido);
+                }
+            } else {
+                throw new Error('ID no válido');
+            }
+            
+            if (!relacionId) {
+                throw new Error('No se pudo encontrar la relación de amistad');
+            }
+            
+            console.log('✅ ID de relación a eliminar:', relacionId);
+            
+            // Eliminar la relación
+            const { error: eliminarError } = await window.supabase
                 .from('amistades')
                 .delete()
-                .eq('id', amistadId);
+                .eq('id', relacionId);
             
-            if (error) throw error;
+            if (eliminarError) throw eliminarError;
             
+            console.log('✅ Eliminación exitosa');
+            
+            // Recargar amigos
             await this.cargarAmigos();
-            window.Utilidades.mostrarAlerta('Amigo eliminado', 'El amigo ha sido eliminado', 'success');
+            
+            // Mostrar confirmación
+            Swal.fire({
+                icon: 'success',
+                title: '¡Eliminado!',
+                text: 'El amigo ha sido eliminado correctamente',
+                timer: 2000,
+                showConfirmButton: false
+            });
             
         } catch (error) {
-            console.error('Error al eliminar amigo:', error);
-            window.Utilidades.mostrarAlerta('Error', 'No se pudo eliminar el amigo', 'error');
+            console.error('❌ Error:', error);
+            
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudo eliminar el amigo: ' + error.message,
+                confirmButtonText: 'Entendido'
+            });
         }
+    }
+},
+
+// ======================
+// NUEVA FUNCIÓN AUXILIAR
+// ======================
+async buscarRelacionPorUsuarioId(usuarioId) {
+    try {
+        const usuarioActualId = window.usuarioIdActual;
+        
+        if (!usuarioActualId) {
+            console.error('No hay usuario actual definido');
+            return null;
+        }
+        
+        console.log('🔍 Buscando relación entre:', usuarioActualId, 'y', usuarioId);
+        
+        // Buscar la relación en ambas direcciones
+        const { data: relaciones, error } = await window.supabase
+            .from('amistades')
+            .select('id, usuario_id, amigo_id')
+            .or(`and(usuario_id.eq.${usuarioActualId},amigo_id.eq.${usuarioId}),and(usuario_id.eq.${usuarioId},amigo_id.eq.${usuarioActualId})`)
+            .eq('estado', 'aceptada')
+            .limit(1);
+        
+        if (error) throw error;
+        
+        if (!relaciones || relaciones.length === 0) {
+            console.error('No se encontró relación de amistad');
+            return null;
+        }
+        
+        console.log('✅ Relación encontrada:', relaciones[0]);
+        return relaciones[0].id;
+        
+    } catch (error) {
+        console.error('Error buscando relación:', error);
+        return null;
     }
 },
 
@@ -4188,33 +4286,7 @@ mostrarNotificacion(tipo, mensaje) {
     }
 },
 
-async eliminarAmigo(amistadId) {
-    const confirmacion = await window.Utilidades.mostrarConfirmacion(
-        '¿Eliminar amigo?',
-        'Esta acción no se puede deshacer',
-        'Sí, eliminar'
-    );
-    
-    if (confirmacion.isConfirmed) {
-        try {
-            const { error } = await window.supabase
-                .from('amistades')
-                .delete()
-                .eq('id', amistadId);
-            
-            if (error) throw error;
-            
-            await this.cargarAmigos();
-            window.Utilidades.mostrarAlerta('Amigo eliminado', 'El amigo ha sido eliminado', 'success');
-            
-        } catch (error) {
-            console.error('Error al eliminar amigo:', error);
-            window.Utilidades.mostrarAlerta('Error', 'No se pudo eliminar el amigo', 'error');
-        }
-    }
-}
 };
-
 
 
 
@@ -5702,5 +5774,22 @@ if (typeof currentUserId === 'undefined') {
         }
     }
 }
+
+// AL FINAL de tu archivo amigos.js, ANTES de window.Amigos = Amigos;
+
+// Hacer funciones globales como fallback
+window.eliminarAmigo = async function(amistadId) {
+    return await Amigos.eliminarAmigo(amistadId);
+};
+
+window.enviarMensajeAAmigo = function(email, nombre) {
+    return Amigos.enviarMensajeAAmigo(email, nombre);
+};
+
+window.mostrarPerfilAmigo = function(amigoId) {
+    return Amigos.mostrarPerfilAmigo(amigoId);
+};
+
+
 // Hacer disponible globalmente
 window.Amigos = Amigos;

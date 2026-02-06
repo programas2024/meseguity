@@ -1,0 +1,8 @@
+<!-- Scripts separados por categoría -->
+    <script src="modulos/vip-core.js"></script>
+    <script src="modulos/vip-usuario.js"></script>
+    <script src="modulos/vip-titulos.js"></script>
+    <script src="modulos/vip-mensajes.js"></script>
+    <script src="modulos/vip-historial.js"></script>
+    <script src="modulos/vip-temporizador.js"></script>
+    <script src="modulos/vip-utilidades.js"></script>

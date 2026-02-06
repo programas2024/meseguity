@@ -6210,27 +6210,33 @@
             </div>
         </aside>
 
-        <!-- Área Principal -->
-        <main class="main-content">
-            <!-- Barra Superior -->
-            <header class="topbar">
-                <div class="search-bar">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="buscarMensajes" placeholder="Buscar mensajes, amigos...">
-                </div>
-                <div class="user-actions">
-                     <!-- Botón de Información NUEVO -->
-                    <button class="btn-icon" id="btnInformacion">
-                        <i class="fas fa-info-circle"></i>
-                    </button>
-                    <button class="btn-icon" id="btnNotificaciones">
-                        <i class="fas fa-bell"></i>
-                        <span class="badge">0</span>
-                    </button>
-                    <button class="btn-icon" id="btnAjustes">
-                        <i class="fas fa-cog"></i>
-                    </button>
-                </div>
+      <main class="main-content">
+    <!-- Barra Superior -->
+    <header class="topbar">
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" id="buscarMensajes" placeholder="Buscar mensajes, amigos...">
+        </div>
+        <div class="user-actions">
+            <!-- Nuevo Botón VIP -->
+            <button class="btn-icon" id="btnVip">
+                <i class="fas fa-crown"></i>
+            </button>
+            
+            <!-- Botón de Información -->
+            <button class="btn-icon" id="btnInformacion">
+                <i class="fas fa-info-circle"></i>
+            </button>
+            
+            <button class="btn-icon" id="btnNotificaciones">
+                <i class="fas fa-bell"></i>
+                <span class="badge">0</span>
+            </button>
+            
+            <button class="btn-icon" id="btnAjustes">
+                <i class="fas fa-cog"></i>
+            </button>
+        </div>
             </header>
 
             <!-- Contenido con Scroll -->
@@ -11271,7 +11277,37 @@ window.mostrarSeleccionAmigosAfinidad = mostrarSeleccionAmigosAfinidad;
     }
 
 
+// En tu archivo JavaScript principal, agrega esto:
 
+document.addEventListener('DOMContentLoaded', function() {
+    // Botón VIP simple
+    const btnVip = document.getElementById('btnVip');
+    
+    if (btnVip) {
+        btnVip.addEventListener('click', function() {
+            // Redirección directa y simple
+            window.location.href = 'vip.html';
+            
+            // O si quieres guardar el último lugar visitado
+            localStorage.setItem('lastPageBeforeVIP', window.location.href);
+        });
+        
+        // Añadir tooltip
+        btnVip.title = 'Sistema VIP - Recompensas y puntos';
+        btnVip.setAttribute('aria-label', 'Acceder al sistema VIP');
+        
+        // Añadir estilo hover dinámico
+        btnVip.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.1)';
+            this.style.color = '#FFD700';
+        });
+        
+        btnVip.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+            this.style.color = '';
+        });
+    }
+});
 
 </script>
 </body>
