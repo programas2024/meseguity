@@ -1,27 +1,42 @@
 // Módulo de redes sociales
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     // Verificar si estamos en la página de configuración
     if (!document.querySelector('.app-container')) return;
     
-    // Inicializar cuando el DOM esté completamente cargado
-    initRedesSociales();
+    // Esperar un momento para asegurar que supabase esté cargado
+    await esperarSupabase();
+    
+    // Inicializar redes sociales
+    await initRedesSociales();
 });
+
+async function esperarSupabase() {
+    // Esperar hasta que supabase esté disponible
+    let intentos = 0;
+    const maxIntentos = 10;
+    
+    while (!window.supabase && intentos < maxIntentos) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        intentos++;
+    }
+    
+    if (!window.supabase) {
+        throw new Error('No se pudo cargar Supabase. Verifica la conexión.');
+    }
+}
 
 async function initRedesSociales() {
     try {
-        // Esperar a que el módulo de conexión esté listo
-        if (!window.supabase) {
-            await new Promise(resolve => setTimeout(resolve, 500));
-        }
-        
         // Verificar autenticación
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        const { data: { user }, error: authError } = await window.supabase.auth.getUser();
         
         if (authError || !user) {
             console.error('Error de autenticación:', authError);
             window.location.href = 'index.html';
             return;
         }
+        
+        console.log('Cargando redes sociales para:', user.email);
         
         // Verificar si existe la tabla redes_sociales, si no existe, crearla
         await verificarTablaRedesSociales();
@@ -32,48 +47,58 @@ async function initRedesSociales() {
         // Configurar eventos del formulario
         configurarEventosFormularioRedes(user.id);
         
+        // Configurar funciones globales
+        window.toggleRedSocial = toggleRedSocial;
+        window.actualizarEstadoRed = actualizarEstadoRed;
+        window.limpiarRedes = limpiarRedes;
+        
     } catch (error) {
         console.error('Error inicializando redes sociales:', error);
-        mostrarAlerta('error', 'Error al cargar las redes sociales');
+        mostrarAlertaRedes('error', 'Error al cargar las redes sociales: ' + error.message);
     }
 }
 
 async function verificarTablaRedesSociales() {
     try {
-        // Intentar crear la tabla si no existe
-        const { error } = await supabase.rpc('crear_tabla_redes_sociales');
+        // Intentar verificar si la tabla existe
+        const { error } = await window.supabase
+            .from('redes_sociales')
+            .select('count')
+            .limit(1);
         
-        // Si el RPC no existe, intentar crear la tabla manualmente
-        if (error && error.message.includes('function')) {
-            console.log('Creando tabla redes_sociales...');
-            // La creación de tablas normalmente se hace desde SQL en Supabase
-            // Por ahora, solo continuamos
+        // Si hay error, la tabla probablemente no existe
+        if (error && error.code === '42P01') {
+            console.log('Tabla redes_sociales no existe. Debes crearla en Supabase.');
+            // No intentamos crearla aquí ya que requiere permisos de superusuario
         }
+        
     } catch (error) {
-        console.log('Asumiendo que la tabla redes_sociales existe');
+        console.log('Error verificando tabla redes_sociales:', error);
     }
 }
 
 async function cargarRedesSociales(userId) {
     try {
         // Obtener redes sociales del usuario
-        const { data: redes, error } = await supabase
+        const { data: redes, error } = await window.supabase
             .from('redes_sociales')
             .select('*')
             .eq('usuario_id', userId);
         
         if (error) {
-            // Si la tabla no existe, usar datos vacíos
-            console.log('Tabla redes_sociales no encontrada, usando valores por defecto');
+            // Si la tabla no existe o hay error, usar datos vacíos
+            console.log('Error cargando redes sociales:', error);
             inicializarRedesPorDefecto();
             return;
         }
         
         // Mapear redes sociales por nombre
         const redesMap = {};
-        redes.forEach(red => {
-            redesMap[red.nombre_red] = red;
-        });
+        if (redes && redes.length > 0) {
+            redes.forEach(red => {
+                redesMap[red.nombre_red] = red;
+            });
+        }
         
         // Definir las redes sociales soportadas
         const redesSoportadas = [
@@ -87,7 +112,10 @@ async function cargarRedesSociales(userId) {
             
             if (red && red.activo && red.url) {
                 // Red activa
-                document.getElementById(`input${capitalizeFirstLetter(nombreRed)}`).value = red.url;
+                const input = document.getElementById(`input${capitalizeFirstLetter(nombreRed)}`);
+                if (input) {
+                    input.value = red.url;
+                }
                 toggleRedSocial(nombreRed, true);
             } else {
                 // Red inactiva o sin datos
@@ -116,7 +144,10 @@ function inicializarRedesPorDefecto() {
 function configurarEventosFormularioRedes(userId) {
     const form = document.getElementById('formRedesSociales');
     
-    if (!form) return;
+    if (!form) {
+        console.log('Formulario de redes sociales no encontrado');
+        return;
+    }
     
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -132,16 +163,18 @@ function configurarEventosFormularioRedes(userId) {
             await guardarRedesSociales(userId);
             
             // Mostrar mensaje de éxito
-            mostrarAlerta('success', 'Redes sociales guardadas correctamente');
+            mostrarAlertaRedes('success', 'Redes sociales guardadas correctamente');
             
         } catch (error) {
             console.error('Error guardando redes sociales:', error);
-            mostrarAlerta('error', 'Error al guardar las redes sociales: ' + error.message);
+            mostrarAlertaRedes('error', 'Error al guardar las redes sociales: ' + error.message);
         } finally {
             // Restaurar botón
             const submitBtn = form.querySelector('.btn-primary');
-            submitBtn.innerHTML = '<i class="fas fa-save"></i> Guardar Redes';
-            submitBtn.disabled = false;
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> Guardar Redes';
+                submitBtn.disabled = false;
+            }
         }
     });
 }
@@ -152,12 +185,14 @@ async function guardarRedesSociales(userId) {
         'tiktok', 'youtube', 'linkedin', 'github'
     ];
     
-    const operaciones = [];
-    
     for (const nombreRed of redesSoportadas) {
         const input = document.getElementById(`input${capitalizeFirstLetter(nombreRed)}`);
+        if (!input) continue;
+        
         const url = input.value.trim();
-        const activo = document.querySelector(`#redes${capitalizeFirstLetter(nombreRed)} .btn-toggle-red`).classList.contains('active');
+        const elemento = document.getElementById(`redes${capitalizeFirstLetter(nombreRed)}`);
+        const toggleBtn = elemento?.querySelector('.btn-toggle-red');
+        const activo = toggleBtn?.classList.contains('active') || false;
         
         if (activo && url) {
             // Validar URL básica
@@ -174,64 +209,70 @@ async function guardarRedesSociales(userId) {
                 updated_at: new Date().toISOString()
             };
             
-            // Verificar si ya existe
-            const { data: existe } = await supabase
-                .from('redes_sociales')
-                .select('id')
-                .eq('usuario_id', userId)
-                .eq('nombre_red', nombreRed)
-                .single();
-            
-            if (existe) {
-                // Actualizar
-                const { error } = await supabase
+            try {
+                // Verificar si ya existe
+                const { data: existe, error: selectError } = await window.supabase
                     .from('redes_sociales')
-                    .update(redSocialData)
-                    .eq('id', existe.id);
+                    .select('id')
+                    .eq('usuario_id', userId)
+                    .eq('nombre_red', nombreRed)
+                    .maybeSingle();
                 
-                if (error) throw error;
-            } else {
-                // Insertar
-                redSocialData.created_at = new Date().toISOString();
-                const { error } = await supabase
-                    .from('redes_sociales')
-                    .insert(redSocialData);
+                if (selectError && selectError.code !== 'PGRST116') {
+                    console.error('Error verificando red social:', selectError);
+                    // Continuar con la siguiente red
+                    continue;
+                }
                 
-                if (error) throw error;
+                if (existe) {
+                    // Actualizar
+                    const { error: updateError } = await window.supabase
+                        .from('redes_sociales')
+                        .update(redSocialData)
+                        .eq('id', existe.id);
+                    
+                    if (updateError) {
+                        console.error(`Error actualizando ${nombreRed}:`, updateError);
+                    }
+                } else {
+                    // Insertar
+                    redSocialData.created_at = new Date().toISOString();
+                    const { error: insertError } = await window.supabase
+                        .from('redes_sociales')
+                        .insert(redSocialData);
+                    
+                    if (insertError) {
+                        console.error(`Error insertando ${nombreRed}:`, insertError);
+                    }
+                }
+                
+            } catch (error) {
+                console.error(`Error procesando ${nombreRed}:`, error);
+                // Continuar con la siguiente red
             }
-        } else if (activo && !url) {
-            // Desactivar si está activo pero sin URL
-            const { data: existe } = await supabase
-                .from('redes_sociales')
-                .select('id')
-                .eq('usuario_id', userId)
-                .eq('nombre_red', nombreRed)
-                .single();
             
-            if (existe) {
-                const { error } = await supabase
-                    .from('redes_sociales')
-                    .update({ activo: false })
-                    .eq('id', existe.id);
-                
-                if (error) throw error;
-            }
         } else {
-            // Desactivar completamente
-            const { data: existe } = await supabase
-                .from('redes_sociales')
-                .select('id')
-                .eq('usuario_id', userId)
-                .eq('nombre_red', nombreRed)
-                .single();
-            
-            if (existe) {
-                const { error } = await supabase
+            // Desactivar la red
+            try {
+                const { data: existe } = await window.supabase
                     .from('redes_sociales')
-                    .update({ activo: false })
-                    .eq('id', existe.id);
+                    .select('id')
+                    .eq('usuario_id', userId)
+                    .eq('nombre_red', nombreRed)
+                    .maybeSingle();
                 
-                if (error) throw error;
+                if (existe) {
+                    const { error } = await window.supabase
+                        .from('redes_sociales')
+                        .update({ activo: false, updated_at: new Date().toISOString() })
+                        .eq('id', existe.id);
+                    
+                    if (error) {
+                        console.error(`Error desactivando ${nombreRed}:`, error);
+                    }
+                }
+            } catch (error) {
+                console.error(`Error desactivando ${nombreRed}:`, error);
             }
         }
     }
@@ -240,10 +281,14 @@ async function guardarRedesSociales(userId) {
 // Función para activar/desactivar una red social
 function toggleRedSocial(red, forzarEstado = null) {
     const elemento = document.getElementById(`redes${capitalizeFirstLetter(red)}`);
+    if (!elemento) return;
+    
     const toggleBtn = elemento.querySelector('.btn-toggle-red');
     const statusIndicator = document.getElementById(`status${capitalizeFirstLetter(red)}`);
     const statusText = document.getElementById(`statusText${capitalizeFirstLetter(red)}`);
     const input = document.getElementById(`input${capitalizeFirstLetter(red)}`);
+    
+    if (!toggleBtn || !statusIndicator || !statusText || !input) return;
     
     if (forzarEstado !== null) {
         // Forzar estado específico
@@ -285,9 +330,13 @@ function toggleRedSocial(red, forzarEstado = null) {
 // Función para actualizar el estado visual de una red social
 function actualizarEstadoRed(red, url) {
     const elemento = document.getElementById(`redes${capitalizeFirstLetter(red)}`);
+    if (!elemento) return;
+    
     const toggleBtn = elemento.querySelector('.btn-toggle-red');
     const statusIndicator = document.getElementById(`status${capitalizeFirstLetter(red)}`);
     const statusText = document.getElementById(`statusText${capitalizeFirstLetter(red)}`);
+    
+    if (!toggleBtn || !statusIndicator || !statusText) return;
     
     if (toggleBtn.classList.contains('active')) {
         if (url && url.trim() !== '') {
@@ -320,15 +369,63 @@ function limpiarRedes() {
             
             redesSoportadas.forEach(nombreRed => {
                 const input = document.getElementById(`input${capitalizeFirstLetter(nombreRed)}`);
-                input.value = '';
+                if (input) {
+                    input.value = '';
+                }
                 toggleRedSocial(nombreRed, false);
             });
             
-            mostrarAlerta('success', 'Todas las redes sociales han sido limpiadas');
+            mostrarAlertaRedes('success', 'Todas las redes sociales han sido limpiadas');
         }
     });
 }
 
-function capitalizeFirstLetter(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
+function mostrarAlertaRedes(tipo, mensaje) {
+    // Usar las alertas existentes en la página o SweetAlert como fallback
+    const alertSuccess = document.getElementById('alertSuccess');
+    const alertError = document.getElementById('alertError');
+    
+    if (alertSuccess && alertError) {
+        // Usar el sistema de alertas de configuracion.js
+        if (typeof window.mostrarAlerta === 'function') {
+            window.mostrarAlerta(tipo, mensaje);
+        } else {
+            // Fallback directo
+            if (tipo === 'success') {
+                alertSuccess.innerHTML = `<i class="fas fa-check-circle"></i> ${mensaje}`;
+                alertSuccess.style.display = 'flex';
+                alertError.style.display = 'none';
+                setTimeout(() => {
+                    alertSuccess.style.display = 'none';
+                }, 5000);
+            } else {
+                alertError.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${mensaje}`;
+                alertError.style.display = 'flex';
+                alertSuccess.style.display = 'none';
+            }
+        }
+    } else {
+        // Usar SweetAlert
+        if (tipo === 'success') {
+            Swal.fire({
+                icon: 'success',
+                title: 'Éxito',
+                text: mensaje,
+                timer: 3000
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: mensaje
+            });
+        }
+    }
 }
+
+function capitalizeFirstLetter(string) {
+    return string ? string.charAt(0).toUpperCase() + string.slice(1) : '';
+}
+
+// Exportar funciones para uso global
+window.initRedesSociales = initRedesSociales;
