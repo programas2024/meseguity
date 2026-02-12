@@ -6,3 +6,8 @@
     <script src="modulos/vip-historial.js"></script>
     <script src="modulos/vip-temporizador.js"></script>
     <script src="modulos/vip-utilidades.js"></script>
+
+
+    superhtml
+
+    superhtmlpro
