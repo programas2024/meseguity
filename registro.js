@@ -1,7 +1,7 @@
 // registro.js - Adaptado para tu tabla de Supabase
 
 // Importar Supabase dinámicamente
-let supabase = null;
+let supabaseClient = null;
 
 async function initSupabase() {
     try {
@@ -12,10 +12,10 @@ async function initSupabase() {
         console.log('🔗 Conectando a Supabase...');
         const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
         
-        supabase = createClient(window.SUPABASE_CONFIG.url, window.SUPABASE_CONFIG.key);
+        supabaseClient = createClient(window.SUPABASE_CONFIG.url, window.SUPABASE_CONFIG.key);
         
         // Verificar conexión
-        const { data, error } = await supabase.from('usuarios').select('count', { count: 'exact', head: true });
+        const { data, error } = await supabaseClient.from('usuarios').select('count', { count: 'exact', head: true });
         
         if (error) {
             console.error('❌ Error conectando a Supabase:', error);
@@ -23,7 +23,7 @@ async function initSupabase() {
         }
         
         console.log('✅ Supabase conectado correctamente');
-        return supabase;
+        return supabaseClient;
         
     } catch (error) {
         console.error('❌ Error inicializando Supabase:', error);

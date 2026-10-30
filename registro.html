@@ -416,7 +416,7 @@
     // Configuración Supabase
     const supabaseUrl = 'https://enmiomqkkdlmodrjmfak.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVubWlvbXFra2RsbW9kcmptZmFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MDA0OTEsImV4cCI6MjA4MDk3NjQ5MX0.HeiJGnnkUjutlZkMTopFK7AIRZzRLxBTXvWk96OcAxg';
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
     // Función para mostrar SweetAlert de Messenger
     function showMessengerAlert(options) {
@@ -550,7 +550,7 @@
                     const redirectUrl = 'https://programas2024.github.io/meseguity/index.html';
                     
                     // 1. PRIMERO: Crear usuario en Supabase Auth
-                    const { data: authData, error: authError } = await supabase.auth.signUp({
+                    const { data: authData, error: authError } = await supabaseClient.auth.signUp({
                         email: email,
                         password: contrasena,
                         options: {
@@ -602,7 +602,7 @@
                     console.log('📤 Enviando a tabla usuarios:', userData);
 
                     // Intentar insertar en la tabla usuarios
-                    const { data: dbData, error: insertError } = await supabase
+                    const { data: dbData, error: insertError } = await supabaseClient
                         .from('usuarios')
                         .insert([userData])
                         .select();
@@ -615,7 +615,7 @@
                             console.log('⚠️ Email ya existe, intentando actualizar...');
                             
                             // Intentar actualizar el registro existente
-                            const { error: updateError } = await supabase
+                            const { error: updateError } = await supabaseClient
                                 .from('usuarios')
                                 .update({
                                     nombre: nombre,
@@ -644,7 +644,7 @@
                     }
 
                     // 3. VERIFICAR que los datos están en la base de datos
-                    const { data: verifyData, error: verifyError } = await supabase
+                    const { data: verifyData, error: verifyError } = await supabaseClient
                         .from('usuarios')
                         .select('*')
                         .eq('email', email)

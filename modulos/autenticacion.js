@@ -160,7 +160,7 @@ const Autenticacion = {
                 }
                 
                 const nuevoUsuario = {
-                    id: user.id,
+                   
                     email: user.email,
                     password_hash: "", // Vacío para OAuth
                     nombre: nombre,
@@ -172,7 +172,7 @@ const Autenticacion = {
                     tipo_cuenta: "personal",
                     confirmado: true,
                     avatar_url: user.user_metadata?.avatar_url || null,
-                    created_at: new Date().toISOString()
+                    
                 };
                 
                 console.log("📝 Creando usuario:", nuevoUsuario);

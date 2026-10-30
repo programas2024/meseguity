@@ -99,6 +99,7 @@ const Mensajes = {
     },
 
     mostrarModalDetalle(mensaje) {
+        this.mensajeActual = mensaje;
         const nombreRemitente = mensaje.remitente 
             ? `${mensaje.remitente.nombre} ${mensaje.remitente.apellidos}`
             : 'Sistema Messery';
@@ -168,6 +169,57 @@ const Mensajes = {
         if (modal) {
             modal.style.display = 'none';
             document.body.style.overflow = 'auto';
+        }
+    },
+
+    responderMensaje() {
+        if (!this.mensajeActual) return;
+
+        this.cerrarModal();
+
+        if (window.Interfaz && window.Interfaz.mostrarSeccion) {
+            window.Interfaz.mostrarSeccion('seccionNuevoMensaje');
+        }
+
+        const destinatario = document.getElementById('destinatario');
+        const asunto = document.getElementById('asunto');
+        const contenido = document.getElementById('contenido');
+
+        if (destinatario) destinatario.value = this.mensajeActual.remitente?.email || '';
+        if (asunto) asunto.value = `Re: ${this.mensajeActual.asunto || ''}`;
+        if (contenido) {
+            contenido.value = `\n\n--- Mensaje original ---\n${this.mensajeActual.contenido || ''}`;
+            contenido.focus();
+        }
+    },
+
+    async eliminarMensaje() {
+        if (!this.mensajeActual) return;
+
+        const confirmacion = await window.Utilidades.mostrarConfirmacion(
+            '¿Eliminar mensaje?',
+            'Esta acción no se puede deshacer',
+            'Sí, eliminar'
+        );
+
+        if (!confirmacion.isConfirmed) return;
+
+        try {
+            const { error } = await window.supabase
+                .from('mensajes')
+                .delete()
+                .eq('id', this.mensajeActual.id);
+
+            if (error) throw error;
+
+            this.cerrarModal();
+            await this.cargarBandejaEntrada();
+            await this.actualizarContadorNoLeidos();
+
+            window.Utilidades.mostrarAlerta('Mensaje eliminado', 'El mensaje ha sido eliminado', 'success');
+        } catch (error) {
+            console.error('Error al eliminar mensaje:', error);
+            window.Utilidades.mostrarAlerta('Error', 'No se pudo eliminar el mensaje', 'error');
         }
     },
 

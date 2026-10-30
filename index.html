@@ -44,8 +44,8 @@
 
     <script>
         const supabaseUrl = 'https://enmiomqkkdlmodrjmfak.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVubWlvbXFra2RsbW9kcmptZmFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MDA0OTEsImV4cCI6MjA4MDk3NjQ5MX0.HeiJGnnkUjutlZkMTopFK7AIRZzRLxBTXvWk96OcAxg';
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVubWlvbXFra2RsbW9kcmptZmFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MDA0OTEsImV4cCI6MjA4MDk3NjQ5MX0.HeiJGnnkUjutlZkMTopFK7AIRZzRLxBTXvWk96OcAxg';
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
         const loginForm = document.getElementById("loginForm");
 
       // ----------------- LOGIN NORMAL (email + contraseña) -----------------
@@ -55,7 +55,7 @@
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
 
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
             email: email,
             password: password
         });
@@ -80,17 +80,17 @@
 
     // ------------ FUNCIÓN PARA INSERTAR USUARIO EN TABLA ---------------
     async function registrarUsuarioSiNoExiste() {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await supabaseClient.auth.getUser();
         if (!user) return;
 
-        const { data: existe } = await supabase
+        const { data: existe } = await supabaseClient
             .from("usuarios")
             .select("id")
             .eq("id_auth", user.id)
             .maybeSingle();
 
         if (!existe) {
-            await supabase
+            await supabaseClient
                 .from("usuarios")
                 .insert({
                     id_auth: user.id,
@@ -105,7 +105,7 @@
 
     // ---------------- LOGIN CON GITHUB ----------------
     async function loginWithGithub() {
-        const { data, error } = await supabase.auth.signInWithOAuth({
+        const { data, error } = await supabaseClient.auth.signInWithOAuth({
             provider: "github",
             options: {
                 redirectTo: "https://programas2024.github.io/meseguity/principal.html"
