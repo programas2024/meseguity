@@ -2,131 +2,360 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Iniciar Sesión</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Meseguity | Iniciar sesión</title>
 
-    <!-- FontAwesome (icono de GitHub) -->
+    <meta name="theme-color" content="#2C3E50">
+    <meta name="description" content="Plataforma de mensajería con juegos, comunidades y desarrollo de habilidades">
+
+    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
+    <!-- SweetAlert -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <!-- Estilos de la aplicación -->
     <link rel="stylesheet" href="assets/estilos.css" />
+    <link rel="stylesheet" href="assets/inforlogin.css" />
+    <link rel="stylesheet" href="assets/ayuda.css" />
 </head>
 
 <body>
-    <div class="login-container">
-        <h2>Iniciar Sesión</h2>
-
-        <form id="loginForm">
-            <label>Email</label>
-            <input type="email" id="email" placeholder="Ingresa tu correo" required />
-
-            <label>Contraseña</label>
-            <input type="password" id="password" placeholder="Ingresa tu contraseña" required />
-
-            <button type="submit" class="btn-submit">Entrar</button>
-        </form>
-
-        <hr />
-
-        <!-- BOTÓN LOGIN CON GITHUB -->
-        <button id="githubLogin" class="btn-submit" style="background:#333;">
-            <i class="fab fa-github"></i>
-            Ingresar con GitHub
-        </button>
-
-        <p>¿No tienes cuenta? <a href="./registro.html">Registrarse</a></p>
+    <!-- Fondo animado -->
+    <div class="background-animation" aria-hidden="true">
+        <span class="bubble"></span>
+        <span class="bubble"></span>
+        <span class="bubble"></span>
+        <span class="bubble"></span>
     </div>
 
-    <!-- SweetAlert -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <main class="login-container">
+        <!-- Botón de información -->
+        <button class="info-button" id="infoButton" type="button" aria-label="Más información">
+            <i class="fas fa-info"></i>
+        </button>
 
-    <!-- Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+        <!-- Logo y título -->
+        <div class="logo-container">
+            <div class="logo">
+                <i class="fas fa-comment-dots"></i>
+                <span>Meseguity</span>
+            </div>
+            <p class="tagline">Conecta, juega y descubre con amigos alrededor del mundo</p>
+        </div>
+
+        <h2>Iniciar Sesión</h2>
+
+        <!-- Formulario -->
+        <form id="loginForm" novalidate>
+            <!-- Campo Email -->
+            <div class="form-group">
+                <label for="email">
+                    <i class="fas fa-envelope"></i> Correo Electrónico
+                </label>
+                <div class="input-wrapper">
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        class="input-field email-field"
+                        placeholder="ejemplo@correo.com"
+                        autocomplete="email"
+                        required
+                    />
+                    <i class="fas fa-envelope input-icon" aria-hidden="true"></i>
+                </div>
+            </div>
+
+            <!-- Campo Contraseña -->
+            <div class="form-group">
+                <label for="password">
+                    <i class="fas fa-key"></i> Contraseña
+                </label>
+                <div class="password-container">
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        class="input-field password-input password-field"
+                        placeholder="Ingresa tu contraseña"
+                        autocomplete="current-password"
+                        required
+                    />
+                    <button
+                        type="button"
+                        class="password-toggle-btn"
+                        id="togglePassword"
+                        data-tooltip="Mostrar contraseña"
+                        aria-label="Mostrar u ocultar contraseña"
+                    >
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+
+                <!-- Indicador de fortaleza -->
+                <div class="password-strength hidden" id="passwordStrength">
+                    <div class="strength-meter"></div>
+                    <div class="strength-text"></div>
+                </div>
+            </div>
+
+            <!-- Botón de submit -->
+            <button type="submit" class="btn-submit" id="btnLogin">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>Ingresar a la Plataforma</span>
+            </button>
+        </form>
+
+        <!-- Separador -->
+        <div class="divider">
+            <span>O ingresa con</span>
+        </div>
+
+        <!-- Botón GitHub -->
+        <button id="githubLogin" class="btn-submit" type="button">
+            <i class="fab fa-github"></i>
+            <span>Continuar con GitHub</span>
+        </button>
+
+        <!-- Enlaces -->
+        <div class="links">
+            <a href="registro.html" class="link-item">
+                <i class="fas fa-user-plus"></i>
+                Crear cuenta nueva
+            </a>
+            <a href="#" class="link-item" id="forgotPassword">
+                <i class="fas fa-question-circle"></i>
+                Recuperar contraseña
+            </a>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <span class="security-badge">
+                <i class="fas fa-shield-alt"></i>
+                Conexión segura
+            </span>
+            <p class="mt-2" style="font-size: 12px; color: #999;">
+                <i class="fas fa-heart"></i> Diseñado para conectar personas de forma divertida
+            </p>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="modulos/conexion-supabase2.js"></script>
+    <script src="modulos/informlogin.js"></script>
+    <script src="modulos/password-toggle.js"></script>
+    <script src="modulos/ayulogin.js"></script>
 
     <script>
-        const supabaseUrl = 'https://enmiomqkkdlmodrjmfak.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVubWlvbXFra2RsbW9kcmptZmFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MDA0OTEsImV4cCI6MjA4MDk3NjQ5MX0.HeiJGnnkUjutlZkMTopFK7AIRZzRLxBTXvWk96OcAxg';
-        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
-        const loginForm = document.getElementById("loginForm");
+    (function () {
+        'use strict';
 
-      // ----------------- LOGIN NORMAL (email + contraseña) -----------------
-    loginForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
+        const getClient = () => window.supabaseClient || null;
 
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
-
-        const { data, error } = await supabaseClient.auth.signInWithPassword({
-            email: email,
-            password: password
-        });
-
-        if (error) {
-            Swal.fire({ title: "Error", text: error.message, icon: "error" });
-            return;
+        function getRedirectBase() {
+            return window.location.origin + window.location.pathname.replace(/[^/]*$/, '');
         }
 
-        Swal.fire({
-            title: "Bienvenido",
-            text: "Inicio de sesión exitoso",
-            icon: "success",
-            timer: 1500,
-            showConfirmButton: false
-        });
+        // Redirigir si el enlace apunta a una publicación compartida
+        function procesarParametrosURL() {
+            const params = new URLSearchParams(window.location.search);
+            const publicacionId = params.get('publicacion');
+            const section = params.get('section');
 
-        setTimeout(() => {
-            window.location.href = "./principal.html";
-        }, 1500);
-    });
-
-    // ------------ FUNCIÓN PARA INSERTAR USUARIO EN TABLA ---------------
-    async function registrarUsuarioSiNoExiste() {
-        const { data: { user } } = await supabaseClient.auth.getUser();
-        if (!user) return;
-
-        const { data: existe } = await supabaseClient
-            .from("usuarios")
-            .select("id")
-            .eq("id_auth", user.id)
-            .maybeSingle();
-
-        if (!existe) {
-            await supabaseClient
-                .from("usuarios")
-                .insert({
-                    id_auth: user.id,
-                    email: user.email,
-                    nombre: user.user_metadata.full_name ?? null,
-                    avatar: user.user_metadata.avatar_url ?? null,
-                    proveedor: user.app_metadata.provider,
-                    creado_en: new Date()
-                });
-        }
-    }
-
-    // ---------------- LOGIN CON GITHUB ----------------
-    async function loginWithGithub() {
-        const { data, error } = await supabaseClient.auth.signInWithOAuth({
-            provider: "github",
-            options: {
-                redirectTo: "https://programas2024.github.io/meseguity/principal.html"
+            if (publicacionId && section === 'publicaciones') {
+                window.location.href = `view.html?id=${encodeURIComponent(publicacionId)}`;
+                return true;
             }
-        });
+            return false;
+        }
 
-        if (error) {
+        function mostrarErrorLogin(error) {
+            const mensaje = error && error.message ? error.message : 'Error desconocido';
+            let texto = mensaje;
+
+            if (mensaje.includes('Invalid login credentials')) {
+                texto = 'Credenciales incorrectas. Verifica tu email y contraseña.';
+            } else if (mensaje.includes('Email not confirmed')) {
+                texto = 'Por favor confirma tu email antes de iniciar sesión.';
+            } else if (mensaje.includes('User not found') || mensaje.includes('Email not found')) {
+                texto = 'Usuario no encontrado. ¿Estás registrado?';
+            } else if (mensaje.toLowerCase().includes('too many requests')) {
+                texto = 'Demasiados intentos. Por favor espera unos minutos.';
+            }
+
             Swal.fire({
-                title: "Error con GitHub",
-                text: error.message,
-                icon: "error"
+                title: 'Error en el inicio de sesión',
+                text: texto,
+                icon: 'error',
+                confirmButtonText: 'Entendido'
             });
         }
 
-        // 👇 Importante: al volver desde GitHub, ejecutamos esto
-        setTimeout(registrarUsuarioSiNoExiste, 2000);
-    }
+        document.addEventListener('DOMContentLoaded', async function () {
+            if (procesarParametrosURL()) return;
 
-    // Activar botón GitHub
-    const githubBtn = document.getElementById("githubLogin");
-    githubBtn.addEventListener("click", loginWithGithub);
+            const supabase = getClient();
+
+            if (!supabase) {
+                console.error('Supabase no está disponible');
+                Swal.fire({
+                    title: 'Error de configuración',
+                    text: 'No se pudo cargar el sistema de autenticación. Por favor recarga la página.',
+                    icon: 'error'
+                });
+                return;
+            }
+
+            const loginForm = document.getElementById('loginForm');
+            const btnLogin = document.getElementById('btnLogin');
+            const githubBtn = document.getElementById('githubLogin');
+            const forgotLink = document.getElementById('forgotPassword');
+
+            // ----------------- VERIFICAR SESIÓN ACTIVA -----------------
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    Swal.fire({
+                        title: 'Ya estás autenticado',
+                        text: 'Serás redirigido a la página principal...',
+                        icon: 'info',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    setTimeout(() => { window.location.href = 'principal.html'; }, 2000);
+                    return;
+                }
+            } catch (error) {
+                console.warn('No se pudo verificar la sesión:', error);
+            }
+
+            // ----------------- LOGIN NORMAL -----------------
+            loginForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+
+                if (!email || !password) {
+                    Swal.fire({
+                        title: 'Campos vacíos',
+                        text: 'Por favor ingresa tu correo y contraseña.',
+                        icon: 'warning'
+                    });
+                    return;
+                }
+
+                const textoOriginal = btnLogin.innerHTML;
+                btnLogin.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Verificando...</span>';
+                btnLogin.disabled = true;
+
+                try {
+                    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+                    if (error) {
+                        mostrarErrorLogin(error);
+                        return;
+                    }
+
+                    await new Promise((resolve) => setTimeout(resolve, 400));
+
+                    Swal.fire({
+                        title: '¡Bienvenido!',
+                        text: `Inicio de sesión exitoso para ${data.user.email}`,
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+
+                    setTimeout(() => { window.location.href = 'principal.html'; }, 1500);
+                } catch (error) {
+                    console.error('Error inesperado en login:', error);
+                    Swal.fire({
+                        title: 'Error inesperado',
+                        text: 'Ocurrió un error inesperado. Por favor intenta nuevamente.',
+                        icon: 'error'
+                    });
+                } finally {
+                    btnLogin.innerHTML = textoOriginal;
+                    btnLogin.disabled = false;
+                }
+            });
+
+            // ----------------- LOGIN CON GITHUB -----------------
+            githubBtn.addEventListener('click', async function () {
+                try {
+                    const redirectUrl = getRedirectBase() + 'principal.html';
+                    const { error } = await supabase.auth.signInWithOAuth({
+                        provider: 'github',
+                        options: { redirectTo: redirectUrl }
+                    });
+
+                    if (error) {
+                        console.error('Error con GitHub OAuth:', error);
+                        Swal.fire({
+                            title: 'Error con GitHub',
+                            text: error.message,
+                            icon: 'error'
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error en login con GitHub:', error);
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'No se pudo conectar con GitHub',
+                        icon: 'error'
+                    });
+                }
+            });
+
+            // ----------------- RECUPERAR CONTRASEÑA -----------------
+            if (forgotLink) {
+                forgotLink.addEventListener('click', async function (e) {
+                    e.preventDefault();
+
+                    const { value: email } = await Swal.fire({
+                        title: 'Recuperar contraseña',
+                        input: 'email',
+                        inputLabel: 'Ingresa tu correo electrónico',
+                        inputPlaceholder: 'ejemplo@correo.com',
+                        showCancelButton: true,
+                        confirmButtonText: 'Enviar enlace',
+                        cancelButtonText: 'Cancelar',
+                        confirmButtonColor: '#1a73e8'
+                    });
+
+                    if (!email) return;
+
+                    try {
+                        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                            redirectTo: getRedirectBase() + 'index.html'
+                        });
+
+                        if (error) throw error;
+
+                        Swal.fire({
+                            title: 'Correo enviado',
+                            text: 'Revisa tu bandeja de entrada para restablecer tu contraseña.',
+                            icon: 'success'
+                        });
+                    } catch (error) {
+                        console.error('Error al recuperar contraseña:', error);
+                        Swal.fire({
+                            title: 'Error',
+                            text: error.message || 'No se pudo enviar el correo de recuperación.',
+                            icon: 'error'
+                        });
+                    }
+                });
+            }
+
+            console.log('Index.html configurado correctamente');
+        });
+    })();
     </script>
 </body>
 </html>

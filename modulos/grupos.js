@@ -321,51 +321,156 @@ configurarEventosArchivosChat() {
     });
 },
     mostrarSolicitudPendiente(grupo, estado) {
-        const infoGrupo = document.getElementById('infoGrupo');
-        const chatGrupo = document.getElementById('chatGrupo');
-        const formMensaje = document.querySelector('.grupo-form-mensaje');
-        
-        // Ocultar formulario de mensajes
-        if (formMensaje) formMensaje.style.display = 'none';
-        
-        infoGrupo.innerHTML = `
-            <div style="text-align: center; padding: 40px 20px;">
-                <div class="grupo-avatar" style="width: 100px; height: 100px; font-size: 40px; margin: 0 auto 20px;">
+    const infoGrupo = document.getElementById('infoGrupo');
+    const chatGrupo = document.getElementById('chatGrupo');
+    const formMensaje = document.querySelector('.grupo-form-mensaje');
+    
+    // Ocultar formulario de mensajes
+    if (formMensaje) formMensaje.style.display = 'none';
+    
+    // Colores según estado
+    const estadosConfig = {
+        'pendiente': {
+            color: '#FF9800',
+            bgColor: '#FFF3E0',
+            icon: '📨',
+            title: 'Invitación Pendiente',
+            message: 'Has sido invitado a este grupo. ¿Deseas unirte?'
+        },
+        'rechazado': {
+            color: '#F44336',
+            bgColor: '#FFEBEE',
+            icon: '❌',
+            title: 'Invitación Rechazada',
+            message: 'Has rechazado la invitación a este grupo.'
+        },
+        'aceptado': {
+            color: '#4CAF50',
+            bgColor: '#E8F5E9',
+            icon: '✅',
+            title: 'Invitación Aceptada',
+            message: '¡Bienvenido al grupo! Ya puedes participar.'
+        }
+    };
+    
+    const config = estadosConfig[estado] || estadosConfig.pendiente;
+    
+    infoGrupo.innerHTML = `
+        <div class="grupo-solicitud-container">
+            <!-- Header del Grupo -->
+            <div class="grupo-solicitud-header">
+                <div class="grupo-avatar-solicitud">
                     ${grupo.nombre.substring(0, 2).toUpperCase()}
                 </div>
-                <h3 style="margin-bottom: 10px;">${grupo.nombre}</h3>
-                <p style="color: #666; margin-bottom: 20px;">${grupo.descripcion || 'Sin descripción'}</p>
-                
-                ${estado === 'pendiente' ? `
-                    <div style="background: #fff3e0; border: 1px solid #ff9800; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
-                        <h4 style="color: #ff9800; margin-bottom: 10px;">📨 Invitación Pendiente</h4>
-                        <p>Has sido invitado a este grupo. ¿Deseas unirte?</p>
-                        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
-                            <button class="btn-primary" onclick="Grupos.aceptarInvitacionGrupo('${grupo.id}')">
-                                <i class="fas fa-check"></i> Aceptar
+                <div class="grupo-solicitud-info">
+                    <h1 class="grupo-solicitud-nombre">${grupo.nombre}</h1>
+                    <p class="grupo-solicitud-descripcion">
+                        ${grupo.descripcion || 'Sin descripción'}
+                    </p>
+                    <div class="grupo-solicitud-metadata">
+                        <span class="grupo-metadata-item">
+                            <i class="fas fa-users"></i> ${grupo.miembros || 0} miembros
+                        </span>
+                        <span class="grupo-metadata-item">
+                            <i class="fas fa-calendar-alt"></i> Invitación enviada
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tarjeta de Estado -->
+            <div class="grupo-solicitud-card" style="--estado-color: ${config.color}; --estado-bg: ${config.bgColor};">
+                <div class="solicitud-card-icon">
+                    ${config.icon}
+                </div>
+                <div class="solicitud-card-content">
+                    <h3 class="solicitud-card-title">${config.title}</h3>
+                    <p class="solicitud-card-message">${config.message}</p>
+                    
+                    <!-- Acciones según estado -->
+                    ${estado === 'pendiente' ? `
+                        <div class="solicitud-acciones">
+                            <button class="btn btn-aceptar-destacado" 
+                                    onclick="Grupos.aceptarInvitacionGrupo('${grupo.id}')">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Aceptar Invitación</span>
                             </button>
-                            <button class="btn-secondary" onclick="Grupos.rechazarInvitacionGrupo('${grupo.id}')">
-                                <i class="fas fa-times"></i> Rechazar
+                            <button class="btn btn-rechazar" 
+                                    onclick="Grupos.mostrarConfirmacionRechazo('${grupo.id}', '${grupo.nombre}')">
+                                <i class="fas fa-times-circle"></i>
+                                <span>Rechazar</span>
                             </button>
                         </div>
-                    </div>
-                ` : estado === 'rechazado' ? `
-                    <div style="background: #ffebee; border: 1px solid #f44336; border-radius: 10px; padding: 20px;">
-                        <h4 style="color: #f44336; margin-bottom: 10px;">❌ Invitación Rechazada</h4>
-                        <p>Has rechazado la invitación a este grupo.</p>
-                    </div>
-                ` : ''}
-                
-                <button class="btn-secondary" onclick="window.Interfaz.mostrarSeccion('seccionMisGrupos')" style="margin-top: 20px;">
-                    <i class="fas fa-arrow-left"></i> Volver a Mis Grupos
+                        <p class="solicitud-advertencia">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Nota:</strong> Al rechazar, perderás el acceso a esta invitación
+                        </p>
+                    ` : ''}
+                    
+                    ${estado === 'rechazado' ? `
+                        <div class="solicitud-acciones">
+                            <button class="btn btn-reconsiderar" 
+                                    onclick="Grupos.reconsiderarInvitacion('${grupo.id}')">
+                                <i class="fas fa-redo"></i>
+                                <span>Reconsiderar Decisión</span>
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+            
+            <!-- Botón de regreso -->
+            <div class="grupo-solicitud-footer">
+                <button class="btn btn-back" onclick="window.Interfaz.mostrarSeccion('seccionMisGrupos')">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Volver a Mis Grupos</span>
                 </button>
             </div>
-        `;
-        
-        chatGrupo.innerHTML = '';
-        window.Interfaz.mostrarSeccion('seccionDetalleGrupo');
-    },
+        </div>
+    `;
+    
+    chatGrupo.innerHTML = '';
+    window.Interfaz.mostrarSeccion('seccionDetalleGrupo');
+},
 
+// Nueva función para mostrar confirmación de rechazo
+mostrarConfirmacionRechazo(grupoId, grupoNombre) {
+    Swal.fire({
+        title: '¿Estás seguro?',
+        html: `
+            <div style="text-align: center; padding: 15px;">
+                <div style="font-size: 60px; color: #f44336; margin-bottom: 15px;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <p style="font-size: 16px; color: #555;">
+                    Estás a punto de rechazar la invitación al grupo:<br>
+                    <strong style="color: #333;">${grupoNombre}</strong>
+                </p>
+                <div style="background: #ffebee; border-left: 4px solid #f44336; padding: 12px; margin: 15px 0; text-align: left; border-radius: 4px;">
+                    <i class="fas fa-info-circle" style="color: #f44336;"></i>
+                    <span style="font-size: 14px; color: #666;">
+                        Podrás reconsiderar tu decisión más tarde
+                    </span>
+                </div>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Sí, rechazar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#f44336',
+        cancelButtonColor: '#6c757d',
+        reverseButtons: true,
+        focusCancel: true,
+        customClass: {
+            confirmButton: 'btn-rechazar-swal',
+            cancelButton: 'btn-cancelar-swal'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Grupos.rechazarInvitacionGrupo(grupoId);
+        }
+    });
+},
     async aceptarInvitacionGrupo(grupoId) {
         try {
             const { error } = await window.supabase

@@ -1,0 +1,117 @@
+/* =========================================================
+   responsive.css
+   Menú lateral off-canvas + botón hamburguesa compartido
+   para: configuracion.html, rango.html, logros.html
+   ========================================================= */
+
+.mobile-nav-toggle {
+    display: none;
+}
+
+.mobile-nav-overlay {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    body.nav-open {
+        overflow: hidden;
+    }
+
+    .app-container {
+        display: block !important;
+        height: auto !important;
+        min-height: 100dvh;
+        padding: 0 !important;
+    }
+
+    .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+        min-height: 100dvh;
+        overflow: visible !important;
+    }
+
+    .config-area {
+        overflow: visible !important;
+    }
+
+    /* Barra lateral como panel deslizante */
+    .sidebar {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        bottom: 0 !important;
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        width: 290px !important;
+        max-width: 86vw !important;
+        margin: 0 !important;
+        z-index: 1200;
+        transform: translateX(-105%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow-y: auto !important;
+        border-right: none;
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.35);
+        will-change: transform;
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    /* Botón hamburguesa */
+    .mobile-nav-toggle {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        flex: 0 0 auto;
+        padding: 0;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        font-size: 18px;
+        line-height: 1;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .mobile-nav-toggle:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(102, 126, 234, 0.45);
+    }
+
+    .mobile-nav-toggle:active {
+        transform: scale(0.96);
+    }
+
+    /* Fondo oscuro al abrir el menú */
+    .mobile-nav-overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.55);
+        -webkit-backdrop-filter: blur(2px);
+        backdrop-filter: blur(2px);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+        z-index: 1100;
+    }
+
+    .mobile-nav-overlay.visible {
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+@media (min-width: 901px) {
+    .mobile-nav-toggle,
+    .mobile-nav-overlay {
+        display: none !important;
+    }
+}

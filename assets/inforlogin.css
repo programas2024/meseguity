@@ -1,0 +1,194 @@
+/* Estilos mejorados para el botón de información */
+.info-button {
+    position: fixed;
+    top: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #8E44AD, #3498DB);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    box-shadow: 0 10px 30px rgba(142, 68, 173, 0.4);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 9999;
+    animation: floating 3s ease-in-out infinite;
+}
+
+.info-button:hover {
+    transform: scale(1.15) rotate(360deg);
+    box-shadow: 0 15px 40px rgba(142, 68, 173, 0.6);
+    background: linear-gradient(135deg, #3498DB, #8E44AD);
+}
+
+.info-button:active {
+    transform: scale(0.95);
+}
+
+@keyframes floating {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-10px) rotate(5deg);
+    }
+}
+
+/* Efecto de brillo adicional */
+.info-button::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    animation: ripple 2s infinite;
+}
+
+@keyframes ripple {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+}
+
+/* Para móviles */
+@media (max-width: 768px) {
+    .info-button {
+        top: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        font-size: 22px;
+    }
+}
+
+/* Fondo animado de partículas */
+.particles-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.particle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(142, 68, 173, 0.2);
+    animation: floatParticle 15s infinite linear;
+}
+
+@keyframes floatParticle {
+    0% {
+        transform: translateY(100vh) translateX(0) rotate(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 0.5;
+    }
+    90% {
+        opacity: 0.5;
+    }
+    100% {
+        transform: translateY(-100px) translateX(calc(100vw * var(--random-x))) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+/* Estilos actualizados para el botón de información */
+.info-button {
+    position: fixed;
+    top: 25px;
+    right: 25px;
+    z-index: 1000;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    width: 60px;
+    height: 60px;
+    font-size: 22px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+        0 10px 30px rgba(102, 126, 234, 0.4),
+        0 0 0 2px rgba(255, 255, 255, 0.1) inset;
+    transition: all 0.3s ease;
+    animation: help-pulse 2s infinite;
+}
+
+.info-button:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 
+        0 15px 40px rgba(102, 126, 234, 0.6),
+        0 0 0 2px rgba(255, 255, 255, 0.2) inset;
+}
+
+.info-button:active {
+    transform: scale(0.95);
+}
+
+/* Usar la misma animación que ayuda.css */
+@keyframes help-pulse {
+    0%, 100% { 
+        transform: scale(1);
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    }
+    50% { 
+        transform: scale(1.05);
+        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+    }
+}
+
+/* Responsive para el botón */
+@media (max-width: 768px) {
+    .info-button {
+        top: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .info-button {
+        top: 15px;
+        right: 15px;
+        width: 45px;
+        height: 45px;
+        font-size: 18px;
+    }
+}
+
+/* Efecto de entrada suave */
+.floating-help-button {
+    animation: slide-in-right 0.5s ease-out 1s both;
+}
+
+/* Asegurar compatibilidad con ayuda.css */
+@keyframes slide-in-right {
+    from {
+        transform: translateX(100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
